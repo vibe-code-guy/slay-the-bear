@@ -1,0 +1,35 @@
+{
+  "name": "slay-the-bear",
+  "private": true,
+  "type": "module",
+  "description": "A memecoin and a town game on NEAR: burn $SLAY to hit the Bear, share its hoard when it dies. Every move is a NEAR transaction and every random roll comes from drand, verified on-chain.",
+  "license": "MIT",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "simulate": "tsx scripts/simulate.ts",
+    "fast-forward": "tsx scripts/fast-forward.ts",
+    "vectors": "tsx scripts/make-vectors.ts",
+    "verify:game": "tsx scripts/verify-game.ts",
+    "verify:live": "tsx scripts/verify-live.ts",
+    "demo": "npm run dev -w apps/web",
+    "build:web": "npm run build -w apps/web",
+    "test:contract": "cargo test --manifest-path contracts/game/Cargo.toml"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.3",
+    "vitest": "^5.1.0"
+  },
+  "allowScripts": {
+    "esbuild@0.28.2": true
+  }
+}

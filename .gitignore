@@ -1,0 +1,31 @@
+# dependencies
+node_modules/
+
+# builds
+dist/
+.next/
+out/
+target/
+*.tsbuildinfo
+next-env.d.ts
+
+# secrets and local credentials: never commit
+.env
+.env.*
+!.env.example
+*.key
+credentials/
+.near-credentials/
+scripts/.accounts/
+
+# simulation output
+sim-out/
+
+# editors and OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# vercel
+.vercel
