@@ -32,7 +32,8 @@ function toBase64(bytes: Uint8Array): string {
   return btoa(s);
 }
 
-const GAS: Record<string, number> = { settle: 80, hit: 30, claim: 30, craft: 30 };
+// Settling reads every raider (up to 300); the rest are small. Unused gas is refunded.
+const GAS: Record<string, number> = { settle: 150, hit: 30, claim: 30, craft: 30 };
 
 export async function createLiveBackend(): Promise<Backend> {
   const provider = new JsonRpcProvider({ url: RPC_URL });

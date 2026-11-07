@@ -1,0 +1,14 @@
+{
+  "contractId": "town.slaythebear.testnet",
+  "network": "testnet",
+  "preset": "quick",
+  "codeHash": "AgzkaQz7jKRUj7JLh9uEWDJvKhBt3nPykJYnHeMNSh5p",
+  "wasmBytes": 372602,
+  "deployedAt": "2026-11-07T22:32:24.660Z",
+  "deployer": "slaythebear.testnet",
+  "txs": {
+    "createAccount": "DKS18H7HmeLunpuBth8VXdgsb7LeJeoxKNYxJjKKCKc5",
+    "deployAndInit": "a2i2fBA3izQiBB31qgzZjiqH8LJBFtfHUFwvbwhirwU"
+  },
+  "locked": false
+}

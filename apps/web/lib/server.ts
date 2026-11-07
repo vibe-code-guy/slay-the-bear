@@ -24,7 +24,7 @@ export const RELAYABLE = new Set([
   "sell_to_smith",
   "settle",
 ]);
-const MAX_GAS = 100n * 10n ** 12n;
+const MAX_GAS = 200n * 10n ** 12n;
 const GUEST_RE = new RegExp(`^p-[a-z0-9]{8}\\.${ROOT.replace(/\./g, "\\.")}$`);
 
 export function relayer(): Account {

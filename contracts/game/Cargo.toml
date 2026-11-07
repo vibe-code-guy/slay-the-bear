@@ -9,11 +9,13 @@ repository = "https://github.com/vibe-code-guy/slay-the-bear"
 [lib]
 crate-type = ["cdylib", "rlib"]
 
+# `cargo near build reproducible-wasm` builds inside this pinned image, so anyone can rebuild the
+# exact wasm from a commit and compare its hash with the deployed code hash.
 [package.metadata.near.reproducible_build]
-image = "sourcescan/cargo-near:0.22.0-rust-1.92.0"
-image_digest = ""
+image = "sourcescan/cargo-near:0.22.0-rust-1.99.1"
+image_digest = "sha256:c9655eaf7436b90c87ea8b25739f91063032c5c30ba24cfeafe72c142943b5bb"
 passed_env = []
-container_build_command = ["cargo", "near", "build", "non-reproducible-wasm", "--locked"]
+container_build_command = ["cargo", "near", "build", "non-reproducible-wasm", "--locked", "--no-abi"]
 
 [dependencies]
 near-sdk = "5.30.1"

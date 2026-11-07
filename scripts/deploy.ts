@@ -9,7 +9,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { KeyPair, actions, nearToYocto, teraToGas } from "near-api-js";
-import { DEMO_CONFIG, SEASON_CONFIG, describeConfig, toContractConfig } from "../packages/rules/src/index";
+import { DEMO_CONFIG, QUICK_CONFIG, SEASON_CONFIG, describeConfig, toContractConfig } from "../packages/rules/src/index";
 import {
   REPO_ROOT,
   account,
@@ -40,7 +40,7 @@ async function main() {
   const preset = arg("preset", "demo");
   const fund = arg("near", "6") as `${number}`;
   const game = `${name}.${root}`;
-  const config = preset === "season" ? SEASON_CONFIG : preset === "demo" ? DEMO_CONFIG : undefined;
+  const config = { season: SEASON_CONFIG, demo: DEMO_CONFIG, quick: QUICK_CONFIG }[preset];
   if (!config) throw new Error(`unknown preset ${preset}`);
 
   const wasm = readFileSync(WASM);

@@ -152,6 +152,8 @@ function base(roundSecs: bigint, minHealth: bigint): GameConfig {
 
 /** Demo instance: 10-minute rounds so a judge can watch a whole raid, and win one alone. */
 export const DEMO_CONFIG: GameConfig = base(600n, 500n * ONE);
+/** The public town: 5-minute raids, so a visitor sees a whole raid in one sitting. */
+export const QUICK_CONFIG: GameConfig = base(300n, 500n * ONE);
 /** Season instance: one raid a day. */
 export const SEASON_CONFIG: GameConfig = base(86_400n, 2_000n * ONE);
 

@@ -28,7 +28,7 @@ export async function keeperTick(client: GameClient, keeper: Account, nowMs = Da
       contractId: client.contractId,
       methodName: "settle",
       args: { round_id: r.id, beacon_round: Number(target), signature: beacon.signature },
-      gas: teraToGas(60),
+      gas: teraToGas(150),
     });
     return [{ agent: "keeper", message: `settled round ${r.id} with drand round ${target}`, tx: txHashOf(res) }];
   } catch (e) {
