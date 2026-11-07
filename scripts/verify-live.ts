@@ -1,5 +1,5 @@
 // Check that a deployed game runs the code in this repository, and that nobody can change it.
-//   npm run verify:live -- --game town.slaythebear.testnet [--wasm contracts/game/target/near/slay_game.wasm]
+//   npm run verify:live -- --game game.slaythebear.testnet [--wasm contracts/game/target/near/slay_game.wasm]
 // Build the wasm first with `cargo near build reproducible-wasm` (in contracts/game) to compare
 // against a reproducible build of the current commit.
 import { existsSync, readFileSync } from "node:fs";
@@ -15,7 +15,7 @@ const line = (ok: boolean, text: string) => {
 };
 
 async function main() {
-  const game = arg("game", process.env.GAME_ID ?? "town.slaythebear.testnet");
+  const game = arg("game", process.env.GAME_ID ?? "game.slaythebear.testnet");
   const wasmPath = arg("wasm", join(REPO_ROOT, "contracts", "game", "target", "near", "slay_game.wasm"));
   const acc = (await provider.viewAccount({ accountId: game })) as unknown as { code_hash: string };
   console.log(`${game} runs code ${acc.code_hash}`);

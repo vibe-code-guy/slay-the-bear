@@ -102,6 +102,7 @@ export interface Deployment {
   txs: Record<string, string>;
   locked: boolean;
   lockedAt?: string;
+  note?: string;
 }
 
 export function readDeployment(contractId: string): Deployment {

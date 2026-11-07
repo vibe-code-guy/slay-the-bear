@@ -1,6 +1,6 @@
 // Verify a whole Slay the Bear game from public data: every settled round is recomputed from
 // the contract's views and the drand beacon, and the ledger identities are checked.
-//   npm run verify:game -- --game town.slaythebear.testnet
+//   npm run verify:game -- --game game.slaythebear.testnet
 // Exit code 0 only if everything passes.
 import { Account } from "near-api-js";
 import { GameClient } from "../packages/agents/src/index";
@@ -16,7 +16,7 @@ const line = (ok: boolean, text: string) => {
 };
 
 async function main() {
-  const game = arg("game", process.env.GAME_ID ?? "town.slaythebear.testnet");
+  const game = arg("game", process.env.GAME_ID ?? "game.slaythebear.testnet");
   const client = new GameClient(provider, game);
   const [config, status] = await Promise.all([client.config(), client.status()]);
   const acc = (await provider.viewAccount({ accountId: game })) as unknown as { code_hash: string };

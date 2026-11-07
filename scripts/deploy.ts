@@ -76,7 +76,8 @@ async function main() {
     txs.deployAndInit = txHash(res);
     console.log(`deployed and initialised (${txs.deployAndInit}, ${gasBurntTgas(res)} TGas)`);
   } else {
-    console.log("already initialised; nothing deployed");
+    console.log("already initialised; nothing deployed, deployments file left as it is");
+    return;
   }
 
   const d: Deployment = {

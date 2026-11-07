@@ -1,7 +1,7 @@
 {
   "contractId": "town.slaythebear.testnet",
   "network": "testnet",
-  "preset": "quick",
+  "preset": "quick, with the pre-launch effort cap of 2.0x",
   "codeHash": "Br6G5zJ8f5hyPuiyDsZ5RZehWNLmXwLpqSB9SwLhJJov",
   "wasmBytes": 371592,
   "deployedAt": "2026-11-07T22:40:00.658Z",
@@ -10,5 +10,6 @@
     "createAccount": "4ARdWn6FJW9DiYaAkA3v5pMBPU3sfEydq7RWyEgdZTWk",
     "deployAndInit": "Druvts61XPYE3YfCbu86dNFPHHmtGydKemFmYxRSSCEi"
   },
-  "locked": false
+  "locked": false,
+  "note": "Superseded by game.slaythebear.testnet before launch: the effort cap changed from 2.0x to 1.0x. Same code. Not deleted because NEAR refuses to delete accounts holding more than 10 kB of contract data. Unused."
 }

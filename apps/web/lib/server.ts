@@ -4,7 +4,7 @@
 import { Account, JsonRpcProvider, PublicKey, SCHEMA, actions, nearToYocto, type KeyPairString } from "near-api-js";
 import { deserialize } from "borsh";
 
-export const GAME_ID = process.env.NEXT_PUBLIC_GAME_ID ?? "town.slaythebear.testnet";
+export const GAME_ID = process.env.NEXT_PUBLIC_GAME_ID ?? "game.slaythebear.testnet";
 export const ROOT = process.env.NEXT_PUBLIC_ROOT_ACCOUNT ?? "slaythebear.testnet";
 export const RELAYER_READY = !!(process.env.RELAYER_ACCOUNT_ID && process.env.RELAYER_PRIVATE_KEY);
 const RPC = process.env.NEXT_PUBLIC_RPC_URL ?? "https://rpc.testnet.fastnear.com";
