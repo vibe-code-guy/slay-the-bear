@@ -28,11 +28,36 @@ export const RELAYABLE = new Set([
 const MAX_GAS = 200n * 10n ** 12n;
 const GUEST_RE = new RegExp(`^p-[a-z0-9]{8}\\.${ROOT.replace(/\./g, "\\.")}$`);
 
+// RELAYER_PRIVATE_KEY may hold several comma-separated keys of the root account. Each request
+// picks one, so concurrent relays rarely race for the same nonce. One Account per key keeps
+// near-api-js's nonce tracking.
+const relayers = new Map<string, Account>();
+
 export function relayer(): Account {
   const id = process.env.RELAYER_ACCOUNT_ID;
-  const key = process.env.RELAYER_PRIVATE_KEY;
-  if (!id || !key) throw new Error("relayer is not configured");
-  return new Account(id, provider, key as KeyPairString);
+  const keys = (process.env.RELAYER_PRIVATE_KEY ?? "")
+    .split(",")
+    .map((k) => k.trim())
+    .filter(Boolean);
+  if (!id || keys.length === 0) throw new Error("relayer is not configured");
+  const key = keys[Math.floor(Math.random() * keys.length)]!;
+  let acc = relayers.get(key);
+  if (!acc) {
+    acc = new Account(id, provider, key as KeyPairString);
+    relayers.set(key, acc);
+  }
+  return acc;
+}
+
+/** Runs a relayer transaction, retrying once (likely with another key) on a nonce clash. */
+async function withRelayer<T>(fn: (r: Account) => Promise<T>): Promise<T> {
+  try {
+    return await fn(relayer());
+  } catch (e) {
+    if (!/nonce/i.test(String((e as Error)?.message ?? e))) throw e;
+    await new Promise((r) => setTimeout(r, 300 + Math.random() * 700));
+    return fn(relayer());
+  }
 }
 
 export function accountFromEnv(id: string | undefined, key: string | undefined): Account | undefined {
@@ -74,14 +99,16 @@ export async function createGuest(publicKey: string): Promise<{ accountId: strin
   const pk = PublicKey.fromString(publicKey);
   if (pk.keyType !== 0) throw new Error("only ed25519 keys");
   const accountId = newGuestId();
-  const res = await relayer().signAndSendTransaction({
-    receiverId: accountId,
-    actions: [
-      actions.createAccount(),
-      actions.transfer(nearToYocto((process.env.GUEST_FUND_NEAR ?? "0.01") as `${number}`)),
-      actions.addFunctionCallAccessKey(pk, GAME_ID, []),
-    ],
-  });
+  const res = await withRelayer((r) =>
+    r.signAndSendTransaction({
+      receiverId: accountId,
+      actions: [
+        actions.createAccount(),
+        actions.transfer(nearToYocto((process.env.GUEST_FUND_NEAR ?? "0.01") as `${number}`)),
+        actions.addFunctionCallAccessKey(pk, GAME_ID, []),
+      ],
+    }),
+  );
   return { accountId, txHash: (res as { transaction?: { hash?: string } }).transaction?.hash };
 }
 
@@ -122,11 +149,13 @@ export function checkDelegate(d: DecodedDelegate): string[] {
 }
 
 export async function relay(d: DecodedDelegate): Promise<{ ok: boolean; txHash?: string; error?: string }> {
-  const res = await relayer().signAndSendTransaction({
-    receiverId: d.delegateAction.senderId,
-    actions: [actions.signedDelegate(d as never)],
-    throwOnFailure: false,
-  });
+  const res = await withRelayer((r) =>
+    r.signAndSendTransaction({
+      receiverId: d.delegateAction.senderId,
+      actions: [actions.signedDelegate(d as never)],
+      throwOnFailure: false,
+    }),
+  );
   const txHash = (res as { transaction?: { hash?: string } }).transaction?.hash;
   const text = JSON.stringify(res, (_, v) => (typeof v === "bigint" ? v.toString() : v));
   const panic = text.match(/Smart contract panicked: ([a-z_]+)/)?.[1];

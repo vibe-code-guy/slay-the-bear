@@ -14,7 +14,7 @@ export async function POST(req: Request) {
     );
   }
   const ip = clientIp(req);
-  if (!allow(`acct:${ip}`, 5, 60 * 60_000) || !allow("acct:all", 400, 24 * 60 * 60_000)) {
+  if (!allow(`acct:${ip}`, 10, 60 * 60_000) || !allow("acct:all", 400, 24 * 60 * 60_000)) {
     return NextResponse.json({ error: "Too many new accounts from here. Try again later." }, { status: 429 });
   }
   let publicKey: unknown;

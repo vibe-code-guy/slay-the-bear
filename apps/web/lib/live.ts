@@ -41,10 +41,21 @@ export async function createLiveBackend(): Promise<Backend> {
   const [config, ids] = await Promise.all([client.config(), client.ids()]);
   let guest = loadGuest();
   let busy: Promise<unknown> = Promise.resolve();
+  // One Account per guest, so near-api-js tracks the key's nonce between moves.
+  let guestAccount: Account | null = null;
+  const signer = () => {
+    if (!guest) return null;
+    if (!guestAccount || guestAccount.accountId !== guest.accountId) {
+      guestAccount = new Account(guest.accountId, provider, guest.privateKey as KeyPairString);
+    }
+    return guestAccount;
+  };
+  // Rounds, listings and unclaimed loot change slowly; refresh them every third poll.
+  let slow: { at: number; history: Snapshot["history"]; listings: Snapshot["listings"]; claimable: Snapshot["claimable"] } | null = null;
 
   async function relay(method: string, args: Record<string, unknown>): Promise<ActionResult> {
-    if (!guest) return { ok: false, error: "Join the town first." };
-    const acc = new Account(guest.accountId, provider, guest.privateKey as KeyPairString);
+    const acc = signer();
+    if (!acc) return { ok: false, error: "Join the town first." };
     const { signedDelegate } = await acc.createSignedMetaTransaction({
       receiverId: GAME_ID,
       actions: [actions.functionCall(method, args, teraToGas(GAS[method] ?? 30), 0n)],
@@ -58,6 +69,15 @@ export async function createLiveBackend(): Promise<Backend> {
     const body = (await res.json().catch(() => ({}))) as ActionResult;
     if (!res.ok && !body.error) return { ok: false, error: `relayer answered ${res.status}` };
     return body;
+  }
+
+  /** Relays a move; if the key's nonce was stale, refetches it and tries once more. */
+  async function relayWithRetry(method: string, args: Record<string, unknown>): Promise<ActionResult> {
+    const first = await relay(method, args);
+    if (first.ok || !/nonce/i.test(first.error ?? "")) return first;
+    guestAccount = null;
+    await new Promise((r) => setTimeout(r, 1500));
+    return relay(method, args);
   }
 
   // One move at a time: each delegate action needs the next nonce of the guest's key.
@@ -95,32 +115,48 @@ export async function createLiveBackend(): Promise<Backend> {
           await new Promise((r) => setTimeout(r, 1000));
         }
       }
-      return serial(() => relay("claim_pouch", {}));
+      return serial(() => relayWithRetry("claim_pouch", {}));
     },
 
     async snapshot(): Promise<Snapshot> {
       const status = await client.status();
       const roundId = status.current_round ?? (status.next_round_id > 1 ? status.next_round_id - 1 : null);
       const me = guest?.accountId ?? null;
-      const [round, participants, history, feed, listings, player, mine] = await Promise.all([
+      const settledCount = status.current_round === null ? status.next_round_id - 1 : status.current_round - 1;
+      const stale = !slow || Date.now() - slow.at > 12_000 || (slow.history[0]?.id ?? 0) < settledCount;
+      const [round, participants, feed, player, mine] = await Promise.all([
         roundId ? client.round(roundId) : Promise.resolve(null),
         roundId ? client.participants(roundId) : Promise.resolve([]),
-        client.rounds(undefined, 12),
         client.feed(25),
-        client.listings(),
         me ? client.player(me) : Promise.resolve(null),
         me && roundId ? client.participant(roundId, me) : Promise.resolve(null),
       ]);
-      const claimable: Snapshot["claimable"] = [];
-      if (me) {
-        const won = history.filter((r) => r.settlement?.outcome === "win" && r.participants > 0).slice(0, 3);
-        const parts = await Promise.all(won.map((r) => client.participant(r.id, me)));
-        won.forEach((r, i) => {
-          const share = claimableShare(r, parts[i] ?? null);
-          if (share !== null) claimable.push({ roundId: r.id, share });
-        });
+      if (stale) {
+        const [history, listings] = await Promise.all([client.rounds(undefined, 12), client.listings()]);
+        const claimable: Snapshot["claimable"] = [];
+        if (me) {
+          const won = history.filter((r) => r.settlement?.outcome === "win" && r.participants > 0).slice(0, 3);
+          const parts = await Promise.all(won.map((r) => client.participant(r.id, me)));
+          won.forEach((r, i) => {
+            const share = claimableShare(r, parts[i] ?? null);
+            if (share !== null) claimable.push({ roundId: r.id, share });
+          });
+        }
+        slow = { at: Date.now(), history, listings, claimable };
       }
-      return { status, round, participants, history, feed, listings, player, me: mine, claimable, nowMs: Number(BigInt(status.now) / 1_000_000n) };
+      const s = slow!;
+      return {
+        status,
+        round,
+        participants,
+        history: s.history,
+        feed,
+        listings: s.listings,
+        player,
+        me: mine,
+        claimable: s.claimable,
+        nowMs: Number(BigInt(status.now) / 1_000_000n),
+      };
     },
 
     participants: (roundId) => client.participants(roundId),
@@ -135,7 +171,10 @@ export async function createLiveBackend(): Promise<Backend> {
           const beacon = await fetchBeacon(BigInt(r.target_drand_round));
           call.args = { round_id: a.roundId, beacon_round: Number(r.target_drand_round), signature: beacon.signature };
         }
-        return relay(call.method, call.args);
+        const res = await relayWithRetry(call.method, call.args);
+        // A move changes balances, listings and loot: refresh everything on the next poll.
+        slow = null;
+        return res;
       });
     },
   };

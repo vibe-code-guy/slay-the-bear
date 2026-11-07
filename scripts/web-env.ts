@@ -6,6 +6,7 @@ import { writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { VILLAGERS } from "../packages/agents/src/index";
 import { REPO_ROOT, arg, hasKey, loadKey } from "./lib/near";
+import { loadRelayerKeys } from "./add-relayer-keys";
 
 const game = arg("game");
 const root = arg("root", "slaythebear.testnet");
@@ -21,7 +22,7 @@ const lines = [
   `NEXT_PUBLIC_ROOT_ACCOUNT=${root}`,
   "NEXT_PUBLIC_RPC_URL=https://rpc.testnet.fastnear.com",
   `RELAYER_ACCOUNT_ID=${root}`,
-  `RELAYER_PRIVATE_KEY=${loadKey(root).toString()}`,
+  `RELAYER_PRIVATE_KEY=${[loadKey(root).toString(), ...loadRelayerKeys(root)].join(",")}`,
   hasKey(keeper) ? `KEEPER_ACCOUNT_ID=${keeper}` : "",
   hasKey(keeper) ? `KEEPER_PRIVATE_KEY=${loadKey(keeper).toString()}` : "",
   `VILLAGER_KEYS=${JSON.stringify(villagers)}`,

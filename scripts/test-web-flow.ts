@@ -55,6 +55,25 @@ async function main() {
 
   const p = await view<{ balance: string; pouch_claimed: boolean }>(game, "get_player", { account_id: id });
   console.log(`guest ${id}: ${BigInt(p.balance) / ONE} SLAY, pouch ${p.pouch_claimed}`);
+
+  // Several guests at once: account creation and relays in parallel.
+  const burst = Number(arg("burst", "0"));
+  if (burst > 0) {
+    const keys = Array.from({ length: burst }, () => KeyPair.fromRandom("ed25519"));
+    const made = await Promise.all(keys.map((k) => post("/api/account", { publicKey: k.getPublicKey().toString() })));
+    console.log("burst accounts:", made.map((m) => `${m.status} ${(m.body.accountId as string) ?? m.body.error}`).join(" | "));
+    await sleep(4000);
+    const relays = await Promise.all(
+      made
+        .map((m, i) => ({ id: m.body.accountId as string | undefined, key: keys[i]! }))
+        .filter((x) => x.id)
+        .map(async ({ id, key }) => {
+          const acc = new Account(id!, provider, key.toString() as KeyPairString);
+          return post("/api/relay", { signedDelegate: await signed(acc, "claim_pouch", {}) });
+        }),
+    );
+    console.log("burst relays:", relays.map((r) => `${r.status} ${r.body.ok ? "ok" : r.body.error}`).join(" | "));
+  }
 }
 
 main().catch((e) => {
