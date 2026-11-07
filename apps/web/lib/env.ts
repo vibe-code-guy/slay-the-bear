@@ -1,5 +1,7 @@
 // Public settings, baked in at build time. Nothing secret lives here.
-export const GAME_ID = process.env.NEXT_PUBLIC_GAME_ID ?? "";
+// The public town by default, so a fresh clone can watch the live game; set it to "" for an
+// offline-only build.
+export const GAME_ID = process.env.NEXT_PUBLIC_GAME_ID ?? "town.slaythebear.testnet";
 export const RPC_URL = process.env.NEXT_PUBLIC_RPC_URL ?? "https://rpc.testnet.fastnear.com";
 export const EXPLORER = process.env.NEXT_PUBLIC_EXPLORER ?? "https://testnet.nearblocks.io";
 export const ROOT_ACCOUNT = process.env.NEXT_PUBLIC_ROOT_ACCOUNT ?? "slaythebear.testnet";

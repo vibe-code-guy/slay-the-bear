@@ -2,12 +2,13 @@
 // delegate action and pays its gas. It only relays zero-deposit calls to allowed game methods
 // from guest accounts; the relayer cannot change what the guest signed.
 import { NextResponse } from "next/server";
-import { allow, checkDelegate, clientIp, decodeDelegate, relay } from "@/lib/server";
+import { RELAYER_READY, allow, checkDelegate, clientIp, decodeDelegate, relay } from "@/lib/server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
+  if (!RELAYER_READY) return NextResponse.json({ ok: false, error: "This copy of the site has no relayer." }, { status: 503 });
   if (!allow(`relay-ip:${clientIp(req)}`, 120, 60_000)) {
     return NextResponse.json({ ok: false, error: "Slow down a little." }, { status: 429 });
   }

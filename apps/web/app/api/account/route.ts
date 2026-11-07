@@ -1,12 +1,18 @@
 // POST { publicKey } -> { accountId }. Creates a guest account under the root account whose
 // only key is the one the browser generated, limited to the game contract.
 import { NextResponse } from "next/server";
-import { allow, clientIp, createGuest } from "@/lib/server";
+import { RELAYER_READY, allow, clientIp, createGuest } from "@/lib/server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
+  if (!RELAYER_READY) {
+    return NextResponse.json(
+      { error: "This copy of the site has no relayer, so it cannot create guests. Watch the live town here, play the offline simulation, or set RELAYER_ACCOUNT_ID and RELAYER_PRIVATE_KEY (see docs/DEPLOY.md)." },
+      { status: 503 },
+    );
+  }
   const ip = clientIp(req);
   if (!allow(`acct:${ip}`, 5, 60 * 60_000) || !allow("acct:all", 400, 24 * 60 * 60_000)) {
     return NextResponse.json({ error: "Too many new accounts from here. Try again later." }, { status: 429 });

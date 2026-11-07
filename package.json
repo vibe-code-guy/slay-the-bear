@@ -13,15 +13,20 @@
   },
   "scripts": {
     "test": "vitest run",
-    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "typecheck": "tsc -p tsconfig.json --noEmit && npm run typecheck -w apps/web",
     "simulate": "tsx scripts/simulate.ts",
-    "fast-forward": "tsx scripts/fast-forward.ts",
+    "fast-forward": "tsx scripts/simulate.ts --days 7 --demo-days 7",
     "vectors": "tsx scripts/make-vectors.ts",
     "verify:game": "tsx scripts/verify-game.ts",
     "verify:live": "tsx scripts/verify-live.ts",
+    "status": "tsx scripts/status.ts",
     "demo": "npm run dev -w apps/web",
     "build:web": "npm run build -w apps/web",
-    "test:contract": "cargo test --manifest-path contracts/game/Cargo.toml"
+    "test:contract": "cargo test --manifest-path contracts/game/Cargo.toml",
+    "build:contract": "cd contracts/game && cargo near build non-reproducible-wasm --no-abi",
+    "build:contract:reproducible": "cd contracts/game && cargo near build reproducible-wasm",
+    "test:ui": "tsx scripts/ui-check.ts",
+    "agents": "tsx scripts/agents.ts"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",

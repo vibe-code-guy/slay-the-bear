@@ -2,13 +2,13 @@
   "contractId": "town.slaythebear.testnet",
   "network": "testnet",
   "preset": "quick",
-  "codeHash": "AgzkaQz7jKRUj7JLh9uEWDJvKhBt3nPykJYnHeMNSh5p",
-  "wasmBytes": 372602,
-  "deployedAt": "2026-11-07T22:32:24.660Z",
+  "codeHash": "Br6G5zJ8f5hyPuiyDsZ5RZehWNLmXwLpqSB9SwLhJJov",
+  "wasmBytes": 371592,
+  "deployedAt": "2026-11-07T22:40:00.658Z",
   "deployer": "slaythebear.testnet",
   "txs": {
-    "createAccount": "DKS18H7HmeLunpuBth8VXdgsb7LeJeoxKNYxJjKKCKc5",
-    "deployAndInit": "a2i2fBA3izQiBB31qgzZjiqH8LJBFtfHUFwvbwhirwU"
+    "createAccount": "4ARdWn6FJW9DiYaAkA3v5pMBPU3sfEydq7RWyEgdZTWk",
+    "deployAndInit": "Druvts61XPYE3YfCbu86dNFPHHmtGydKemFmYxRSSCEi"
   },
   "locked": false
 }
