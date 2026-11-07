@@ -19,6 +19,55 @@ and initialised in one transaction, `2pCMMY5qVTfRqQBBwWTCw9oTzghyPJWsDiDFLrt56BZ
 Helper accounts: `slaythebear.testnet` (root, relayer and guest factory), `keeper.slaythebear.testnet`,
 villagers `bjorn`, `fern`, `sid` and `sara` `.slaythebear.testnet`, and `tester.slaythebear.testnet`.
 
+## The public game, `game.slaythebear.testnet`
+
+Raids 1 to 5 were played by the villagers (`npm run agents -- --open-if-idle`) and test guests
+created through the web app's `/api/account`. Raid 5 was settled by a guest through the relayer,
+as the **Settle with the drand beacon** button does (`scripts/test-settle-relay.ts`): tx
+`DHpRAzBjcAfERsv5woyr5rnezQNpEdxrkLZHoK8dmT2k`, drand round 33763623; the guest
+`p-62xkl74q.slaythebear.testnet` received the 5 $SLAY tip.
+
+`npm run verify:game` after raid 5:
+
+```
+PASS code hash matches deployments/game.slaythebear.testnet.json
+NOTE the game account still has 1 access key(s): an unlocked instance that its deployer can change
+5 round(s), 5 settled
+PASS round 1: win, Rage (roll 7622), 2 raiders, 13 checks
+PASS round 2: win, Rage (roll 4484), 3 raiders, 13 checks
+PASS round 3: win, Armor (roll 1852), 3 raiders, 13 checks
+PASS round 4: win, Rage (roll 6935), 4 raiders, 13 checks
+PASS round 5: win, Rage (roll 5407), 3 raiders, 13 checks
+PASS supply 999,996,723.4064 SLAY + burned 3,276.5935 SLAY = minted 1,000,000,000.0000 SLAY
+PASS loot chest 1,268.7573 SLAY = loot not yet claimed 1,268.7573 SLAY
+PASS treasury 798,995,396.1750 SLAY = start - rewards - thefts - tips (798,995,396.1750 SLAY)
+PASS the Bear's hoard 0.0000 SLAY follows the raids (0.0000 SLAY)
+ALL PASS
+```
+
+Raid 6 was lost on purpose (`scripts/lost-raid.ts`): a single 1 $SLAY hit
+(`2tHEAtQpUkp3jztvpMLYRYeexApbSYhTz1rTYJuU23Ma`) against 805 health. The keeper settled it with
+drand round 33763744 (`BNwL4BZApzba1JUAFeGNHftGeTi7r4ZERF5dg5KSX1dq`); the beacon drew Rage
+(roll 3228), so the Bear stole 1.5 × 402 = 603 $SLAY from the treasury into its hoard, which
+the next won raid pays out. `npm run verify:game` afterwards:
+
+```
+PASS round 6: loss, Rage (roll 3228), 1 raiders, 13 checks
+PASS treasury 798,994,787.2337 SLAY = start - rewards - thefts - tips (798,994,787.2337 SLAY)
+PASS the Bear's hoard 603.9412 SLAY follows the raids (603.9412 SLAY)
+ALL PASS
+```
+
+`npm run verify:live`: the deployed code hash equals the local reproducible build
+(`Br6G5zJ8f5hyPuiyDsZ5RZehWNLmXwLpqSB9SwLhJJov`); NEP-330 metadata points at
+`https://github.com/vibe-code-guy/slay-the-bear/tree/2038bbd6ae4b3246d1ceec067990e2beefe14767`
+and the image `sourcescan/cargo-near:0.22.0-rust-1.99.1@sha256:c9655eaf…b5bb`; the config is
+the published `quick` preset; one access key remains (the lock waits for approval).
+
+Parallel load through the local web app (`scripts/test-web-flow.ts --burst 4`), with four
+relayer keys: four guest accounts created at once and four relayed moves at once, all
+succeeded.
+
 ## Early checks (8 Nov 2026, first contract build)
 
 These ran against `dev.slaythebear.testnet` (now deleted), an unlocked instance of the first

@@ -1,5 +1,5 @@
 import {
-  DEMO_CONFIG,
+  QUICK_CONFIG,
   PERSONALITIES,
   RECIPES,
   TACTIC_EFFECTS,
@@ -18,7 +18,7 @@ export const metadata = { title: "Rules · Slay the Bear" };
 const slay = (v: bigint) => (v / 10n ** 18n).toString();
 
 export default function Rules() {
-  const cfg = describeConfig(DEMO_CONFIG);
+  const cfg = describeConfig(QUICK_CONFIG);
   return (
     <article className="mx-auto max-w-3xl space-y-6 leading-relaxed">
       <h1 className="text-3xl font-bold">The rules</h1>
@@ -94,7 +94,7 @@ export default function Rules() {
       </section>
 
       <section className="card">
-        <h2 className="mb-2 text-xl font-bold">Numbers (demo config)</h2>
+        <h2 className="mb-2 text-xl font-bold">Numbers (the live game: the quick preset)</h2>
         <dl className="grid gap-x-4 gap-y-1 text-sm sm:grid-cols-[14rem_1fr]">
           {Object.entries(cfg).map(([k, v]) => (
             <div key={k} className="contents">
@@ -104,7 +104,8 @@ export default function Rules() {
           ))}
         </dl>
         <p className="mt-2 text-xs text-dim">
-          The live town uses 5-minute raids. Formulas: packages/rules/src/math.ts and contracts/game/src/rules.rs in{" "}
+          The contract returns the same values from <code>get_config</code>; <code>npm run verify:live</code> checks that they are
+          this preset. Formulas: packages/rules/src/math.ts and contracts/game/src/rules.rs in{" "}
           <a className="link" href={REPO_URL}>
             the source
           </a>

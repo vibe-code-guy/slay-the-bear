@@ -35,7 +35,8 @@ Built at NEAR HACKATHON for **Memecoins With Mechanics** and **Games With Real E
 
 ### From a clone
 
-Needs Node 22+ (and Rust with `cargo-near` for the contract tests). No keys are needed.
+Needs Node 22+, and Rust for the contract tests (`cargo-near` only to build the wasm). No keys
+are needed.
 
 ```bash
 npm install
@@ -48,7 +49,7 @@ npm run simulate             # the economy simulation; open sim-out/report.html
 
 | Do | See |
 | --- | --- |
-| `npm run verify:game` | `PASS round N: win, Armor (roll 2851), …` for every raid, then four ledger identities and `ALL PASS`. |
+| `npm run verify:game` | `PASS round 1: win, Rage (roll 7622), 2 raiders, 13 checks` and a line like it for every raid, then four ledger identities and `ALL PASS`. |
 | `npm run demo`, open http://localhost:3000 | The live town, read straight from the testnet contract. Guest play needs the hosted site's relayer, so a clone shows "has no relayer" when you press Play. |
 | Switch to **Offline simulation**, press **Start the simulation**, hit, then **to the deadline** | A full raid with the same rules engine and a local beacon, settled a few seconds after the deadline. **Verify** on the raid shows 13 green checks. |
 | Open **/fast-forward** and press **Run** | 90 days of raids in a second: win rate, longest Bear streak, health against damage, the hoard and the burn. |
@@ -69,8 +70,8 @@ npm run simulate             # the economy simulation; open sim-out/report.html
    the Bear steals from the treasury.
 
 The Bear adapts: after a win it gets 10% tougher, after a loss 15% weaker, and its mood reacts
-to how the town fought (many late hits → Feint). Its health never exceeds the town's best raid
-of the last six, and only half its hoard adds to its health, so a losing town always faces a
+to how the town fought (many late hits → Feint). Above a 500 $SLAY floor, its health never
+exceeds the town's best raid of the last six, and only half its hoard adds to its health, so a losing town always faces a
 beatable Bear guarding a growing jackpot. The numbers come from a simulation of four kinds of
 town ([docs/GAME_DESIGN.md](docs/GAME_DESIGN.md)).
 
@@ -126,7 +127,8 @@ with no dev patch. Guests never see a wallet or a gas prompt.
 | `deployments/` | Code hash and transactions of each testnet instance |
 | `docs/` | [Game design](docs/GAME_DESIGN.md), [fairness](docs/FAIRNESS.md), [threat model](docs/THREAT_MODEL.md), [testnet log](docs/TESTNET.md), [deploying](docs/DEPLOY.md) |
 
-Other commands: `npm run typecheck`, `npm run vectors` (regenerate the vectors),
+Other commands: `npm run typecheck`, `npm run fast-forward` (a week of raids in the terminal),
+`npm run vectors` (regenerate the vectors),
 `npm run build:contract`, `npm run status -- --game <id>`, `npm run agents -- --game <id>`,
 `npm run test:ui` (drives the site in Chrome; needs a running site). Running your own instance,
 relayer and hosted site: [docs/DEPLOY.md](docs/DEPLOY.md).
