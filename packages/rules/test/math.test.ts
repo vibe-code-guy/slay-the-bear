@@ -63,7 +63,8 @@ describe("formulas", () => {
     const big = 10_000_000n * ONE;
     expect(bearHealth(c, 1_000n * ONE, 400n * ONE, supply, big)).toBe(1_200n * ONE);
     expect(bearHealth(c, 1_000n * ONE, big, supply, big)).toBe(cap);
-    expect(bearHealth(c, 1_000n * ONE, big, supply, 3_000n * ONE)).toBe(6_000n * ONE);
+    // never above the best recent raid (effort cap 1.0x)
+    expect(bearHealth(c, 1_000n * ONE, big, supply, 3_000n * ONE)).toBe((3_000n * ONE * c.effortCapBps) / 10_000n);
     expect(bearHealth(c, 1_000n * ONE, 400n * ONE, 0n, big)).toBe(c.minHealth);
     expect(bearHealth(c, 1_000n * ONE, 400n * ONE, supply, 0n)).toBe(c.minHealth);
   });

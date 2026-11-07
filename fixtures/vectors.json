@@ -13,7 +13,7 @@
     "loss_shrink_bps": 8500,
     "hoard_health_bps": 5000,
     "effort_window": 6,
-    "effort_cap_bps": 20000,
+    "effort_cap_bps": 10000,
     "reward_mult_bps": 15000,
     "win_cap_bps": 50,
     "steal_mult_bps": 5000,

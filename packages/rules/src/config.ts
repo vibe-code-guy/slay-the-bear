@@ -62,7 +62,8 @@ export interface GameConfig {
   /**
    * The Bear's health never exceeds effortCapBps of the best raw damage of the last
    * effortWindow settled rounds. A town that stops fighting meets a weak Bear guarding a big
-   * jackpot, so the game cannot deadlock.
+   * jackpot, so the game cannot deadlock. At 1.0x the Bear never outgrows what the town has
+   * recently shown it can do; at 2.0x the simulation found Bear streaks of up to 95 raids.
    */
   effortWindow: number;
   effortCapBps: bigint;
@@ -112,7 +113,7 @@ function base(roundSecs: bigint, minHealth: bigint): GameConfig {
     lossShrinkBps: 8_500n,
     hoardHealthBps: 5_000n,
     effortWindow: 6,
-    effortCapBps: 20_000n,
+    effortCapBps: 10_000n,
     rewardMultBps: 15_000n,
     winCapBps: 50n,
     stealMultBps: 5_000n,
@@ -175,7 +176,7 @@ export function describeConfig(c: GameConfig): Record<string, string> {
     "Total supply": slay(c.totalSupply),
     "Bear base health": `starts at ${slay(c.minHealth)}; ${pct(c.winGrowthBps - BPS)} more after each town win, ${pct(BPS - c.lossShrinkBps)} less after each Bear win; at most ${pct(c.healthBps)} of the player supply`,
     "Hoard and health": `${pct(c.hoardHealthBps)} of the Bear's hoard adds to its health; all of it goes to the raiders`,
-    "Health cap": `at most ${pct(c.healthBps)} of the player supply and ${Number(c.effortCapBps) / 10_000}x the best raid of the last ${c.effortWindow} rounds`,
+    "Health cap": `at most ${pct(c.healthBps)} of the player supply and ${c.effortCapBps === BPS ? "the" : `${Number(c.effortCapBps) / 10_000}x the`} best raid of the last ${c.effortWindow} rounds`,
     "Win reward from the treasury": `${pct(c.rewardMultBps)} of base health, at most ${pct(c.winCapBps)} of the treasury`,
     "Bear's theft on a loss": `${pct(c.stealMultBps)} of base health, at most ${pct(c.stealCapBps)} of the treasury`,
     "Early-hit bonus": `${Number(c.earlyBonusMaxBps) / 10_000}x at the start of a round, 1x at the deadline`,
