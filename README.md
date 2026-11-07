@@ -11,6 +11,8 @@ signature itself. Anyone can recompute any raid from public data.
 
 Built at NEAR HACKATHON for **Memecoins With Mechanics** and **Games With Real Economies**.
 
+![A raid on game.slaythebear.testnet: the Bear's health bar, tactic odds, win chance, the raid board with two villager NPCs and a guest, and the town feed read from the contract](docs/img/town.png)
+
 | | |
 | --- | --- |
 | Live contract (testnet) | [`game.slaythebear.testnet`](https://testnet.nearblocks.io/address/game.slaythebear.testnet) |
@@ -49,7 +51,7 @@ npm run simulate             # the economy simulation; open sim-out/report.html
 | `npm run verify:game` | `PASS round N: win, Armor (roll 2851), …` for every raid, then four ledger identities and `ALL PASS`. |
 | `npm run demo`, open http://localhost:3000 | The live town, read straight from the testnet contract. Guest play needs the hosted site's relayer, so a clone shows "has no relayer" when you press Play. |
 | Switch to **Offline simulation**, press **Start the simulation**, hit, then **to the deadline** | A full raid with the same rules engine and a local beacon, settled a few seconds after the deadline. **Verify** on the raid shows 13 green checks. |
-| Open **/fast-forward** and press **Run** | 30 days of raids in a second: win rate, longest Bear streak, health against damage. |
+| Open **/fast-forward** and press **Run** | 90 days of raids in a second: win rate, longest Bear streak, health against damage, the hoard and the burn. |
 | `git checkout 2038bbd`, `npm run build:contract:reproducible` (needs Docker), `git checkout main`, `npm run verify:live` | The deployed code hash equals your reproducible build of the commit named in the contract's metadata. |
 
 ## How a raid works
@@ -89,6 +91,8 @@ prices move with its stock and whose forge runs at every raid's open.
 
 Details and the remaining trust assumptions: [docs/FAIRNESS.md](docs/FAIRNESS.md) and
 [docs/THREAT_MODEL.md](docs/THREAT_MODEL.md).
+
+![The /verify page recomputing raid 1 of game.slaythebear.testnet: 13 of 13 checks pass](docs/img/verify.png)
 
 **Lock status.** `game.slaythebear.testnet` still holds its deployment key on 8 Nov 2026.
 Deleting it is permanent, so it waits for the owner. When run, `npx tsx scripts/lock.ts --game

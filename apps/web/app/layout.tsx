@@ -38,8 +38,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </header>
         <main className="mx-auto max-w-7xl px-4 py-6">{children}</main>
         <footer className="mx-auto max-w-7xl px-4 pb-10 pt-4 text-xs text-dim">
-          Testnet only. $SLAY has no value. Every move is a NEAR transaction to a contract with no admin keys; every random roll
-          comes from the drand quicknet beacon and is checked on-chain.
+          Testnet only. $SLAY has no value. Every move is a NEAR transaction to a contract with no owner and no admin methods;
+          every random roll comes from the drand quicknet beacon and is checked on-chain.
         </footer>
       </body>
     </html>

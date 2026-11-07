@@ -1,18 +1,20 @@
 // Delete an unlocked development instance and send its NEAR back to the root account.
 //   npx tsx scripts/retire.ts --game dev.slaythebear.testnet --confirm
 import { unlinkSync, existsSync } from "node:fs";
-import { account, arg, balanceNear, credentialsPath, deploymentPath, flag, provider } from "./lib/near";
+import { account, arg, balanceNear, credentialsPath, deploymentPath, flag, provider, readDeployment } from "./lib/near";
+import { stateBytes } from "./state-size";
 
 async function main() {
   const game = arg("game");
   const root = arg("root", "slaythebear.testnet");
   if (!game.endsWith(`.${root}`)) throw new Error(`${game} is not under ${root}`);
   console.log(`${game} holds ${await balanceNear(game)} NEAR`);
-  // NEAR refuses to delete an account whose contract data is over 10 kB.
-  const state = await provider.viewContractState({ accountId: game, prefix: "" }).catch(() => null);
-  const bytes = (state as { values?: { key: string; value: string }[] } | null)?.values?.reduce((t, v) => t + v.key.length + v.value.length, 0) ?? 0;
-  if (bytes > 10_000 * 1.3) {
-    console.log(`${game} holds about ${Math.round((bytes * 3) / 4 / 1000)} kB of contract data; NEAR only deletes accounts below 10 kB. Leave it, or clear its state first.`);
+  // NEAR refuses to delete an account whose storage, not counting its code, is over 10,000 bytes.
+  const acc = (await provider.viewAccount({ accountId: game })) as unknown as { storage_usage: number };
+  const wasm = existsSync(deploymentPath(game)) ? readDeployment(game).wasmBytes : 0;
+  const data = wasm ? acc.storage_usage - wasm : await stateBytes(game);
+  if (data > 10_000) {
+    console.log(`${game} holds about ${data} bytes besides its code; NEAR only deletes accounts below 10,000. Leave it, or clear its state first.`);
     return;
   }
   if (!flag("confirm")) {

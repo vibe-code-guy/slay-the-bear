@@ -8,7 +8,7 @@ type Result = { stats: RoundStat[]; summary: ReturnType<typeof summarize> };
 export function FastForward() {
   const [scenario, setScenario] = useState(SCENARIOS[0]!.name);
   const [preset, setPreset] = useState<"season" | "demo">("season");
-  const [days, setDays] = useState(30);
+  const [days, setDays] = useState(90);
   const [seed, setSeed] = useState(1);
   const [res, setRes] = useState<Result | null>(null);
   const [busy, setBusy] = useState(false);
