@@ -1,0 +1,16 @@
+# A heartbeat for the hosted town: settles finished raids and wakes the villagers even when no
+# page is open. Set the repository variable SITE_URL (for example https://slay-the-bear.vercel.app)
+# to enable it. GitHub may delay scheduled runs by several minutes.
+name: Tick
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+jobs:
+  tick:
+    if: ${{ vars.SITE_URL != '' }}
+    runs-on: ubuntu-latest
+    steps:
+      - run: curl -fsS -X POST "${{ vars.SITE_URL }}/api/tick"

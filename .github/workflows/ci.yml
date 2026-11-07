@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  typescript:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build:web
+        env:
+          NEXT_TELEMETRY_DISABLED: "1"
+
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: contracts/game
+      - run: cargo test --manifest-path contracts/game/Cargo.toml
+
+  reproducible-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Install cargo-near 0.22.0
+        run: curl --proto '=https' --tlsv1.2 -LsSf https://github.com/near/cargo-near/releases/download/cargo-near-v0.22.0/cargo-near-installer.sh | sh
+      - name: Build inside the pinned image
+        working-directory: contracts/game
+        run: cargo near build reproducible-wasm
+      - name: Code hash
+        run: |
+          python3 - <<'EOF'
+          import hashlib
+          ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
+          d = hashlib.sha256(open("contracts/game/target/near/slay_game.wasm", "rb").read()).digest()
+          n = int.from_bytes(d, "big"); s = ""
+          while n: n, r = divmod(n, 58); s = ALPHABET[r] + s
+          print("code hash (base58):", s)
+          EOF
+      - uses: actions/upload-artifact@v4
+        with:
+          name: slay_game.wasm
+          path: contracts/game/target/near/slay_game.wasm

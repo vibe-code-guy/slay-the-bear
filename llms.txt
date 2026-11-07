@@ -1,0 +1,37 @@
+# Slay the Bear
+
+> A memecoin and a town game in one NEAR testnet contract. Players burn $SLAY (NEP-141) to hit the
+> Bear before a deadline; if the town's damage reaches its health, raiders split the Bear's hoard
+> and a treasury reward by damage; if not, the Bear steals from the treasury. The Bear's tactic
+> and the item drops (NEP-245) come from the drand quicknet beacon, verified on-chain with NEAR's
+> BLS12-381 host functions. Built at NEAR HACKATHON for the memecoins and games tracks.
+
+Live contract: game.slaythebear.testnet (NEAR testnet), code hash Br6G5zJ8f5hyPuiyDsZ5RZehWNLmXwLpqSB9SwLhJJov, reproducible build of commit 2038bbd.
+
+## Run and check
+
+- `npm install`, then `npm test` (38 TypeScript tests) and `npm run test:contract` (16 Rust tests, needs Rust + cargo-near)
+- `npm run verify:game`: recomputes every settled raid of the live contract from its views and drand; prints PASS/FAIL
+- `npm run verify:live`: deployed code hash vs a local reproducible build, access keys, config preset
+- `npm run demo`: web app at http://localhost:3000 (live town read-only, plus an offline simulation)
+- `npm run simulate`: economy simulation, writes sim-out/report.html
+
+## Key files
+
+- [contracts/game/src/lib.rs](contracts/game/src/lib.rs): the contract: raids, settlement, items, market, smith, feed
+- [contracts/game/src/drand.rs](contracts/game/src/drand.rs): on-chain drand quicknet BLS verification (hash-to-field, map to G1, pairing)
+- [contracts/game/src/rules.rs](contracts/game/src/rules.rs): all formulas, including the Bear's mood and tactic draw
+- [packages/rules/src/engine.ts](packages/rules/src/engine.ts): the same state machine in TypeScript
+- [packages/rules/src/verify.ts](packages/rules/src/verify.ts): per-raid verification
+- [packages/rules/src/npc.ts](packages/rules/src/npc.ts): NPC rules in words (Bear mood, smith, villager personalities)
+- [fixtures/vectors.json](fixtures/vectors.json): scripted game replayed by both implementations
+- [apps/web](apps/web): Next.js app; app/api/relay/route.ts is the meta-transaction relayer
+
+## Docs
+
+- [README.md](README.md): what to do and what you should see
+- [docs/GAME_DESIGN.md](docs/GAME_DESIGN.md): loop, rules, NPCs, simulation results, tuning decisions
+- [docs/FAIRNESS.md](docs/FAIRNESS.md): how to check each fairness claim
+- [docs/THREAT_MODEL.md](docs/THREAT_MODEL.md): actors, threats, mitigations, what is left
+- [docs/TESTNET.md](docs/TESTNET.md): testnet transactions and results
+- [docs/DEPLOY.md](docs/DEPLOY.md): deploy your own instance and site
