@@ -14,10 +14,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body className="antialiased">
         <header className="border-b border-edge/70 bg-night/80 backdrop-blur sticky top-0 z-20">
-          <nav className="mx-auto flex max-w-7xl items-center gap-5 px-4 py-3 text-sm">
-            <Link href="/" className="flex items-center gap-2 text-lg font-bold">
+          <nav className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 text-sm sm:gap-5">
+            <Link href="/" className="flex items-center gap-2 text-lg font-bold" aria-label="Slay the Bear, home">
               <span aria-hidden>🐻</span>
-              <span className="font-[family-name:var(--font-display)]">Slay the Bear</span>
+              <span className="hidden font-[family-name:var(--font-display)] sm:inline">Slay the Bear</span>
             </Link>
             <Link href="/" className="text-dim hover:text-parch">
               Town
@@ -31,7 +31,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <Link href="/fast-forward" className="text-dim hover:text-parch">
               Fast-forward
             </Link>
-            <a href={REPO_URL} className="ml-auto text-dim hover:text-parch" target="_blank" rel="noreferrer">
+            <a href={REPO_URL} className="ml-auto hidden text-dim hover:text-parch sm:inline" target="_blank" rel="noreferrer">
               Source
             </a>
           </nav>

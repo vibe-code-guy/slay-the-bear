@@ -149,7 +149,7 @@ function TownView({ mode, choose }: { mode: Mode; choose: (m: Mode) => void }) {
         </>
       )}
 
-      <div className="fixed bottom-4 right-4 z-30 flex w-80 flex-col gap-2">
+      <div className="fixed inset-x-4 bottom-4 z-30 flex flex-col gap-2 sm:left-auto sm:w-80" aria-live="polite">
         {g.toasts.map((t) => (
           <div key={t.id} className={`card py-2 text-sm shadow-lg ${t.kind === "error" ? "border-blood" : "border-moss"}`}>
             {t.text}
