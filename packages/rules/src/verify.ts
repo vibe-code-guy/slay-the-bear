@@ -55,6 +55,14 @@ export interface HitEvent {
 
 const b = (v: string) => BigInt(v);
 
+/** Base units as "1,234.5678 $SLAY" for the check details. */
+function fmt(v: bigint | string): string {
+  const x = typeof v === "bigint" ? v : BigInt(v);
+  const whole = (x / 10n ** 18n).toLocaleString("en-US");
+  const frac = ((x % 10n ** 18n) / 10n ** 14n).toString().padStart(4, "0").replace(/0+$/, "");
+  return `${frac ? `${whole}.${frac}` : whole} $SLAY`;
+}
+
 export function moodInputOf(r: RoundJson): MoodInput | null {
   if (!r.settlement) return null;
   return {
@@ -104,7 +112,7 @@ export function verifyRound(
   add(
     "Raiders' damage adds up",
     participants.length === round.participants && early === b(round.total_early) && late === b(round.total_late),
-    `${participants.length} raiders, ${early} early + ${late} late damage (base units)`,
+    `${participants.length} raiders, ${fmt(early).replace(" $SLAY", "")} early + ${fmt(late).replace(" $SLAY", "")} late damage`,
   );
 
   if (hits) {
@@ -130,7 +138,9 @@ export function verifyRound(
     add(
       "Bear's health follows the rules",
       enough && base === b(round.base_health) && health === b(round.health),
-      enough ? `base ${base}, health ${health}` : "not enough history to check",
+      enough
+        ? `base ${fmt(base).replace(" $SLAY", "")} and health ${fmt(health).replace(" $SLAY", "")}, from the player supply ${fmt(round.supply_at_open)}, the hoard and the last ${window.length} raids`
+        : "not enough history to check",
     );
   }
 
@@ -166,9 +176,13 @@ export function verifyRound(
 
   const weights = participants.map((p) => ({ account: p.account, w: weight(b(p.early), b(p.late), tactic) }));
   const totalWeight = weights.reduce((t, x) => t + x.w, 0n);
-  add("Total weight", totalWeight === b(s.total_weight), `${totalWeight}${tactic === Tactic.Feint ? " (late hits halved by Feint)" : ""}`);
+  add(
+    "Total weight",
+    totalWeight === b(s.total_weight),
+    `${fmt(totalWeight).replace(" $SLAY", "")} damage${tactic === Tactic.Feint ? " (late hits halved by Feint)" : ""}`,
+  );
   const eff = effectiveHealth(b(round.health), tactic);
-  add("Effective health", eff === b(s.effective_health), `${eff}${tactic === Tactic.Armor ? " (Armor: +20%)" : ""}`);
+  add("Effective health", eff === b(s.effective_health), `${fmt(eff).replace(" $SLAY", "")}${tactic === Tactic.Armor ? " (Armor: +20%)" : ""}`);
   const win = participants.length > 0 && totalWeight > 0n && totalWeight >= eff;
   add("Outcome", (win ? "win" : "loss") === s.outcome, win ? "the town dealt at least the Bear's health" : "the town fell short");
 
@@ -176,7 +190,11 @@ export function verifyRound(
   if (win) {
     const fromTreasury = b(s.reward) - b(round.hoard_at_open);
     const max = (b(round.base_health) * config.rewardMultBps) / BPS;
-    add("Reward", fromTreasury >= 0n && fromTreasury <= max, `hoard ${round.hoard_at_open} + ${fromTreasury} from the treasury (at most ${max})`);
+    add(
+      "Reward",
+      fromTreasury >= 0n && fromTreasury <= max,
+      `the hoard ${fmt(round.hoard_at_open)} + ${fmt(fromTreasury)} from the treasury (at most ${fmt(max)})`,
+    );
     const drops = [];
     for (let i = 0; i < config.dropDraws; i++) {
       const { target: t, roll } = readDraw(drawBytes(randomness, round.id, i), totalWeight);
@@ -193,12 +211,16 @@ export function verifyRound(
       drops.push(`${winner}:${d.tokenId}:${d.qty}`);
     }
     const stored = s.drops.map((d) => `${d.account}:${d.token_id}:${d.qty}`);
-    add("Drops", drops.join("|") === stored.join("|"), drops.join(", "));
+    const readable = drops.map((d) => {
+      const [acc, token, qty] = d.split(":");
+      return `${qty} ${token} to ${acc}`;
+    });
+    add("Drops", drops.join("|") === stored.join("|"), `picked by damage weight: ${readable.join(", ")}`);
     for (const x of weights) shares.push({ account: x.account, weight: x.w, share: lootShare(x.w, totalWeight, b(s.reward)) });
   } else {
     let max = (b(round.base_health) * config.stealMultBps) / BPS;
     if (tactic === Tactic.Rage) max = (max * 15_000n) / BPS;
-    add("Bear's theft", b(s.steal) <= max, `${s.steal} (at most ${max}${tactic === Tactic.Rage ? ", Rage: +50%" : ""})`);
+    add("Bear's theft", b(s.steal) <= max, `${fmt(s.steal)} (at most ${fmt(max)}${tactic === Tactic.Rage ? ", Rage: +50%" : ""})`);
     add("No drops on a loss", s.drops.length === 0, "the Bear keeps its loot");
   }
   return { round: round.id, ok: checks.every((c) => c.ok), checks, shares };

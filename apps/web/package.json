@@ -1,0 +1,31 @@
+{
+  "name": "@slay/web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "The Slay the Bear town: play on NEAR testnet as a gas-free guest, or in an offline simulation; verify any round.",
+  "license": "MIT",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@slay/agents": "0.1.0",
+    "@slay/rules": "0.1.0",
+    "borsh": "^2.0.0",
+    "near-api-js": "^7.4.0",
+    "next": "^16.4.5",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.5",
+    "@types/node": "^24.0.0",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "tailwindcss": "^4.3.5",
+    "typescript": "^5.9.3"
+  }
+}

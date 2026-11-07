@@ -1,0 +1,103 @@
+@import "tailwindcss";
+
+@theme {
+  --color-night: #15110d;
+  --color-bark: #221a13;
+  --color-hide: #2e241b;
+  --color-edge: #4a3a2a;
+  --color-parch: #f3e7cf;
+  --color-dim: #b9a88c;
+  --color-ember: #f59e0b;
+  --color-blood: #dc2626;
+  --color-moss: #22a35a;
+  --font-display: "Georgia", "Times New Roman", serif;
+}
+
+html,
+body {
+  background: var(--color-night);
+  color: var(--color-parch);
+}
+
+body {
+  background-image: radial-gradient(ellipse at top, #2a1f15 0%, var(--color-night) 60%);
+  min-height: 100vh;
+}
+
+.card {
+  background: var(--color-bark);
+  border: 1px solid var(--color-edge);
+  border-radius: 0.75rem;
+  padding: 1rem;
+}
+
+.btn {
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.9rem;
+  font-weight: 600;
+  background: var(--color-hide);
+  border: 1px solid var(--color-edge);
+  transition: background 120ms, transform 60ms;
+}
+.btn:hover:not(:disabled) {
+  background: #3a2d21;
+}
+.btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.btn-primary {
+  background: var(--color-ember);
+  color: #1b1208;
+  border-color: #c77c06;
+}
+.btn-primary:hover:not(:disabled) {
+  background: #fbb43a;
+}
+.btn-danger {
+  background: var(--color-blood);
+  color: white;
+  border-color: #9b1c1c;
+}
+.btn-danger:hover:not(:disabled) {
+  background: #ef4444;
+}
+
+.input {
+  background: var(--color-night);
+  border: 1px solid var(--color-edge);
+  border-radius: 0.5rem;
+  padding: 0.4rem 0.6rem;
+  color: var(--color-parch);
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+}
+
+a.link {
+  color: var(--color-ember);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-4px) rotate(-2deg);
+  }
+  75% {
+    transform: translateX(4px) rotate(2deg);
+  }
+}
+.shake {
+  animation: shake 0.35s ease-in-out;
+}
