@@ -16,11 +16,15 @@ import {
   nextBaseTarget,
   readDraw,
   stealAmount,
-  tacticCommitment,
   treasuryReward,
   weight,
+  moodWeights,
+  drawTactic,
+  bearMood,
+  smithForgeBundles,
 } from "../src/math";
 import { roundTime } from "../src/drand";
+import { beBytes, sha256 } from "../src/bytes";
 
 const c = DEMO_CONFIG;
 
@@ -105,10 +109,37 @@ describe("formulas", () => {
     expect(target < 1000n && roll >= 0 && roll < 100).toBe(true);
   });
 
-  it("commitments bind tactic and salt", () => {
-    const salt = new Uint8Array(32).fill(1);
-    expect(tacticCommitment(Tactic.Armor, salt)).not.toEqual(tacticCommitment(Tactic.Rage, salt));
-    expect(() => tacticCommitment(Tactic.Armor, new Uint8Array(31))).toThrow();
+  it("mood weights favour the mood and sum to 100%", () => {
+    for (const mood of [Tactic.None, Tactic.Armor, Tactic.Rage, Tactic.Feint]) {
+      const w = moodWeights(mood, c.moodBps);
+      expect(w.reduce((a, b) => a + b, 0n)).toBe(10_000n);
+      expect(w[mood]).toBe(c.moodBps);
+    }
+  });
+
+  it("tactic draws follow the mood weights", () => {
+    const counts = [0, 0, 0, 0];
+    for (let i = 0; i < 4000; i++) counts[drawTactic(sha256(beBytes(BigInt(i), 8)), 1, Tactic.Feint, c.moodBps).tactic]! += 1;
+    expect(counts[Tactic.Feint]! / 4000).toBeGreaterThan(0.52);
+    expect(counts[Tactic.Feint]! / 4000).toBeLessThan(0.58);
+    for (const t of [Tactic.None, Tactic.Armor, Tactic.Rage]) expect(counts[t]! / 4000).toBeGreaterThan(0.12);
+  });
+
+  it("the Bear's mood follows the last round", () => {
+    const base = { totalEarly: 1000n, totalLate: 0n, townWon: true, totalWeight: 2000n, effectiveHealth: 1000n };
+    expect(bearMood(null)).toBe(Tactic.Armor);
+    expect(bearMood({ ...base, totalEarly: 650n, totalLate: 350n })).toBe(Tactic.Feint);
+    expect(bearMood({ ...base, totalEarly: 651n, totalLate: 349n })).toBe(Tactic.Rage);
+    expect(bearMood({ ...base, townWon: false })).toBe(Tactic.Rage);
+    expect(bearMood({ ...base, totalWeight: 1249n })).toBe(Tactic.Armor);
+    expect(bearMood({ ...base, totalWeight: 1250n })).toBe(Tactic.Rage);
+  });
+
+  it("the smith forges only when stock is below half the target", () => {
+    expect(smithForgeBundles(c, 100n, 50n, 1_000n * ONE)).toBe(0n);
+    expect(smithForgeBundles(c, 99n, 50n, 1_000n * ONE)).toBe(11n);
+    expect(smithForgeBundles(c, 0n, 7n, 1_000n * ONE)).toBe(3n);
+    expect(smithForgeBundles(c, 0n, 50n, 25n * ONE)).toBe(2n);
   });
 
   it("the deciding drand round is published after the deadline", () => {

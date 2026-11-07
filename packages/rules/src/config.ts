@@ -41,8 +41,6 @@ export interface RandomnessConfig {
 
 export interface GameConfig {
   roundSecs: bigint;
-  /** Time after the deadline the Bear has to reveal its tactic before anyone may settle. */
-  revealWindowSecs: bigint;
   totalSupply: bigint;
   treasuryInit: bigint;
   reserveInit: bigint;
@@ -86,7 +84,13 @@ export interface GameConfig {
   pouchAmount: bigint;
   pouchesPerDay: number;
   dropDraws: number;
-  noRevealPenaltyBps: bigint;
+  /**
+   * The Bear's tactic is drawn from the round's drand beacon at settlement. Its mood (the
+   * favourite tactic, set at the open from the last round) gets this chance; the other three
+   * tactics share the rest equally. Nobody, the deployer included, knows the tactic before the
+   * deadline.
+   */
+  moodBps: bigint;
   marketFeeBps: bigint;
   smith: SmithConfig;
   randomness: RandomnessConfig;
@@ -96,10 +100,9 @@ const SUPPLY = 1_000_000_000n * ONE;
 const RESERVE = 200_000_000n * ONE;
 const SMITH_FLOAT = 1_000_000n * ONE;
 
-function base(roundSecs: bigint, revealWindowSecs: bigint, minHealth: bigint): GameConfig {
+function base(roundSecs: bigint, minHealth: bigint): GameConfig {
   return {
     roundSecs,
-    revealWindowSecs,
     totalSupply: SUPPLY,
     treasuryInit: SUPPLY - RESERVE,
     reserveInit: RESERVE,
@@ -124,7 +127,7 @@ function base(roundSecs: bigint, revealWindowSecs: bigint, minHealth: bigint): G
     pouchAmount: 1_000n * ONE,
     pouchesPerDay: 200,
     dropDraws: 3,
-    noRevealPenaltyBps: 1_000n,
+    moodBps: 5_500n,
     marketFeeBps: 200n,
     smith: {
       clubPrice: 3n * ONE,
@@ -148,9 +151,9 @@ function base(roundSecs: bigint, revealWindowSecs: bigint, minHealth: bigint): G
 }
 
 /** Demo instance: 10-minute rounds so a judge can watch a whole raid, and win one alone. */
-export const DEMO_CONFIG: GameConfig = base(600n, 60n, 500n * ONE);
+export const DEMO_CONFIG: GameConfig = base(600n, 500n * ONE);
 /** Season instance: one raid a day. */
-export const SEASON_CONFIG: GameConfig = base(86_400n, 3_600n, 2_000n * ONE);
+export const SEASON_CONFIG: GameConfig = base(86_400n, 2_000n * ONE);
 
 export function cloneConfig(c: GameConfig, patch: Partial<GameConfig> = {}): GameConfig {
   return {
@@ -166,8 +169,7 @@ export function describeConfig(c: GameConfig): Record<string, string> {
   const slay = (v: bigint) => `${(v / ONE).toLocaleString("en-US")} $SLAY`;
   const pct = (bps: bigint) => `${Number(bps) / 100}%`;
   return {
-    "Round length": `${c.roundSecs / 60n} minutes`,
-    "Bear reveal window": `${c.revealWindowSecs} seconds after the deadline`,
+    "Round length": c.roundSecs >= 3_600n ? `${c.roundSecs / 3_600n} hours` : `${c.roundSecs / 60n} minutes`,
     "Total supply": slay(c.totalSupply),
     "Bear base health": `starts at ${slay(c.minHealth)}; ${pct(c.winGrowthBps - BPS)} more after each town win, ${pct(BPS - c.lossShrinkBps)} less after each Bear win; at most ${pct(c.healthBps)} of the player supply`,
     "Hoard and health": `${pct(c.hoardHealthBps)} of the Bear's hoard adds to its health; all of it goes to the raiders`,
@@ -179,7 +181,8 @@ export function describeConfig(c: GameConfig): Record<string, string> {
     "Hit size": `${slay(c.minHit)} to ${slay(c.maxHit)}`,
     "Starter pouch": `${slay(c.pouchAmount)}, at most ${c.pouchesPerDay} per day`,
     "Drops per won round": `${c.dropDraws}`,
-    "Penalty if the Bear does not reveal": `${pct(c.noRevealPenaltyBps)} of its hoard back to the treasury`,
+    "Bear tactic": `drawn from the drand beacon at settlement: ${pct(c.moodBps)} its mood, ${pct((BPS - c.moodBps) / 3n)} each other tactic`,
+    "Smith": `forges clubs at each round open when its stock is below ${c.smith.clubTargetStock / 2n} charges and it has wood`,
     "Market fee (burned)": pct(c.marketFeeBps),
     Randomness:
       c.randomness.mode === "drand"

@@ -4,7 +4,6 @@
   "beaconPublicKey": "add654d05415ddb4654b103d8e2993687f4825027a7bac64552d7f7d3e528dfd2f085618d92cc38b2e3421ed2350cbfa0f8183d857cfea27eb6beb5fa210e45e97b1cea590d9e50e89c4e6837ec7849a581fa85966ddd188e8ff10fe15d0d51c",
   "config": {
     "round_secs": 600,
-    "reveal_window_secs": 60,
     "total_supply": "1000000000000000000000000000",
     "treasury_init": "800000000000000000000000000",
     "reserve_init": "200000000000000000000000000",
@@ -29,7 +28,7 @@
     "pouch_amount": "1000000000000000000000",
     "pouches_per_day": 200,
     "drop_draws": 3,
-    "no_reveal_penalty_bps": 1000,
+    "mood_bps": 5500,
     "market_fee_bps": 200,
     "smith": {
       "club_price": "3000000000000000000",
@@ -421,84 +420,6 @@
       }
     },
     {
-      "actor": "bear.slay.testnet",
-      "method": "bear_commit",
-      "args": {
-        "round_id": 1,
-        "commitment": "7115067c96a45c4b6429fd76db4ec4ca0b748f7e996d19843374db448418972c"
-      },
-      "now": "1792803368000000000",
-      "expect": {
-        "total_supply": "1000000000000000000000000000",
-        "burned": "0",
-        "next_base": "500000000000000000000",
-        "balances": {
-          "treasury.slay.testnet": "799000000000000000000000000",
-          "pouches.slay.testnet": "199996000000000000000000000",
-          "bear.slay.testnet": "0",
-          "smith.slay.testnet": "1000000000000000000000000",
-          "loot.slay.testnet": "0",
-          "market.slay.testnet": "0",
-          "alice.testnet": "1000000000000000000000",
-          "bob.testnet": "1000000000000000000000",
-          "carol.testnet": "1000000000000000000000",
-          "dave.testnet": "1000000000000000000000"
-        },
-        "items": {
-          "treasury.slay.testnet|wood": "0",
-          "treasury.slay.testnet|iron": "0",
-          "treasury.slay.testnet|club": "0",
-          "treasury.slay.testnet|sword": "0",
-          "treasury.slay.testnet|slayer": "0",
-          "pouches.slay.testnet|wood": "0",
-          "pouches.slay.testnet|iron": "0",
-          "pouches.slay.testnet|club": "0",
-          "pouches.slay.testnet|sword": "0",
-          "pouches.slay.testnet|slayer": "0",
-          "bear.slay.testnet|wood": "0",
-          "bear.slay.testnet|iron": "0",
-          "bear.slay.testnet|club": "0",
-          "bear.slay.testnet|sword": "0",
-          "bear.slay.testnet|slayer": "0",
-          "smith.slay.testnet|wood": "0",
-          "smith.slay.testnet|iron": "0",
-          "smith.slay.testnet|club": "200",
-          "smith.slay.testnet|sword": "0",
-          "smith.slay.testnet|slayer": "0",
-          "loot.slay.testnet|wood": "0",
-          "loot.slay.testnet|iron": "0",
-          "loot.slay.testnet|club": "0",
-          "loot.slay.testnet|sword": "0",
-          "loot.slay.testnet|slayer": "0",
-          "market.slay.testnet|wood": "0",
-          "market.slay.testnet|iron": "0",
-          "market.slay.testnet|club": "0",
-          "market.slay.testnet|sword": "0",
-          "market.slay.testnet|slayer": "0",
-          "alice.testnet|wood": "0",
-          "alice.testnet|iron": "0",
-          "alice.testnet|club": "0",
-          "alice.testnet|sword": "0",
-          "alice.testnet|slayer": "0",
-          "bob.testnet|wood": "0",
-          "bob.testnet|iron": "0",
-          "bob.testnet|club": "0",
-          "bob.testnet|sword": "0",
-          "bob.testnet|slayer": "0",
-          "carol.testnet|wood": "0",
-          "carol.testnet|iron": "0",
-          "carol.testnet|club": "0",
-          "carol.testnet|sword": "0",
-          "carol.testnet|slayer": "0",
-          "dave.testnet|wood": "0",
-          "dave.testnet|iron": "0",
-          "dave.testnet|club": "0",
-          "dave.testnet|sword": "0",
-          "dave.testnet|slayer": "0"
-        }
-      }
-    },
-    {
       "actor": "alice.testnet",
       "method": "hit",
       "args": {
@@ -580,6 +501,7 @@
           "total_late": "0",
           "hits_chain": "02d27e698ff7de96acd667c801012c811f750a168b9225ca1ebdeadf6f6fffcd",
           "target_drand_round": "33333540",
+          "mood": 1,
           "settlement": null
         }
       }
@@ -666,6 +588,7 @@
           "total_late": "0",
           "hits_chain": "4b7bd674c3c30a2ed0feb48f94b3a3bbbcdad77585d84508d4c3e5a47374d9c6",
           "target_drand_round": "33333540",
+          "mood": 1,
           "settlement": null
         }
       }
@@ -830,6 +753,7 @@
           "total_late": "256250000000000000000",
           "hits_chain": "5b42a35831721035a9512799e4684226857275967b0dc46449ebebb1b34f6759",
           "target_drand_round": "33333540",
+          "mood": 1,
           "settlement": null
         }
       }
@@ -916,94 +840,7 @@
           "total_late": "257266600000000000000",
           "hits_chain": "70768674b968c98dc52a1365481c38f4d6db316d0de1d0219537def6b78961ac",
           "target_drand_round": "33333540",
-          "settlement": null
-        }
-      }
-    },
-    {
-      "actor": "bear.slay.testnet",
-      "method": "bear_reveal",
-      "args": {
-        "round_id": 1,
-        "tactic": 1,
-        "salt": "9677838199f12d36f5ee971d49f68abc68282968d696f9091570be6d9b730a07"
-      },
-      "now": "1792803978000000000",
-      "expect": {
-        "total_supply": "999999244500000000000000000",
-        "burned": "755500000000000000000",
-        "next_base": "500000000000000000000",
-        "balances": {
-          "treasury.slay.testnet": "799000000000000000000000000",
-          "pouches.slay.testnet": "199996000000000000000000000",
-          "bear.slay.testnet": "0",
-          "smith.slay.testnet": "1000004500000000000000000",
-          "loot.slay.testnet": "0",
-          "market.slay.testnet": "0",
-          "alice.testnet": "700000000000000000000",
-          "bob.testnet": "750000000000000000000",
-          "carol.testnet": "791000000000000000000",
-          "dave.testnet": "999000000000000000000"
-        },
-        "items": {
-          "treasury.slay.testnet|wood": "0",
-          "treasury.slay.testnet|iron": "0",
-          "treasury.slay.testnet|club": "0",
-          "treasury.slay.testnet|sword": "0",
-          "treasury.slay.testnet|slayer": "0",
-          "pouches.slay.testnet|wood": "0",
-          "pouches.slay.testnet|iron": "0",
-          "pouches.slay.testnet|club": "0",
-          "pouches.slay.testnet|sword": "0",
-          "pouches.slay.testnet|slayer": "0",
-          "bear.slay.testnet|wood": "0",
-          "bear.slay.testnet|iron": "0",
-          "bear.slay.testnet|club": "0",
-          "bear.slay.testnet|sword": "0",
-          "bear.slay.testnet|slayer": "0",
-          "smith.slay.testnet|wood": "0",
-          "smith.slay.testnet|iron": "0",
-          "smith.slay.testnet|club": "197",
-          "smith.slay.testnet|sword": "0",
-          "smith.slay.testnet|slayer": "0",
-          "loot.slay.testnet|wood": "0",
-          "loot.slay.testnet|iron": "0",
-          "loot.slay.testnet|club": "0",
-          "loot.slay.testnet|sword": "0",
-          "loot.slay.testnet|slayer": "0",
-          "market.slay.testnet|wood": "0",
-          "market.slay.testnet|iron": "0",
-          "market.slay.testnet|club": "0",
-          "market.slay.testnet|sword": "0",
-          "market.slay.testnet|slayer": "0",
-          "alice.testnet|wood": "0",
-          "alice.testnet|iron": "0",
-          "alice.testnet|club": "0",
-          "alice.testnet|sword": "0",
-          "alice.testnet|slayer": "0",
-          "bob.testnet|wood": "0",
-          "bob.testnet|iron": "0",
-          "bob.testnet|club": "0",
-          "bob.testnet|sword": "0",
-          "bob.testnet|slayer": "0",
-          "carol.testnet|wood": "0",
-          "carol.testnet|iron": "0",
-          "carol.testnet|club": "2",
-          "carol.testnet|sword": "0",
-          "carol.testnet|slayer": "0",
-          "dave.testnet|wood": "0",
-          "dave.testnet|iron": "0",
-          "dave.testnet|club": "0",
-          "dave.testnet|sword": "0",
-          "dave.testnet|slayer": "0"
-        },
-        "round": {
-          "id": 1,
-          "health": "500000000000000000000",
-          "total_early": "806250000000000000000",
-          "total_late": "257266600000000000000",
-          "hits_chain": "70768674b968c98dc52a1365481c38f4d6db316d0de1d0219537def6b78961ac",
-          "target_drand_round": "33333540",
+          "mood": 1,
           "settlement": null
         }
       }
@@ -1013,7 +850,7 @@
       "method": "settle",
       "args": {
         "round_id": 1,
-        "beacon_round": "33333540",
+        "beacon_round": 33333540,
         "signature": "895b4377e4213bf3e1fa3a9d16d8dea581ee05cde8c47b5c6fbcd1c14db26eea1cc5fa82948a505003ffe51e79516645"
       },
       "now": "1792803982000000000",
@@ -1092,12 +929,13 @@
           "total_late": "257266600000000000000",
           "hits_chain": "70768674b968c98dc52a1365481c38f4d6db316d0de1d0219537def6b78961ac",
           "target_drand_round": "33333540",
+          "mood": 1,
           "settlement": {
             "outcome": "win",
             "tactic": 1,
+            "tactic_roll": 3640,
             "reward": "750000000000000000000",
             "steal": "0",
-            "penalty": "0",
             "total_weight": "1063516600000000000000",
             "randomness": "dea4adaf74a2a230891d1430624532facb7b84d9aa002522f63b810cae6cd88f",
             "drops": [
@@ -1191,12 +1029,13 @@
           "total_late": "257266600000000000000",
           "hits_chain": "70768674b968c98dc52a1365481c38f4d6db316d0de1d0219537def6b78961ac",
           "target_drand_round": "33333540",
+          "mood": 1,
           "settlement": {
             "outcome": "win",
             "tactic": 1,
+            "tactic_roll": 3640,
             "reward": "750000000000000000000",
             "steal": "0",
-            "penalty": "0",
             "total_weight": "1063516600000000000000",
             "randomness": "dea4adaf74a2a230891d1430624532facb7b84d9aa002522f63b810cae6cd88f",
             "drops": [
@@ -1290,12 +1129,13 @@
           "total_late": "257266600000000000000",
           "hits_chain": "70768674b968c98dc52a1365481c38f4d6db316d0de1d0219537def6b78961ac",
           "target_drand_round": "33333540",
+          "mood": 1,
           "settlement": {
             "outcome": "win",
             "tactic": 1,
+            "tactic_roll": 3640,
             "reward": "750000000000000000000",
             "steal": "0",
-            "penalty": "0",
             "total_weight": "1063516600000000000000",
             "randomness": "dea4adaf74a2a230891d1430624532facb7b84d9aa002522f63b810cae6cd88f",
             "drops": [
@@ -1389,12 +1229,13 @@
           "total_late": "257266600000000000000",
           "hits_chain": "70768674b968c98dc52a1365481c38f4d6db316d0de1d0219537def6b78961ac",
           "target_drand_round": "33333540",
+          "mood": 1,
           "settlement": {
             "outcome": "win",
             "tactic": 1,
+            "tactic_roll": 3640,
             "reward": "750000000000000000000",
             "steal": "0",
-            "penalty": "0",
             "total_weight": "1063516600000000000000",
             "randomness": "dea4adaf74a2a230891d1430624532facb7b84d9aa002522f63b810cae6cd88f",
             "drops": [
@@ -1488,12 +1329,13 @@
           "total_late": "257266600000000000000",
           "hits_chain": "70768674b968c98dc52a1365481c38f4d6db316d0de1d0219537def6b78961ac",
           "target_drand_round": "33333540",
+          "mood": 1,
           "settlement": {
             "outcome": "win",
             "tactic": 1,
+            "tactic_roll": 3640,
             "reward": "750000000000000000000",
             "steal": "0",
-            "penalty": "0",
             "total_weight": "1063516600000000000000",
             "randomness": "dea4adaf74a2a230891d1430624532facb7b84d9aa002522f63b810cae6cd88f",
             "drops": [
@@ -1502,84 +1344,6 @@
               "carol.testnet:wood:3"
             ]
           }
-        }
-      }
-    },
-    {
-      "actor": "bear.slay.testnet",
-      "method": "bear_commit",
-      "args": {
-        "round_id": 2,
-        "commitment": "f718ad6c8c99ff29463bc156edc6797b7de9f67e1ae144e1d557c28697aa4c6f"
-      },
-      "now": "1792803997000000000",
-      "expect": {
-        "total_supply": "999999244500000000000000000",
-        "burned": "755500000000000000000",
-        "next_base": "550000000000000000000",
-        "balances": {
-          "treasury.slay.testnet": "798999245000000000000000000",
-          "pouches.slay.testnet": "199996000000000000000000000",
-          "bear.slay.testnet": "0",
-          "smith.slay.testnet": "1000004500000000000000000",
-          "loot.slay.testnet": "2",
-          "market.slay.testnet": "0",
-          "alice.testnet": "1017343424634838798002",
-          "bob.testnet": "1001230211169247381752",
-          "carol.testnet": "971709450139283204418",
-          "dave.testnet": "1004716914056630615826"
-        },
-        "items": {
-          "treasury.slay.testnet|wood": "0",
-          "treasury.slay.testnet|iron": "0",
-          "treasury.slay.testnet|club": "0",
-          "treasury.slay.testnet|sword": "0",
-          "treasury.slay.testnet|slayer": "0",
-          "pouches.slay.testnet|wood": "0",
-          "pouches.slay.testnet|iron": "0",
-          "pouches.slay.testnet|club": "0",
-          "pouches.slay.testnet|sword": "0",
-          "pouches.slay.testnet|slayer": "0",
-          "bear.slay.testnet|wood": "0",
-          "bear.slay.testnet|iron": "0",
-          "bear.slay.testnet|club": "0",
-          "bear.slay.testnet|sword": "0",
-          "bear.slay.testnet|slayer": "0",
-          "smith.slay.testnet|wood": "0",
-          "smith.slay.testnet|iron": "0",
-          "smith.slay.testnet|club": "197",
-          "smith.slay.testnet|sword": "0",
-          "smith.slay.testnet|slayer": "0",
-          "loot.slay.testnet|wood": "0",
-          "loot.slay.testnet|iron": "0",
-          "loot.slay.testnet|club": "0",
-          "loot.slay.testnet|sword": "0",
-          "loot.slay.testnet|slayer": "0",
-          "market.slay.testnet|wood": "0",
-          "market.slay.testnet|iron": "0",
-          "market.slay.testnet|club": "0",
-          "market.slay.testnet|sword": "0",
-          "market.slay.testnet|slayer": "0",
-          "alice.testnet|wood": "0",
-          "alice.testnet|iron": "0",
-          "alice.testnet|club": "0",
-          "alice.testnet|sword": "0",
-          "alice.testnet|slayer": "0",
-          "bob.testnet|wood": "0",
-          "bob.testnet|iron": "2",
-          "bob.testnet|club": "0",
-          "bob.testnet|sword": "0",
-          "bob.testnet|slayer": "0",
-          "carol.testnet|wood": "6",
-          "carol.testnet|iron": "0",
-          "carol.testnet|club": "2",
-          "carol.testnet|sword": "0",
-          "carol.testnet|slayer": "0",
-          "dave.testnet|wood": "0",
-          "dave.testnet|iron": "0",
-          "dave.testnet|club": "0",
-          "dave.testnet|sword": "0",
-          "dave.testnet|slayer": "0"
         }
       }
     },
@@ -1665,94 +1429,7 @@
           "total_late": "0",
           "hits_chain": "7f06c4eb5aed05d5f5c6533b5d3537b278009c6bde50445746a3202516b5c966",
           "target_drand_round": "33333747",
-          "settlement": null
-        }
-      }
-    },
-    {
-      "actor": "bear.slay.testnet",
-      "method": "bear_reveal",
-      "args": {
-        "round_id": 2,
-        "tactic": 2,
-        "salt": "134b792091e5e2cde29804f30ac5a7621d87977daadad5d2919724720f249f48"
-      },
-      "now": "1792804598000000000",
-      "expect": {
-        "total_supply": "999999239500000000000000000",
-        "burned": "760500000000000000000",
-        "next_base": "550000000000000000000",
-        "balances": {
-          "treasury.slay.testnet": "798999245000000000000000000",
-          "pouches.slay.testnet": "199996000000000000000000000",
-          "bear.slay.testnet": "0",
-          "smith.slay.testnet": "1000004500000000000000000",
-          "loot.slay.testnet": "2",
-          "market.slay.testnet": "0",
-          "alice.testnet": "1012343424634838798002",
-          "bob.testnet": "1001230211169247381752",
-          "carol.testnet": "971709450139283204418",
-          "dave.testnet": "1004716914056630615826"
-        },
-        "items": {
-          "treasury.slay.testnet|wood": "0",
-          "treasury.slay.testnet|iron": "0",
-          "treasury.slay.testnet|club": "0",
-          "treasury.slay.testnet|sword": "0",
-          "treasury.slay.testnet|slayer": "0",
-          "pouches.slay.testnet|wood": "0",
-          "pouches.slay.testnet|iron": "0",
-          "pouches.slay.testnet|club": "0",
-          "pouches.slay.testnet|sword": "0",
-          "pouches.slay.testnet|slayer": "0",
-          "bear.slay.testnet|wood": "0",
-          "bear.slay.testnet|iron": "0",
-          "bear.slay.testnet|club": "0",
-          "bear.slay.testnet|sword": "0",
-          "bear.slay.testnet|slayer": "0",
-          "smith.slay.testnet|wood": "0",
-          "smith.slay.testnet|iron": "0",
-          "smith.slay.testnet|club": "197",
-          "smith.slay.testnet|sword": "0",
-          "smith.slay.testnet|slayer": "0",
-          "loot.slay.testnet|wood": "0",
-          "loot.slay.testnet|iron": "0",
-          "loot.slay.testnet|club": "0",
-          "loot.slay.testnet|sword": "0",
-          "loot.slay.testnet|slayer": "0",
-          "market.slay.testnet|wood": "0",
-          "market.slay.testnet|iron": "0",
-          "market.slay.testnet|club": "0",
-          "market.slay.testnet|sword": "0",
-          "market.slay.testnet|slayer": "0",
-          "alice.testnet|wood": "0",
-          "alice.testnet|iron": "0",
-          "alice.testnet|club": "0",
-          "alice.testnet|sword": "0",
-          "alice.testnet|slayer": "0",
-          "bob.testnet|wood": "0",
-          "bob.testnet|iron": "2",
-          "bob.testnet|club": "0",
-          "bob.testnet|sword": "0",
-          "bob.testnet|slayer": "0",
-          "carol.testnet|wood": "6",
-          "carol.testnet|iron": "0",
-          "carol.testnet|club": "2",
-          "carol.testnet|sword": "0",
-          "carol.testnet|slayer": "0",
-          "dave.testnet|wood": "0",
-          "dave.testnet|iron": "0",
-          "dave.testnet|club": "0",
-          "dave.testnet|sword": "0",
-          "dave.testnet|slayer": "0"
-        },
-        "round": {
-          "id": 2,
-          "health": "550000000000000000000",
-          "total_early": "7500000000000000000",
-          "total_late": "0",
-          "hits_chain": "7f06c4eb5aed05d5f5c6533b5d3537b278009c6bde50445746a3202516b5c966",
-          "target_drand_round": "33333747",
+          "mood": 2,
           "settlement": null
         }
       }
@@ -1762,7 +1439,7 @@
       "method": "settle",
       "args": {
         "round_id": 2,
-        "beacon_round": "33333747",
+        "beacon_round": 33333747,
         "signature": "a55a3dd3b4b0a3d6352e5560f01e7a1324fe17575e0a31d3418ecc6ba3770f48e04e2668c6d8100e8e00c72a3527defb"
       },
       "now": "1792804601000000000",
@@ -1841,12 +1518,13 @@
           "total_late": "0",
           "hits_chain": "7f06c4eb5aed05d5f5c6533b5d3537b278009c6bde50445746a3202516b5c966",
           "target_drand_round": "33333747",
+          "mood": 2,
           "settlement": {
             "outcome": "loss",
             "tactic": 2,
+            "tactic_roll": 6451,
             "reward": "0",
             "steal": "412500000000000000000",
-            "penalty": "0",
             "total_weight": "7500000000000000000",
             "randomness": "b392a394eee82e9594b61a0091d77427f946e3f6e39630ef4603194127c5ba0d",
             "drops": []
@@ -2089,84 +1767,6 @@
       }
     },
     {
-      "actor": "bear.slay.testnet",
-      "method": "bear_commit",
-      "args": {
-        "round_id": 3,
-        "commitment": "a2f7871cc53bdcc32a7f24e0deb4152d9316554169f0436e9499509a59cf540f"
-      },
-      "now": "1792804618000000000",
-      "expect": {
-        "total_supply": "999999239400000000000000000",
-        "burned": "760600000000000000000",
-        "next_base": "500000000000000000000",
-        "balances": {
-          "treasury.slay.testnet": "798998827500000000000000000",
-          "pouches.slay.testnet": "199996000000000000000000000",
-          "bear.slay.testnet": "412500000000000000000",
-          "smith.slay.testnet": "1000004500000000000000000",
-          "loot.slay.testnet": "2",
-          "market.slay.testnet": "0",
-          "alice.testnet": "1012343424634838798002",
-          "bob.testnet": "1001230211169247381752",
-          "carol.testnet": "976609450139283204418",
-          "dave.testnet": "1004716914056630615826"
-        },
-        "items": {
-          "treasury.slay.testnet|wood": "0",
-          "treasury.slay.testnet|iron": "0",
-          "treasury.slay.testnet|club": "0",
-          "treasury.slay.testnet|sword": "0",
-          "treasury.slay.testnet|slayer": "0",
-          "pouches.slay.testnet|wood": "0",
-          "pouches.slay.testnet|iron": "0",
-          "pouches.slay.testnet|club": "0",
-          "pouches.slay.testnet|sword": "0",
-          "pouches.slay.testnet|slayer": "0",
-          "bear.slay.testnet|wood": "0",
-          "bear.slay.testnet|iron": "0",
-          "bear.slay.testnet|club": "0",
-          "bear.slay.testnet|sword": "0",
-          "bear.slay.testnet|slayer": "0",
-          "smith.slay.testnet|wood": "0",
-          "smith.slay.testnet|iron": "0",
-          "smith.slay.testnet|club": "197",
-          "smith.slay.testnet|sword": "0",
-          "smith.slay.testnet|slayer": "0",
-          "loot.slay.testnet|wood": "0",
-          "loot.slay.testnet|iron": "0",
-          "loot.slay.testnet|club": "0",
-          "loot.slay.testnet|sword": "0",
-          "loot.slay.testnet|slayer": "0",
-          "market.slay.testnet|wood": "0",
-          "market.slay.testnet|iron": "0",
-          "market.slay.testnet|club": "0",
-          "market.slay.testnet|sword": "0",
-          "market.slay.testnet|slayer": "0",
-          "alice.testnet|wood": "0",
-          "alice.testnet|iron": "0",
-          "alice.testnet|club": "0",
-          "alice.testnet|sword": "0",
-          "alice.testnet|slayer": "0",
-          "bob.testnet|wood": "0",
-          "bob.testnet|iron": "2",
-          "bob.testnet|club": "1",
-          "bob.testnet|sword": "0",
-          "bob.testnet|slayer": "0",
-          "carol.testnet|wood": "6",
-          "carol.testnet|iron": "0",
-          "carol.testnet|club": "1",
-          "carol.testnet|sword": "0",
-          "carol.testnet|slayer": "0",
-          "dave.testnet|wood": "0",
-          "dave.testnet|iron": "0",
-          "dave.testnet|club": "0",
-          "dave.testnet|sword": "0",
-          "dave.testnet|slayer": "0"
-        }
-      }
-    },
-    {
       "actor": "alice.testnet",
       "method": "hit",
       "args": {
@@ -2248,6 +1848,7 @@
           "total_late": "0",
           "hits_chain": "69ad59adb3e5be2c2a76f52361db7a985a8cdb898ceb6d779b1ac4e5a08e637e",
           "target_drand_round": "33333954",
+          "mood": 2,
           "settlement": null
         }
       }
@@ -2335,6 +1936,7 @@
           "total_late": "0",
           "hits_chain": "3e45b5c0960e9117f298410fa3095c033a0b49e0119aabbfbf0a36bac86d5df9",
           "target_drand_round": "33333954",
+          "mood": 2,
           "settlement": null
         }
       }
@@ -2421,94 +2023,7 @@
           "total_late": "301500000000000000000",
           "hits_chain": "952cb079fbcaff138c963752281986f2c32b9aed36257907f994ef44f10227bd",
           "target_drand_round": "33333954",
-          "settlement": null
-        }
-      }
-    },
-    {
-      "actor": "bear.slay.testnet",
-      "method": "bear_reveal",
-      "args": {
-        "round_id": 3,
-        "tactic": 3,
-        "salt": "781530e64d1aa0f2a1be1650ad57aa932d4778d8249b6a9f468ee4ab8a8bf3b6"
-      },
-      "now": "1792805219000000000",
-      "expect": {
-        "total_supply": "999998139400000000000000000",
-        "burned": "1860600000000000000000",
-        "next_base": "500000000000000000000",
-        "balances": {
-          "treasury.slay.testnet": "798998827500000000000000000",
-          "pouches.slay.testnet": "199996000000000000000000000",
-          "bear.slay.testnet": "412500000000000000000",
-          "smith.slay.testnet": "1000004500000000000000000",
-          "loot.slay.testnet": "2",
-          "market.slay.testnet": "0",
-          "alice.testnet": "612343424634838798002",
-          "bob.testnet": "601230211169247381752",
-          "carol.testnet": "676609450139283204418",
-          "dave.testnet": "1004716914056630615826"
-        },
-        "items": {
-          "treasury.slay.testnet|wood": "0",
-          "treasury.slay.testnet|iron": "0",
-          "treasury.slay.testnet|club": "0",
-          "treasury.slay.testnet|sword": "0",
-          "treasury.slay.testnet|slayer": "0",
-          "pouches.slay.testnet|wood": "0",
-          "pouches.slay.testnet|iron": "0",
-          "pouches.slay.testnet|club": "0",
-          "pouches.slay.testnet|sword": "0",
-          "pouches.slay.testnet|slayer": "0",
-          "bear.slay.testnet|wood": "0",
-          "bear.slay.testnet|iron": "0",
-          "bear.slay.testnet|club": "0",
-          "bear.slay.testnet|sword": "0",
-          "bear.slay.testnet|slayer": "0",
-          "smith.slay.testnet|wood": "0",
-          "smith.slay.testnet|iron": "0",
-          "smith.slay.testnet|club": "197",
-          "smith.slay.testnet|sword": "0",
-          "smith.slay.testnet|slayer": "0",
-          "loot.slay.testnet|wood": "0",
-          "loot.slay.testnet|iron": "0",
-          "loot.slay.testnet|club": "0",
-          "loot.slay.testnet|sword": "0",
-          "loot.slay.testnet|slayer": "0",
-          "market.slay.testnet|wood": "0",
-          "market.slay.testnet|iron": "0",
-          "market.slay.testnet|club": "0",
-          "market.slay.testnet|sword": "0",
-          "market.slay.testnet|slayer": "0",
-          "alice.testnet|wood": "0",
-          "alice.testnet|iron": "0",
-          "alice.testnet|club": "0",
-          "alice.testnet|sword": "0",
-          "alice.testnet|slayer": "0",
-          "bob.testnet|wood": "0",
-          "bob.testnet|iron": "2",
-          "bob.testnet|club": "0",
-          "bob.testnet|sword": "0",
-          "bob.testnet|slayer": "0",
-          "carol.testnet|wood": "6",
-          "carol.testnet|iron": "0",
-          "carol.testnet|club": "1",
-          "carol.testnet|sword": "0",
-          "carol.testnet|slayer": "0",
-          "dave.testnet|wood": "0",
-          "dave.testnet|iron": "0",
-          "dave.testnet|club": "0",
-          "dave.testnet|sword": "0",
-          "dave.testnet|slayer": "0"
-        },
-        "round": {
-          "id": 3,
-          "health": "706250000000000000000",
-          "total_early": "1349550000000000000000",
-          "total_late": "301500000000000000000",
-          "hits_chain": "952cb079fbcaff138c963752281986f2c32b9aed36257907f994ef44f10227bd",
-          "target_drand_round": "33333954",
+          "mood": 2,
           "settlement": null
         }
       }
@@ -2518,7 +2033,7 @@
       "method": "settle",
       "args": {
         "round_id": 3,
-        "beacon_round": "33333954",
+        "beacon_round": 33333954,
         "signature": "800c3e6c79385b20bb60ac4a9cd02584ef4cd91b9accab9333966a58af290cf57e881fcf4f540f33b70b807e81198bb6"
       },
       "now": "1792805220000000000",
@@ -2597,17 +2112,18 @@
           "total_late": "301500000000000000000",
           "hits_chain": "952cb079fbcaff138c963752281986f2c32b9aed36257907f994ef44f10227bd",
           "target_drand_round": "33333954",
+          "mood": 2,
           "settlement": {
             "outcome": "win",
-            "tactic": 3,
+            "tactic": 2,
+            "tactic_roll": 4210,
             "reward": "1162500000000000000000",
             "steal": "0",
-            "penalty": "0",
-            "total_weight": "1500300000000000000000",
+            "total_weight": "1651050000000000000000",
             "randomness": "ece63dd9af63ecb69976df13a4225b699c217e3ca61d059ec4a93eb17cadbeaa",
             "drops": [
-              "alice.testnet:iron:2",
               "bob.testnet:iron:2",
+              "alice.testnet:iron:2",
               "bob.testnet:wood:3"
             ]
           }
@@ -2630,9 +2146,9 @@
           "pouches.slay.testnet": "199996000000000000000000000",
           "bear.slay.testnet": "0",
           "smith.slay.testnet": "1000004500000000000000000",
-          "loot.slay.testnet": "697592981403719256151",
+          "loot.slay.testnet": "740041564458980648681",
           "market.slay.testnet": "0",
-          "alice.testnet": "1077250443231119541853",
+          "alice.testnet": "1034801860175858149323",
           "bob.testnet": "601230211169247381752",
           "carol.testnet": "681609450139283204418",
           "dave.testnet": "1004716914056630615826"
@@ -2696,17 +2212,18 @@
           "total_late": "301500000000000000000",
           "hits_chain": "952cb079fbcaff138c963752281986f2c32b9aed36257907f994ef44f10227bd",
           "target_drand_round": "33333954",
+          "mood": 2,
           "settlement": {
             "outcome": "win",
-            "tactic": 3,
+            "tactic": 2,
+            "tactic_roll": 4210,
             "reward": "1162500000000000000000",
             "steal": "0",
-            "penalty": "0",
-            "total_weight": "1500300000000000000000",
+            "total_weight": "1651050000000000000000",
             "randomness": "ece63dd9af63ecb69976df13a4225b699c217e3ca61d059ec4a93eb17cadbeaa",
             "drops": [
-              "alice.testnet:iron:2",
               "bob.testnet:iron:2",
+              "alice.testnet:iron:2",
               "bob.testnet:wood:3"
             ]
           }
@@ -2729,10 +2246,10 @@
           "pouches.slay.testnet": "199996000000000000000000000",
           "bear.slay.testnet": "0",
           "smith.slay.testnet": "1000004500000000000000000",
-          "loot.slay.testnet": "116807888422315536895",
+          "loot.slay.testnet": "212285363859362224043",
           "market.slay.testnet": "0",
-          "alice.testnet": "1077250443231119541853",
-          "bob.testnet": "1182015304150651101008",
+          "alice.testnet": "1034801860175858149323",
+          "bob.testnet": "1128986411768865806390",
           "carol.testnet": "681609450139283204418",
           "dave.testnet": "1004716914056630615826"
         },
@@ -2795,17 +2312,18 @@
           "total_late": "301500000000000000000",
           "hits_chain": "952cb079fbcaff138c963752281986f2c32b9aed36257907f994ef44f10227bd",
           "target_drand_round": "33333954",
+          "mood": 2,
           "settlement": {
             "outcome": "win",
-            "tactic": 3,
+            "tactic": 2,
+            "tactic_roll": 4210,
             "reward": "1162500000000000000000",
             "steal": "0",
-            "penalty": "0",
-            "total_weight": "1500300000000000000000",
+            "total_weight": "1651050000000000000000",
             "randomness": "ece63dd9af63ecb69976df13a4225b699c217e3ca61d059ec4a93eb17cadbeaa",
             "drops": [
-              "alice.testnet:iron:2",
               "bob.testnet:iron:2",
+              "alice.testnet:iron:2",
               "bob.testnet:wood:3"
             ]
           }
@@ -2828,11 +2346,11 @@
           "pouches.slay.testnet": "199996000000000000000000000",
           "bear.slay.testnet": "0",
           "smith.slay.testnet": "1000004500000000000000000",
-          "loot.slay.testnet": "3",
+          "loot.slay.testnet": "4",
           "market.slay.testnet": "0",
-          "alice.testnet": "1077250443231119541853",
-          "bob.testnet": "1182015304150651101008",
-          "carol.testnet": "798417338561598741310",
+          "alice.testnet": "1034801860175858149323",
+          "bob.testnet": "1128986411768865806390",
+          "carol.testnet": "893894813998645428457",
           "dave.testnet": "1004716914056630615826"
         },
         "items": {
@@ -2894,17 +2412,18 @@
           "total_late": "301500000000000000000",
           "hits_chain": "952cb079fbcaff138c963752281986f2c32b9aed36257907f994ef44f10227bd",
           "target_drand_round": "33333954",
+          "mood": 2,
           "settlement": {
             "outcome": "win",
-            "tactic": 3,
+            "tactic": 2,
+            "tactic_roll": 4210,
             "reward": "1162500000000000000000",
             "steal": "0",
-            "penalty": "0",
-            "total_weight": "1500300000000000000000",
+            "total_weight": "1651050000000000000000",
             "randomness": "ece63dd9af63ecb69976df13a4225b699c217e3ca61d059ec4a93eb17cadbeaa",
             "drops": [
-              "alice.testnet:iron:2",
               "bob.testnet:iron:2",
+              "alice.testnet:iron:2",
               "bob.testnet:wood:3"
             ]
           }
@@ -2928,11 +2447,11 @@
           "pouches.slay.testnet": "199996000000000000000000000",
           "bear.slay.testnet": "0",
           "smith.slay.testnet": "999988500000000000000000",
-          "loot.slay.testnet": "3",
+          "loot.slay.testnet": "4",
           "market.slay.testnet": "0",
-          "alice.testnet": "1093250443231119541853",
-          "bob.testnet": "1182015304150651101008",
-          "carol.testnet": "798417338561598741310",
+          "alice.testnet": "1050801860175858149323",
+          "bob.testnet": "1128986411768865806390",
+          "carol.testnet": "893894813998645428457",
           "dave.testnet": "1004716914056630615826"
         },
         "items": {
@@ -3005,11 +2524,11 @@
           "pouches.slay.testnet": "199996000000000000000000000",
           "bear.slay.testnet": "0",
           "smith.slay.testnet": "999988500000000000000000",
-          "loot.slay.testnet": "3",
+          "loot.slay.testnet": "4",
           "market.slay.testnet": "0",
-          "alice.testnet": "1093250443231119541853",
-          "bob.testnet": "1132015304150651101008",
-          "carol.testnet": "798417338561598741310",
+          "alice.testnet": "1050801860175858149323",
+          "bob.testnet": "1078986411768865806390",
+          "carol.testnet": "893894813998645428457",
           "dave.testnet": "1004716914056630615826"
         },
         "items": {
@@ -3083,11 +2602,11 @@
           "pouches.slay.testnet": "199996000000000000000000000",
           "bear.slay.testnet": "0",
           "smith.slay.testnet": "999984500000000000000000",
-          "loot.slay.testnet": "3",
+          "loot.slay.testnet": "4",
           "market.slay.testnet": "0",
-          "alice.testnet": "1093250443231119541853",
-          "bob.testnet": "1136015304150651101008",
-          "carol.testnet": "798417338561598741310",
+          "alice.testnet": "1050801860175858149323",
+          "bob.testnet": "1082986411768865806390",
+          "carol.testnet": "893894813998645428457",
           "dave.testnet": "1004716914056630615826"
         },
         "items": {
@@ -3161,11 +2680,11 @@
           "pouches.slay.testnet": "199996000000000000000000000",
           "bear.slay.testnet": "0",
           "smith.slay.testnet": "999976656862745098039216",
-          "loot.slay.testnet": "3",
+          "loot.slay.testnet": "4",
           "market.slay.testnet": "0",
-          "alice.testnet": "1093250443231119541853",
-          "bob.testnet": "1143858441405553061792",
-          "carol.testnet": "798417338561598741310",
+          "alice.testnet": "1050801860175858149323",
+          "bob.testnet": "1090829549023767767174",
+          "carol.testnet": "893894813998645428457",
           "dave.testnet": "1004716914056630615826"
         },
         "items": {
@@ -3238,11 +2757,11 @@
           "pouches.slay.testnet": "199996000000000000000000000",
           "bear.slay.testnet": "0",
           "smith.slay.testnet": "999976656862745098039216",
-          "loot.slay.testnet": "3",
+          "loot.slay.testnet": "4",
           "market.slay.testnet": "0",
-          "alice.testnet": "1093250443231119541853",
-          "bob.testnet": "1143858441405553061792",
-          "carol.testnet": "788417338561598741310",
+          "alice.testnet": "1050801860175858149323",
+          "bob.testnet": "1090829549023767767174",
+          "carol.testnet": "883894813998645428457",
           "dave.testnet": "1004716914056630615826"
         },
         "items": {
@@ -3316,11 +2835,11 @@
           "pouches.slay.testnet": "199996000000000000000000000",
           "bear.slay.testnet": "0",
           "smith.slay.testnet": "999960815278586682197632",
-          "loot.slay.testnet": "3",
+          "loot.slay.testnet": "4",
           "market.slay.testnet": "0",
-          "alice.testnet": "1093250443231119541853",
-          "bob.testnet": "1143858441405553061792",
-          "carol.testnet": "804258922720014582894",
+          "alice.testnet": "1050801860175858149323",
+          "bob.testnet": "1090829549023767767174",
+          "carol.testnet": "899736398157061270041",
           "dave.testnet": "1004716914056630615826"
         },
         "items": {
@@ -3378,27 +2897,27 @@
       }
     },
     {
-      "actor": "smith.slay.testnet",
-      "method": "smith_craft",
+      "actor": "dave.testnet",
+      "method": "buy_from_smith",
       "args": {
-        "bundles": "1"
+        "qty": "105"
       },
-      "now": "1792805224000000000",
+      "now": "1792805225000000000",
       "expect": {
-        "total_supply": "999998069400000000000000000",
-        "burned": "1930600000000000000000",
+        "total_supply": "999997920709823677581864010",
+        "burned": "2079290176322418135990",
         "next_base": "550000000000000000000",
         "balances": {
           "treasury.slay.testnet": "798998072500000000000000000",
           "pouches.slay.testnet": "199996000000000000000000000",
           "bear.slay.testnet": "0",
-          "smith.slay.testnet": "999950815278586682197632",
-          "loot.slay.testnet": "3",
+          "smith.slay.testnet": "1000119505454909100333622",
+          "loot.slay.testnet": "4",
           "market.slay.testnet": "0",
-          "alice.testnet": "1093250443231119541853",
-          "bob.testnet": "1143858441405553061792",
-          "carol.testnet": "804258922720014582894",
-          "dave.testnet": "1004716914056630615826"
+          "alice.testnet": "1050801860175858149323",
+          "bob.testnet": "1090829549023767767174",
+          "carol.testnet": "899736398157061270041",
+          "dave.testnet": "687336561411794343846"
         },
         "items": {
           "treasury.slay.testnet|wood": "0",
@@ -3416,9 +2935,9 @@
           "bear.slay.testnet|club": "0",
           "bear.slay.testnet|sword": "0",
           "bear.slay.testnet|slayer": "0",
-          "smith.slay.testnet|wood": "3",
+          "smith.slay.testnet|wood": "5",
           "smith.slay.testnet|iron": "3",
-          "smith.slay.testnet|club": "207",
+          "smith.slay.testnet|club": "92",
           "smith.slay.testnet|sword": "0",
           "smith.slay.testnet|slayer": "0",
           "loot.slay.testnet|wood": "0",
@@ -3448,35 +2967,32 @@
           "carol.testnet|slayer": "0",
           "dave.testnet|wood": "0",
           "dave.testnet|iron": "0",
-          "dave.testnet|club": "0",
+          "dave.testnet|club": "105",
           "dave.testnet|sword": "0",
           "dave.testnet|slayer": "0"
         }
       }
     },
     {
-      "actor": "bear.slay.testnet",
-      "method": "bear_commit",
-      "args": {
-        "round_id": 4,
-        "commitment": "2c1eb1b844f16bc25c2d83bf90765aa6425b6c95b0a16bfca0114a198b7db67e"
-      },
+      "actor": "bob.testnet",
+      "method": "open_round",
+      "args": {},
       "now": "1792805234000000000",
       "expect": {
-        "total_supply": "999998069400000000000000000",
-        "burned": "1930600000000000000000",
+        "total_supply": "999997900709823677581864010",
+        "burned": "2099290176322418135990",
         "next_base": "550000000000000000000",
         "balances": {
           "treasury.slay.testnet": "798998072500000000000000000",
           "pouches.slay.testnet": "199996000000000000000000000",
           "bear.slay.testnet": "0",
-          "smith.slay.testnet": "999950815278586682197632",
-          "loot.slay.testnet": "3",
+          "smith.slay.testnet": "1000099505454909100333622",
+          "loot.slay.testnet": "4",
           "market.slay.testnet": "0",
-          "alice.testnet": "1093250443231119541853",
-          "bob.testnet": "1143858441405553061792",
-          "carol.testnet": "804258922720014582894",
-          "dave.testnet": "1004716914056630615826"
+          "alice.testnet": "1050801860175858149323",
+          "bob.testnet": "1090829549023767767174",
+          "carol.testnet": "899736398157061270041",
+          "dave.testnet": "687336561411794343846"
         },
         "items": {
           "treasury.slay.testnet|wood": "0",
@@ -3494,9 +3010,9 @@
           "bear.slay.testnet|club": "0",
           "bear.slay.testnet|sword": "0",
           "bear.slay.testnet|slayer": "0",
-          "smith.slay.testnet|wood": "3",
+          "smith.slay.testnet|wood": "1",
           "smith.slay.testnet|iron": "3",
-          "smith.slay.testnet|club": "207",
+          "smith.slay.testnet|club": "112",
           "smith.slay.testnet|sword": "0",
           "smith.slay.testnet|slayer": "0",
           "loot.slay.testnet|wood": "0",
@@ -3526,9 +3042,19 @@
           "carol.testnet|slayer": "0",
           "dave.testnet|wood": "0",
           "dave.testnet|iron": "0",
-          "dave.testnet|club": "0",
+          "dave.testnet|club": "105",
           "dave.testnet|sword": "0",
           "dave.testnet|slayer": "0"
+        },
+        "round": {
+          "id": 4,
+          "health": "550000000000000000000",
+          "total_early": "0",
+          "total_late": "0",
+          "hits_chain": "0000000000000000000000000000000000000000000000000000000000000000",
+          "target_drand_round": "33334159",
+          "mood": 2,
+          "settlement": null
         }
       }
     },
@@ -3538,22 +3064,22 @@
       "args": {
         "amount": "20000000000000000000"
       },
-      "now": "1792805235000000000",
+      "now": "1792805829000000000",
       "expect": {
-        "total_supply": "999998049400000000000000000",
-        "burned": "1950600000000000000000",
+        "total_supply": "999997880709823677581864010",
+        "burned": "2119290176322418135990",
         "next_base": "550000000000000000000",
         "balances": {
           "treasury.slay.testnet": "798998072500000000000000000",
           "pouches.slay.testnet": "199996000000000000000000000",
           "bear.slay.testnet": "0",
-          "smith.slay.testnet": "999950815278586682197632",
-          "loot.slay.testnet": "3",
+          "smith.slay.testnet": "1000099505454909100333622",
+          "loot.slay.testnet": "4",
           "market.slay.testnet": "0",
-          "alice.testnet": "1093250443231119541853",
-          "bob.testnet": "1143858441405553061792",
-          "carol.testnet": "804258922720014582894",
-          "dave.testnet": "984716914056630615826"
+          "alice.testnet": "1050801860175858149323",
+          "bob.testnet": "1090829549023767767174",
+          "carol.testnet": "899736398157061270041",
+          "dave.testnet": "667336561411794343846"
         },
         "items": {
           "treasury.slay.testnet|wood": "0",
@@ -3571,9 +3097,9 @@
           "bear.slay.testnet|club": "0",
           "bear.slay.testnet|sword": "0",
           "bear.slay.testnet|slayer": "0",
-          "smith.slay.testnet|wood": "3",
+          "smith.slay.testnet|wood": "1",
           "smith.slay.testnet|iron": "3",
-          "smith.slay.testnet|club": "207",
+          "smith.slay.testnet|club": "112",
           "smith.slay.testnet|sword": "0",
           "smith.slay.testnet|slayer": "0",
           "loot.slay.testnet|wood": "0",
@@ -3603,17 +3129,18 @@
           "carol.testnet|slayer": "0",
           "dave.testnet|wood": "0",
           "dave.testnet|iron": "0",
-          "dave.testnet|club": "0",
+          "dave.testnet|club": "105",
           "dave.testnet|sword": "0",
           "dave.testnet|slayer": "0"
         },
         "round": {
           "id": 4,
           "health": "550000000000000000000",
-          "total_early": "30000000000000000000",
-          "total_late": "0",
-          "hits_chain": "c30b83e0a2f28b7fa9632f0282f37507291358667c9ba38403577eae3f38ec78",
+          "total_early": "0",
+          "total_late": "20082000000000000000",
+          "hits_chain": "002de8e069a929a9d8c4f3b5fbd6c49d096e339c638f2dbcebe8e6eaa68da84d",
           "target_drand_round": "33334159",
+          "mood": 2,
           "settlement": null
         }
       }
@@ -3623,25 +3150,25 @@
       "method": "settle",
       "args": {
         "round_id": 4,
-        "beacon_round": "33334159",
+        "beacon_round": 33334159,
         "signature": "a1d58c46603d192e74872c31d98f5300c0fe7f3620f1fd11c7eab1aeb46465183bc20a89d1cf3162c5dba21dfe5d9517"
       },
-      "now": "1792805895000000000",
+      "now": "1792805834000000000",
       "expect": {
-        "total_supply": "999998049400000000000000000",
-        "burned": "1950600000000000000000",
+        "total_supply": "999997880709823677581864010",
+        "burned": "2119290176322418135990",
         "next_base": "500000000000000000000",
         "balances": {
-          "treasury.slay.testnet": "798997792500000000000000000",
+          "treasury.slay.testnet": "798997655000000000000000000",
           "pouches.slay.testnet": "199996000000000000000000000",
-          "bear.slay.testnet": "275000000000000000000",
-          "smith.slay.testnet": "999950815278586682197632",
-          "loot.slay.testnet": "3",
+          "bear.slay.testnet": "412500000000000000000",
+          "smith.slay.testnet": "1000099505454909100333622",
+          "loot.slay.testnet": "4",
           "market.slay.testnet": "0",
-          "alice.testnet": "1098250443231119541853",
-          "bob.testnet": "1143858441405553061792",
-          "carol.testnet": "804258922720014582894",
-          "dave.testnet": "984716914056630615826"
+          "alice.testnet": "1055801860175858149323",
+          "bob.testnet": "1090829549023767767174",
+          "carol.testnet": "899736398157061270041",
+          "dave.testnet": "667336561411794343846"
         },
         "items": {
           "treasury.slay.testnet|wood": "0",
@@ -3659,9 +3186,9 @@
           "bear.slay.testnet|club": "0",
           "bear.slay.testnet|sword": "0",
           "bear.slay.testnet|slayer": "0",
-          "smith.slay.testnet|wood": "3",
+          "smith.slay.testnet|wood": "1",
           "smith.slay.testnet|iron": "3",
-          "smith.slay.testnet|club": "207",
+          "smith.slay.testnet|club": "112",
           "smith.slay.testnet|sword": "0",
           "smith.slay.testnet|slayer": "0",
           "loot.slay.testnet|wood": "0",
@@ -3691,24 +3218,25 @@
           "carol.testnet|slayer": "0",
           "dave.testnet|wood": "0",
           "dave.testnet|iron": "0",
-          "dave.testnet|club": "0",
+          "dave.testnet|club": "105",
           "dave.testnet|sword": "0",
           "dave.testnet|slayer": "0"
         },
         "round": {
           "id": 4,
           "health": "550000000000000000000",
-          "total_early": "30000000000000000000",
-          "total_late": "0",
-          "hits_chain": "c30b83e0a2f28b7fa9632f0282f37507291358667c9ba38403577eae3f38ec78",
+          "total_early": "0",
+          "total_late": "20082000000000000000",
+          "hits_chain": "002de8e069a929a9d8c4f3b5fbd6c49d096e339c638f2dbcebe8e6eaa68da84d",
           "target_drand_round": "33334159",
+          "mood": 2,
           "settlement": {
             "outcome": "loss",
-            "tactic": 0,
+            "tactic": 2,
+            "tactic_roll": 3633,
             "reward": "0",
-            "steal": "275000000000000000000",
-            "penalty": "0",
-            "total_weight": "30000000000000000000",
+            "steal": "412500000000000000000",
+            "total_weight": "20082000000000000000",
             "randomness": "efa7b0a7ea45752262533915c80d43c62083c4b59f61033fd030a42f22631d4a",
             "drops": []
           }
@@ -3719,22 +3247,22 @@
       "actor": "bob.testnet",
       "method": "open_round",
       "args": {},
-      "now": "1792805900000000000",
+      "now": "1792805839000000000",
       "expect": {
-        "total_supply": "999998049400000000000000000",
-        "burned": "1950600000000000000000",
+        "total_supply": "999997880709823677581864010",
+        "burned": "2119290176322418135990",
         "next_base": "500000000000000000000",
         "balances": {
-          "treasury.slay.testnet": "798997792500000000000000000",
+          "treasury.slay.testnet": "798997655000000000000000000",
           "pouches.slay.testnet": "199996000000000000000000000",
-          "bear.slay.testnet": "275000000000000000000",
-          "smith.slay.testnet": "999950815278586682197632",
-          "loot.slay.testnet": "3",
+          "bear.slay.testnet": "412500000000000000000",
+          "smith.slay.testnet": "1000099505454909100333622",
+          "loot.slay.testnet": "4",
           "market.slay.testnet": "0",
-          "alice.testnet": "1098250443231119541853",
-          "bob.testnet": "1143858441405553061792",
-          "carol.testnet": "804258922720014582894",
-          "dave.testnet": "984716914056630615826"
+          "alice.testnet": "1055801860175858149323",
+          "bob.testnet": "1090829549023767767174",
+          "carol.testnet": "899736398157061270041",
+          "dave.testnet": "667336561411794343846"
         },
         "items": {
           "treasury.slay.testnet|wood": "0",
@@ -3752,9 +3280,9 @@
           "bear.slay.testnet|club": "0",
           "bear.slay.testnet|sword": "0",
           "bear.slay.testnet|slayer": "0",
-          "smith.slay.testnet|wood": "3",
+          "smith.slay.testnet|wood": "1",
           "smith.slay.testnet|iron": "3",
-          "smith.slay.testnet|club": "207",
+          "smith.slay.testnet|club": "112",
           "smith.slay.testnet|sword": "0",
           "smith.slay.testnet|slayer": "0",
           "loot.slay.testnet|wood": "0",
@@ -3784,17 +3312,105 @@
           "carol.testnet|slayer": "0",
           "dave.testnet|wood": "0",
           "dave.testnet|iron": "0",
-          "dave.testnet|club": "0",
+          "dave.testnet|club": "105",
           "dave.testnet|sword": "0",
           "dave.testnet|slayer": "0"
         },
         "round": {
           "id": 5,
-          "health": "637500000000000000000",
+          "health": "706250000000000000000",
           "total_early": "0",
           "total_late": "0",
           "hits_chain": "0000000000000000000000000000000000000000000000000000000000000000",
-          "target_drand_round": "33334381",
+          "target_drand_round": "33334361",
+          "mood": 3,
+          "settlement": null
+        }
+      }
+    },
+    {
+      "actor": "carol.testnet",
+      "method": "hit",
+      "args": {
+        "amount": "3000000000000000000"
+      },
+      "now": "1792806429000000000",
+      "expect": {
+        "total_supply": "999997877709823677581864010",
+        "burned": "2122290176322418135990",
+        "next_base": "500000000000000000000",
+        "balances": {
+          "treasury.slay.testnet": "798997655000000000000000000",
+          "pouches.slay.testnet": "199996000000000000000000000",
+          "bear.slay.testnet": "412500000000000000000",
+          "smith.slay.testnet": "1000099505454909100333622",
+          "loot.slay.testnet": "4",
+          "market.slay.testnet": "0",
+          "alice.testnet": "1055801860175858149323",
+          "bob.testnet": "1090829549023767767174",
+          "carol.testnet": "896736398157061270041",
+          "dave.testnet": "667336561411794343846"
+        },
+        "items": {
+          "treasury.slay.testnet|wood": "0",
+          "treasury.slay.testnet|iron": "0",
+          "treasury.slay.testnet|club": "0",
+          "treasury.slay.testnet|sword": "0",
+          "treasury.slay.testnet|slayer": "0",
+          "pouches.slay.testnet|wood": "0",
+          "pouches.slay.testnet|iron": "0",
+          "pouches.slay.testnet|club": "0",
+          "pouches.slay.testnet|sword": "0",
+          "pouches.slay.testnet|slayer": "0",
+          "bear.slay.testnet|wood": "0",
+          "bear.slay.testnet|iron": "0",
+          "bear.slay.testnet|club": "0",
+          "bear.slay.testnet|sword": "0",
+          "bear.slay.testnet|slayer": "0",
+          "smith.slay.testnet|wood": "1",
+          "smith.slay.testnet|iron": "3",
+          "smith.slay.testnet|club": "112",
+          "smith.slay.testnet|sword": "0",
+          "smith.slay.testnet|slayer": "0",
+          "loot.slay.testnet|wood": "0",
+          "loot.slay.testnet|iron": "0",
+          "loot.slay.testnet|club": "0",
+          "loot.slay.testnet|sword": "0",
+          "loot.slay.testnet|slayer": "0",
+          "market.slay.testnet|wood": "0",
+          "market.slay.testnet|iron": "0",
+          "market.slay.testnet|club": "0",
+          "market.slay.testnet|sword": "0",
+          "market.slay.testnet|slayer": "0",
+          "alice.testnet|wood": "0",
+          "alice.testnet|iron": "0",
+          "alice.testnet|club": "0",
+          "alice.testnet|sword": "0",
+          "alice.testnet|slayer": "0",
+          "bob.testnet|wood": "0",
+          "bob.testnet|iron": "0",
+          "bob.testnet|club": "0",
+          "bob.testnet|sword": "10",
+          "bob.testnet|slayer": "0",
+          "carol.testnet|wood": "0",
+          "carol.testnet|iron": "0",
+          "carol.testnet|club": "11",
+          "carol.testnet|sword": "0",
+          "carol.testnet|slayer": "0",
+          "dave.testnet|wood": "0",
+          "dave.testnet|iron": "0",
+          "dave.testnet|club": "105",
+          "dave.testnet|sword": "0",
+          "dave.testnet|slayer": "0"
+        },
+        "round": {
+          "id": 5,
+          "health": "706250000000000000000",
+          "total_early": "0",
+          "total_late": "3024900000000000000",
+          "hits_chain": "cdb79d6756596602aa32d77dcfe31a231655e8fce7a80e92efb4cdfa83a250b7",
+          "target_drand_round": "33334361",
+          "mood": 3,
           "settlement": null
         }
       }
@@ -3804,25 +3420,25 @@
       "method": "settle",
       "args": {
         "round_id": 5,
-        "beacon_round": "33334381",
-        "signature": "b9cfe1fec10a11b664bbbdc37e9dec639300250aa1c7ea2d8abec1b695465fd2464f4064e153901d04b9547cd975ebbd"
+        "beacon_round": 33334361,
+        "signature": "8b43c2d9efc00167f4782fd776fcfff5efa3ef9aef8130ad4807637be3099d6a5ad411f0ac112d3e03076aa9527df0f3"
       },
-      "now": "1792806500000000000",
+      "now": "1792806439000000000",
       "expect": {
-        "total_supply": "999998049400000000000000000",
-        "burned": "1950600000000000000000",
+        "total_supply": "999997877709823677581864010",
+        "burned": "2122290176322418135990",
         "next_base": "500000000000000000000",
         "balances": {
-          "treasury.slay.testnet": "798997537500000000000000000",
+          "treasury.slay.testnet": "798997400000000000000000000",
           "pouches.slay.testnet": "199996000000000000000000000",
-          "bear.slay.testnet": "525000000000000000000",
-          "smith.slay.testnet": "999950815278586682197632",
-          "loot.slay.testnet": "3",
+          "bear.slay.testnet": "662500000000000000000",
+          "smith.slay.testnet": "1000099505454909100333622",
+          "loot.slay.testnet": "4",
           "market.slay.testnet": "0",
-          "alice.testnet": "1098250443231119541853",
-          "bob.testnet": "1148858441405553061792",
-          "carol.testnet": "804258922720014582894",
-          "dave.testnet": "984716914056630615826"
+          "alice.testnet": "1055801860175858149323",
+          "bob.testnet": "1095829549023767767174",
+          "carol.testnet": "896736398157061270041",
+          "dave.testnet": "667336561411794343846"
         },
         "items": {
           "treasury.slay.testnet|wood": "0",
@@ -3840,9 +3456,9 @@
           "bear.slay.testnet|club": "0",
           "bear.slay.testnet|sword": "0",
           "bear.slay.testnet|slayer": "0",
-          "smith.slay.testnet|wood": "3",
+          "smith.slay.testnet|wood": "1",
           "smith.slay.testnet|iron": "3",
-          "smith.slay.testnet|club": "207",
+          "smith.slay.testnet|club": "112",
           "smith.slay.testnet|sword": "0",
           "smith.slay.testnet|slayer": "0",
           "loot.slay.testnet|wood": "0",
@@ -3872,29 +3488,322 @@
           "carol.testnet|slayer": "0",
           "dave.testnet|wood": "0",
           "dave.testnet|iron": "0",
-          "dave.testnet|club": "0",
+          "dave.testnet|club": "105",
           "dave.testnet|sword": "0",
           "dave.testnet|slayer": "0"
         },
         "round": {
           "id": 5,
-          "health": "637500000000000000000",
+          "health": "706250000000000000000",
           "total_early": "0",
-          "total_late": "0",
-          "hits_chain": "0000000000000000000000000000000000000000000000000000000000000000",
-          "target_drand_round": "33334381",
+          "total_late": "3024900000000000000",
+          "hits_chain": "cdb79d6756596602aa32d77dcfe31a231655e8fce7a80e92efb4cdfa83a250b7",
+          "target_drand_round": "33334361",
+          "mood": 3,
           "settlement": {
             "outcome": "loss",
-            "tactic": 0,
+            "tactic": 1,
+            "tactic_roll": 1703,
             "reward": "0",
             "steal": "250000000000000000000",
-            "penalty": "0",
-            "total_weight": "0",
-            "randomness": "74bfb247bb8e02924b506d8dbe4da14f8a713b2b696a0dde575723ae38bce15b",
+            "total_weight": "3024900000000000000",
+            "randomness": "323f678ecd0c5b20729c8d2e263ff604ec9916cad8070bb70e6e05f6c220b696",
             "drops": []
           }
         }
       }
     }
-  ]
+  ],
+  "formulas": {
+    "tacticDraws": [
+      {
+        "randomness": "eafae26b6bd8bbd6c1908adf647afc9193a56ddccd72cfacbef451c4c451a08f",
+        "round_id": 1,
+        "mood": 0,
+        "tactic": 0,
+        "roll": 5338
+      },
+      {
+        "randomness": "f19c47b5edca534dff6fb3261bb04ea1d02c3dc8e462d191dbf6233dea54e973",
+        "round_id": 2,
+        "mood": 1,
+        "tactic": 3,
+        "roll": 8922
+      },
+      {
+        "randomness": "a5ebe359ea1489e4b3426535fbe28aaa4dea748e0cf59d6e085009b458ceaf1c",
+        "round_id": 3,
+        "mood": 2,
+        "tactic": 0,
+        "roll": 1178
+      },
+      {
+        "randomness": "e20025606193f4c81fdc7c21aaf42d19cb34a9ba4ea5249bc69456205aa037d5",
+        "round_id": 4,
+        "mood": 3,
+        "tactic": 2,
+        "roll": 4038
+      },
+      {
+        "randomness": "abe6bf1fd5ac707f65b701cb4b0d3153438162e375c7480db2ff21635d3934e8",
+        "round_id": 5,
+        "mood": 0,
+        "tactic": 0,
+        "roll": 1586
+      },
+      {
+        "randomness": "129ed73735939519b1d071594a294b23467e59c98f3e645431bb6addcbea298d",
+        "round_id": 6,
+        "mood": 1,
+        "tactic": 1,
+        "roll": 2334
+      },
+      {
+        "randomness": "43f9f0a6fa951084fd0dbfa830756535eb6d899b3771c3b9a2bb0417e7bcb1af",
+        "round_id": 7,
+        "mood": 2,
+        "tactic": 2,
+        "roll": 7130
+      },
+      {
+        "randomness": "61bcff87101fcea1cf1300c88d7ad1b62ee1bb0551e5b5198b538867ee131745",
+        "round_id": 8,
+        "mood": 3,
+        "tactic": 3,
+        "roll": 7530
+      },
+      {
+        "randomness": "11f5e73a7e2411e8667110caa77b40930aebf134b4950e789d123d66458f7915",
+        "round_id": 9,
+        "mood": 0,
+        "tactic": 2,
+        "roll": 8479
+      },
+      {
+        "randomness": "17f61fe63b3393660023f8d6e511d54bffb9f81857a3294705804f81b5297c08",
+        "round_id": 10,
+        "mood": 1,
+        "tactic": 0,
+        "roll": 1228
+      },
+      {
+        "randomness": "e6194c671b1d4eeb3784051dbbb79a2857fa0e6df330f1d9c911efad260d6b94",
+        "round_id": 11,
+        "mood": 2,
+        "tactic": 2,
+        "roll": 3314
+      },
+      {
+        "randomness": "af263476ae35521511683947dae23305149cb8c85aacda2ea9d48bcd3322a16e",
+        "round_id": 12,
+        "mood": 3,
+        "tactic": 0,
+        "roll": 641
+      },
+      {
+        "randomness": "ea3dc4b7388bba100a00f903e57a337d15474cc7c03b7ff8c485459d7519931a",
+        "round_id": 13,
+        "mood": 0,
+        "tactic": 1,
+        "roll": 6581
+      },
+      {
+        "randomness": "bf529a465faf6bbe940a8191ac8a4f2b12f09a9f09310e69ddbcbb35e85827bc",
+        "round_id": 14,
+        "mood": 1,
+        "tactic": 2,
+        "roll": 8236
+      },
+      {
+        "randomness": "d37815ce47ba09e380f5de2e915314a5393134475f1749f081ef59ac3f621ed8",
+        "round_id": 15,
+        "mood": 2,
+        "tactic": 2,
+        "roll": 3714
+      },
+      {
+        "randomness": "4da6e397691baf2d3782bf00069317c7b6afe5ad700b1a01a5ce6ffd2b4e3f0f",
+        "round_id": 16,
+        "mood": 3,
+        "tactic": 3,
+        "roll": 9322
+      },
+      {
+        "randomness": "dec9ec352a845e363eb688e4b0b0af608d59529e57951a00d3fe3a2b0bf8bba2",
+        "round_id": 17,
+        "mood": 0,
+        "tactic": 0,
+        "roll": 1750
+      },
+      {
+        "randomness": "baea9bceee3c36ada94bc88d83efc572beb28bf9adc79a61b40ef97d4a0ad49f",
+        "round_id": 18,
+        "mood": 1,
+        "tactic": 1,
+        "roll": 3565
+      },
+      {
+        "randomness": "45e433ba4681b1adcf0283d8d80b2cf47254547fc48b4455be851bfddda8cc98",
+        "round_id": 19,
+        "mood": 2,
+        "tactic": 3,
+        "roll": 9078
+      },
+      {
+        "randomness": "6eb2f3ab278d146045a221fe714c3a19aa9ffa5e5de0e5586003ce154543dbb6",
+        "round_id": 20,
+        "mood": 3,
+        "tactic": 3,
+        "roll": 8467
+      },
+      {
+        "randomness": "371453613c2e9cd90a2179dc5be174dcb4c3ac1596b38a50166af77f7f243a0d",
+        "round_id": 21,
+        "mood": 0,
+        "tactic": 0,
+        "roll": 3322
+      },
+      {
+        "randomness": "5dc500b733ce8bc5546198eab41fb666344d286cb638ee6e03b70d4d25db3300",
+        "round_id": 22,
+        "mood": 1,
+        "tactic": 3,
+        "roll": 8545
+      },
+      {
+        "randomness": "8bb7bdbcaeb7cfe7946248c99f157cc8b0652e71e1883420c2b03a68657766f2",
+        "round_id": 23,
+        "mood": 2,
+        "tactic": 2,
+        "roll": 4216
+      },
+      {
+        "randomness": "aed0f67d3f60c83d8c6b9d500237867736c7d3b524b2a3bc7354a21ad3b465c3",
+        "round_id": 24,
+        "mood": 3,
+        "tactic": 0,
+        "roll": 254
+      }
+    ],
+    "moods": [
+      {
+        "last": null,
+        "mood": 1
+      },
+      {
+        "last": {
+          "total_early": "0",
+          "total_late": "0",
+          "town_won": false,
+          "total_weight": "0",
+          "effective_health": "500"
+        },
+        "mood": 2
+      },
+      {
+        "last": {
+          "total_early": "650",
+          "total_late": "350",
+          "town_won": true,
+          "total_weight": "1000",
+          "effective_health": "500"
+        },
+        "mood": 3
+      },
+      {
+        "last": {
+          "total_early": "651",
+          "total_late": "349",
+          "town_won": true,
+          "total_weight": "1000",
+          "effective_health": "500"
+        },
+        "mood": 2
+      },
+      {
+        "last": {
+          "total_early": "100",
+          "total_late": "0",
+          "town_won": false,
+          "total_weight": "100",
+          "effective_health": "500"
+        },
+        "mood": 2
+      },
+      {
+        "last": {
+          "total_early": "1000",
+          "total_late": "0",
+          "town_won": true,
+          "total_weight": "1249",
+          "effective_health": "1000"
+        },
+        "mood": 1
+      },
+      {
+        "last": {
+          "total_early": "1000",
+          "total_late": "0",
+          "town_won": true,
+          "total_weight": "1250",
+          "effective_health": "1000"
+        },
+        "mood": 2
+      },
+      {
+        "last": {
+          "total_early": "0",
+          "total_late": "10",
+          "town_won": false,
+          "total_weight": "10",
+          "effective_health": "500"
+        },
+        "mood": 3
+      }
+    ],
+    "forge": [
+      {
+        "stock": "200",
+        "wood": "0",
+        "balance": "0",
+        "bundles": "0"
+      },
+      {
+        "stock": "100",
+        "wood": "50",
+        "balance": "1000000000000000000000",
+        "bundles": "0"
+      },
+      {
+        "stock": "99",
+        "wood": "50",
+        "balance": "1000000000000000000000",
+        "bundles": "11"
+      },
+      {
+        "stock": "0",
+        "wood": "50",
+        "balance": "1000000000000000000000",
+        "bundles": "20"
+      },
+      {
+        "stock": "0",
+        "wood": "7",
+        "balance": "1000000000000000000000",
+        "bundles": "3"
+      },
+      {
+        "stock": "0",
+        "wood": "50",
+        "balance": "25000000000000000000",
+        "bundles": "2"
+      },
+      {
+        "stock": "95",
+        "wood": "3",
+        "balance": "9000000000000000000",
+        "bundles": "0"
+      }
+    ]
+  }
 }

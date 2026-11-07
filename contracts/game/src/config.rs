@@ -39,7 +39,6 @@ pub struct SmithConfig {
 #[derive(Clone, Debug)]
 pub struct Config {
     pub round_secs: u64,
-    pub reveal_window_secs: u64,
     pub total_supply: U128,
     pub treasury_init: U128,
     pub reserve_init: U128,
@@ -64,7 +63,8 @@ pub struct Config {
     pub pouch_amount: U128,
     pub pouches_per_day: u32,
     pub drop_draws: u32,
-    pub no_reveal_penalty_bps: u32,
+    /// Chance (bps) that the drawn tactic is the Bear's mood; the other three share the rest.
+    pub mood_bps: u32,
     pub market_fee_bps: u32,
     pub smith: SmithConfig,
     pub randomness: RandomnessConfig,
@@ -85,6 +85,9 @@ impl Config {
         ok(self.late_window_bps <= 10_000 && self.health_bps <= 10_000, "bps out of range");
         ok(self.max_participants > 0 && self.max_participants <= 500, "max participants");
         ok(self.drop_draws <= 10 && self.effort_window <= 50, "too many draws or window");
+        ok(self.mood_bps >= 2_500 && self.mood_bps <= 10_000, "mood_bps out of range");
+        ok(self.market_fee_bps <= 10_000 && self.smith.burn_share_bps <= 10_000, "fee out of range");
+        ok(self.smith.club_target_stock.0 > 0 && self.smith.material_target_stock.0 > 0, "zero smith targets");
         if self.randomness.mode == RandomnessMode::Drand {
             let pk = crate::drand::from_hex(&self.randomness.public_key);
             ok(pk.is_some_and(|k| k.len() == 96), "drand public key must be 96 bytes");

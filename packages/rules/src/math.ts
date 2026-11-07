@@ -4,6 +4,7 @@
 
 import { BPS, type GameConfig } from "./config";
 import { beBytes, concat, readBe, sha256, utf8 } from "./bytes";
+import { RECIPES } from "./items";
 
 export enum Tactic {
   None = 0,
@@ -20,7 +21,7 @@ export const TACTIC_NAMES: Record<Tactic, string> = {
 };
 
 export const TACTIC_EFFECTS: Record<Tactic, string> = {
-  [Tactic.None]: "No effect.",
+  [Tactic.None]: "No trick this round.",
   [Tactic.Armor]: "The Bear has 20% more health this round.",
   [Tactic.Rage]: "If the Bear wins, it steals 50% more.",
   [Tactic.Feint]: "Late hits count half, for the kill and for the loot.",
@@ -88,10 +89,6 @@ export function stealAmount(c: GameConfig, treasury: bigint, base: bigint, tacti
   return min(s, treasury);
 }
 
-export function noRevealPenalty(c: GameConfig, hoard: bigint): bigint {
-  return (hoard * c.noRevealPenaltyBps) / BPS;
-}
-
 /** Share of a round's loot pool for one raider. */
 export function lootShare(raiderWeight: bigint, totalWeight: bigint, pool: bigint): bigint {
   if (totalWeight === 0n) return 0n;
@@ -117,6 +114,66 @@ export function materialPrice(c: GameConfig, tokenId: "wood" | "iron", stock: bi
   return max((basePrice * t) / (stock + t), 1n);
 }
 
+/**
+ * Club bundles the smith forges at a round open: none while its stock is at least half the
+ * target, otherwise as many as its wood and $SLAY allow, up to the target.
+ */
+export function smithForgeBundles(c: GameConfig, stock: bigint, wood: bigint, balance: bigint): bigint {
+  const t = c.smith.clubTargetStock;
+  if (stock * 2n >= t) return 0n;
+  const rec = RECIPES.club;
+  const needed = (t - stock + rec.charges - 1n) / rec.charges;
+  return min(min(wood / rec.wood, balance / rec.fee), needed);
+}
+
+// ---------- the Bear's mood and tactic ----------
+
+/** What the Bear remembers of the last settled round. */
+export interface MoodInput {
+  totalEarly: bigint;
+  totalLate: bigint;
+  townWon: boolean;
+  totalWeight: bigint;
+  effectiveHealth: bigint;
+}
+
+/**
+ * The Bear's favourite tactic for a round, fixed at the open from the last settled round:
+ * Armor at the first raid; Feint if 35% or more of the last damage came late; Rage after a
+ * Bear win; Armor after a narrow town win (less than 125% of its health); Rage otherwise.
+ */
+export function bearMood(last: MoodInput | null): Tactic {
+  if (!last) return Tactic.Armor;
+  const raw = last.totalEarly + last.totalLate;
+  if (raw > 0n && (last.totalLate * 1000n) / raw >= 350n) return Tactic.Feint;
+  if (!last.townWon) return Tactic.Rage;
+  if (last.effectiveHealth === 0n || (last.totalWeight * 1000n) / last.effectiveHealth < 1250n) return Tactic.Armor;
+  return Tactic.Rage;
+}
+
+/** Chance of each tactic [None, Armor, Rage, Feint] in bps; they always sum to 10000. */
+export function moodWeights(mood: Tactic, moodBps: bigint): bigint[] {
+  const other = (BPS - moodBps) / 3n;
+  const w = [other, other, other, other];
+  w[mood] = BPS - 3n * other;
+  return w;
+}
+
+/** Draw index reserved for the tactic, so it never overlaps the item drops. */
+export const TACTIC_DRAW = 0xffff_ffff;
+
+/** The tactic drawn from the round randomness: a roll in [0, 10000) against the mood weights. */
+export function drawTactic(randomness: Uint8Array, roundId: number, mood: Tactic, moodBps: bigint): { tactic: Tactic; roll: number } {
+  const roll = readBe(drawBytes(randomness, roundId, TACTIC_DRAW), 0, 8) % BPS;
+  const w = moodWeights(mood, moodBps);
+  let cum = 0n;
+  for (let t = 0; t < 4; t++) {
+    cum += w[t]!;
+    if (roll < cum) return { tactic: t as Tactic, roll: Number(roll) };
+  }
+  return { tactic: Tactic.Feint, roll: Number(roll) };
+}
+
 // ---------- hashes ----------
 
 /**
@@ -134,12 +191,6 @@ export function nextHitsChain(
   return sha256(
     concat(prev, utf8(account), new Uint8Array([0]), beBytes(amount, 16), beBytes(damage, 16), beBytes(nowNs, 8), utf8(weapon ?? "")),
   );
-}
-
-/** Bear commitment: sha256(tactic byte || salt (32 bytes)). */
-export function tacticCommitment(tactic: Tactic, salt: Uint8Array): Uint8Array {
-  if (salt.length !== 32) throw new Error("salt must be 32 bytes");
-  return sha256(concat(new Uint8Array([tactic]), salt));
 }
 
 /** Round randomness in fallback mode: sha256(near seed || hits chain || round id). */

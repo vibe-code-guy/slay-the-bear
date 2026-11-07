@@ -9,7 +9,6 @@ export function toContractConfig(c: GameConfig) {
   const s = (v: bigint) => v.toString();
   return {
     round_secs: Number(c.roundSecs),
-    reveal_window_secs: Number(c.revealWindowSecs),
     total_supply: s(c.totalSupply),
     treasury_init: s(c.treasuryInit),
     reserve_init: s(c.reserveInit),
@@ -34,7 +33,7 @@ export function toContractConfig(c: GameConfig) {
     pouch_amount: s(c.pouchAmount),
     pouches_per_day: c.pouchesPerDay,
     drop_draws: c.dropDraws,
-    no_reveal_penalty_bps: Number(c.noRevealPenaltyBps),
+    mood_bps: Number(c.moodBps),
     market_fee_bps: Number(c.marketFeeBps),
     smith: {
       club_price: s(c.smith.clubPrice),
@@ -64,7 +63,6 @@ export function fromContractConfig(j: ContractConfig): GameConfig {
   const b = (v: string | number) => BigInt(v);
   return {
     roundSecs: b(j.round_secs),
-    revealWindowSecs: b(j.reveal_window_secs),
     totalSupply: b(j.total_supply),
     treasuryInit: b(j.treasury_init),
     reserveInit: b(j.reserve_init),
@@ -89,7 +87,7 @@ export function fromContractConfig(j: ContractConfig): GameConfig {
     pouchAmount: b(j.pouch_amount),
     pouchesPerDay: j.pouches_per_day,
     dropDraws: j.drop_draws,
-    noRevealPenaltyBps: b(j.no_reveal_penalty_bps),
+    moodBps: b(j.mood_bps),
     marketFeeBps: b(j.market_fee_bps),
     smith: {
       clubPrice: b(j.smith.club_price),
@@ -137,13 +135,14 @@ export function snapshot(g: Game, accounts: string[], roundId: number | null) {
       total_late: r.totalLate.toString(),
       hits_chain: r.hitsChain,
       target_drand_round: r.targetDrandRound.toString(),
+      mood: r.mood,
       settlement: r.settlement
         ? {
             outcome: r.settlement.outcome,
             tactic: r.settlement.tactic,
+            tactic_roll: r.settlement.tacticRoll,
             reward: r.settlement.reward.toString(),
             steal: r.settlement.steal.toString(),
-            penalty: r.settlement.penalty.toString(),
             total_weight: r.settlement.totalWeight.toString(),
             randomness: r.settlement.randomness,
             drops: r.settlement.drops.map((d) => `${d.account}:${d.tokenId}:${d.qty}`),
@@ -152,4 +151,112 @@ export function snapshot(g: Game, accounts: string[], roundId: number | null) {
     };
   }
   return out;
+}
+
+// ---------- JSON returned by the contract's views ----------
+// u128/u64 values arrive as decimal strings, u32/u8 as numbers, Option as null.
+
+export interface DropJson {
+  account: string;
+  token_id: string;
+  qty: string;
+  draw: number;
+}
+
+export interface SettlementJson {
+  outcome: "win" | "loss";
+  tactic: number;
+  tactic_roll: number;
+  effective_health: string;
+  total_weight: string;
+  reward: string;
+  steal: string;
+  tip: string;
+  randomness: string;
+  beacon_round: string | null;
+  beacon_signature: string | null;
+  drops: DropJson[];
+  settled_at: string;
+  settler: string;
+}
+
+export interface RoundJson {
+  id: number;
+  opened_at: string;
+  deadline: string;
+  target_drand_round: string;
+  base_health: string;
+  hoard_at_open: string;
+  health: string;
+  mood: number;
+  mood_weights: number[];
+  participants: number;
+  total_early: string;
+  total_late: string;
+  hits: number;
+  hits_chain: string;
+  loot_claimed: string;
+  settlement: SettlementJson | null;
+}
+
+export interface ParticipantJson {
+  index: number;
+  account: string;
+  early: string;
+  late: string;
+  hits: number;
+  claimed: boolean;
+}
+
+export interface StatusJson {
+  now: string;
+  next_round_id: number;
+  current_round: number | null;
+  total_supply: string;
+  burned: string;
+  player_supply: string;
+  treasury: string;
+  reserve: string;
+  hoard: string;
+  smith_balance: string;
+  loot: string;
+  bear_won_last: boolean;
+  next_base: string;
+  peak_recent_damage: string;
+  recent_damage: string[];
+  next_mood: number;
+  club_price: string;
+  wood_price: string;
+  iron_price: string;
+  smith_clubs: string;
+  smith_wood: string;
+  smith_iron: string;
+  pouches_today: number;
+  listings: number;
+}
+
+export interface PlayerJson {
+  account: string;
+  registered: boolean;
+  balance: string;
+  pouch_claimed: boolean;
+  items: [string, string][];
+  trophies: string[];
+}
+
+export interface ListingJson {
+  id: number;
+  seller: string;
+  token_id: string;
+  qty: string;
+  price: string;
+}
+
+export interface IdsJson {
+  treasury: string;
+  reserve: string;
+  bear: string;
+  smith: string;
+  loot: string;
+  market: string;
 }

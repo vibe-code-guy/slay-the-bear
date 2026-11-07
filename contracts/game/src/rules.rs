@@ -114,10 +114,6 @@ pub fn steal_amount(c: &Config, treasury: u128, base: u128, tactic: u8) -> u128 
     s.min(treasury)
 }
 
-pub fn no_reveal_penalty(c: &Config, hoard: u128) -> u128 {
-    bps(hoard, c.no_reveal_penalty_bps)
-}
-
 pub fn loot_share(raider_weight: u128, total_weight: u128, pool: u128) -> u128 {
     if total_weight == 0 {
         return 0;
@@ -144,6 +140,71 @@ pub fn material_price(c: &Config, token_id: &str, stock: u128) -> u128 {
     mul_div(base, t, stock + t).max(1)
 }
 
+/// Club bundles the smith forges at a round open: none while its stock is at least half the
+/// target, otherwise as many as its wood and $SLAY allow, up to the target.
+pub fn smith_forge_bundles(c: &Config, stock: u128, wood: u128, balance: u128) -> u128 {
+    let t = c.smith.club_target_stock.0;
+    if stock * 2 >= t {
+        return 0;
+    }
+    let rec = crate::items::recipe("club").unwrap();
+    let needed = (t - stock).div_ceil(rec.charges);
+    (wood / rec.wood).min(balance / rec.fee).min(needed)
+}
+
+/// What the Bear remembers of the last settled round.
+pub struct MoodInput {
+    pub total_early: u128,
+    pub total_late: u128,
+    pub town_won: bool,
+    pub total_weight: u128,
+    pub effective_health: u128,
+}
+
+/// The Bear's favourite tactic for a round, fixed at the open from the last settled round.
+pub fn bear_mood(last: Option<&MoodInput>) -> u8 {
+    let Some(l) = last else { return TACTIC_ARMOR };
+    let raw = l.total_early + l.total_late;
+    if raw > 0 && mul_div(l.total_late, 1000, raw) >= 350 {
+        return TACTIC_FEINT;
+    }
+    if !l.town_won {
+        return TACTIC_RAGE;
+    }
+    if l.effective_health == 0 || mul_div(l.total_weight, 1000, l.effective_health) < 1250 {
+        return TACTIC_ARMOR;
+    }
+    TACTIC_RAGE
+}
+
+/// Chance of each tactic [None, Armor, Rage, Feint] in bps; they always sum to 10000.
+pub fn mood_weights(mood: u8, mood_bps: u32) -> [u32; 4] {
+    let other = (10_000 - mood_bps) / 3;
+    let mut w = [other; 4];
+    w[mood as usize] = 10_000 - 3 * other;
+    w
+}
+
+/// Draw index reserved for the tactic, so it never overlaps the item drops.
+pub const TACTIC_DRAW: u32 = u32::MAX;
+
+/// (tactic, roll in [0, 10000)) drawn from the round randomness against the mood weights.
+pub fn draw_tactic(randomness: &[u8; 32], round_id: u32, mood: u8, mood_bps: u32) -> (u8, u32) {
+    let d = draw_bytes(randomness, round_id, TACTIC_DRAW);
+    let mut b = [0u8; 8];
+    b.copy_from_slice(&d[0..8]);
+    let roll = (u64::from_be_bytes(b) % 10_000) as u32;
+    let w = mood_weights(mood, mood_bps);
+    let mut cum = 0u32;
+    for (t, wt) in w.iter().enumerate() {
+        cum += wt;
+        if roll < cum {
+            return (t as u8, roll);
+        }
+    }
+    (TACTIC_FEINT, roll)
+}
+
 pub fn next_hits_chain(prev: &[u8; 32], account: &str, amount: u128, damage: u128, now: u64, weapon: Option<&str>) -> [u8; 32] {
     let mut m = Vec::with_capacity(32 + account.len() + 1 + 16 + 16 + 8 + 8);
     m.extend_from_slice(prev);
@@ -153,13 +214,6 @@ pub fn next_hits_chain(prev: &[u8; 32], account: &str, amount: u128, damage: u12
     m.extend_from_slice(&damage.to_be_bytes());
     m.extend_from_slice(&now.to_be_bytes());
     m.extend_from_slice(weapon.unwrap_or("").as_bytes());
-    env::sha256_array(&m)
-}
-
-pub fn tactic_commitment(tactic: u8, salt: &[u8; 32]) -> [u8; 32] {
-    let mut m = Vec::with_capacity(33);
-    m.push(tactic);
-    m.extend_from_slice(salt);
     env::sha256_array(&m)
 }
 

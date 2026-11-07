@@ -10,9 +10,11 @@ import {
   Tactic,
   baseHealth,
   bearHealth,
+  bearMood,
   clubPrice,
   drandTargetRound,
   drawBytes,
+  drawTactic,
   earlyBonusBps,
   effectiveHealth,
   hitDamage,
@@ -24,12 +26,12 @@ import {
   nearSeedRandomness,
   nextBaseTarget,
   nextHitsChain,
-  noRevealPenalty,
   readDraw,
+  smithForgeBundles,
   stealAmount,
-  tacticCommitment,
   treasuryReward,
   weight,
+  type MoodInput,
 } from "./math";
 
 export class GameError extends Error {
@@ -55,12 +57,12 @@ export interface Drop {
 export interface Settlement {
   outcome: "win" | "loss";
   tactic: Tactic;
-  revealed: boolean;
+  /** The roll in [0, 10000) that picked the tactic from the mood weights. */
+  tacticRoll: number;
   effectiveHealth: bigint;
   totalWeight: bigint;
   reward: bigint;
   steal: bigint;
-  penalty: bigint;
   tip: bigint;
   randomness: string;
   beaconRound: bigint | null;
@@ -78,8 +80,8 @@ export interface Round {
   baseHealth: bigint;
   hoardAtOpen: bigint;
   health: bigint;
-  commitment: string | null;
-  reveal: { tactic: Tactic; salt: string } | null;
+  /** The Bear's favourite tactic this round; the tactic itself is drawn at settlement. */
+  mood: Tactic;
   participants: Participant[];
   index: Map<string, number>;
   totalEarly: bigint;
@@ -127,7 +129,6 @@ export class Game {
   pouchesToday = 0;
   readonly rounds = new Map<number, Round>();
   nextRoundId = 1;
-  pendingCommit: { roundId: number; hash: string } | null = null;
   readonly listings = new Map<number, Listing>();
   nextListingId = 1;
   bearWonLast = false;
@@ -297,16 +298,40 @@ export class Game {
     this.emit("transfer", now, { from: actor, to, amount });
   }
 
+  /** What the Bear remembers when the next round opens. */
+  lastMoodInput(): MoodInput | null {
+    const last = this.rounds.get(this.nextRoundId - 1);
+    if (!last || !last.settlement) return null;
+    return {
+      totalEarly: last.totalEarly,
+      totalLate: last.totalLate,
+      townWon: last.settlement.outcome === "win",
+      totalWeight: last.settlement.totalWeight,
+      effectiveHealth: last.settlement.effectiveHealth,
+    };
+  }
+
   openRound(actor: string, now: bigint): Round {
     if (this.currentRound()) throw new GameError("round_in_progress");
     const c = this.config;
     const id = this.nextRoundId;
+
+    // Morning in town: the smith forges clubs if its stock is low.
+    const smith = this.ids.smith;
+    const bundles = smithForgeBundles(c, this.itemBal(smith, "club"), this.itemBal(smith, "wood"), this.bal(smith));
+    if (bundles > 0n) {
+      const rec = RECIPES.club;
+      this.burnItem(smith, "wood", rec.wood * bundles);
+      this.burn(smith, rec.fee * bundles);
+      this.mintItem(smith, "club", rec.charges * bundles);
+      this.emit("smith_craft", now, { round: id, bundles, charges: rec.charges * bundles, fee: rec.fee * bundles });
+    }
+
     const deadline = now + c.roundSecs * NS;
     const supply = this.playerSupply();
     const base = baseHealth(c, supply, this.nextBase);
     const hoard = this.bal(this.ids.bear);
-    const commitment = this.pendingCommit && this.pendingCommit.roundId === id ? this.pendingCommit.hash : null;
-    this.pendingCommit = null;
+    const mood = bearMood(this.lastMoodInput());
     const r: Round = {
       id,
       openedAt: now,
@@ -315,8 +340,7 @@ export class Game {
       baseHealth: base,
       hoardAtOpen: hoard,
       health: bearHealth(c, base, hoard, supply, this.peakRecentDamage()),
-      commitment,
-      reveal: null,
+      mood,
       participants: [],
       index: new Map(),
       totalEarly: 0n,
@@ -337,7 +361,7 @@ export class Game {
       baseHealth: base,
       hoard,
       targetDrandRound: r.targetDrandRound,
-      committed: commitment !== null,
+      mood,
     });
     return r;
   }
@@ -491,42 +515,6 @@ export class Game {
     return pay;
   }
 
-  // ---------- NPC actions ----------
-
-  smithCraft(actor: string, bundles: bigint, now: bigint) {
-    if (actor !== this.ids.smith) throw new GameError("only_smith");
-    if (bundles <= 0n) throw new GameError("bad_quantity");
-    const rec = RECIPES.club;
-    const fee = rec.fee * bundles;
-    if (this.itemBal(actor, "wood") < rec.wood * bundles) throw new GameError("need_wood");
-    if (this.bal(actor) < fee) throw new GameError("insufficient_balance", actor);
-    this.burnItem(actor, "wood", rec.wood * bundles);
-    this.burn(actor, fee);
-    this.mintItem(actor, "club", rec.charges * bundles);
-    this.emit("smith_craft", now, { bundles, charges: rec.charges * bundles, fee });
-  }
-
-  bearCommit(actor: string, roundId: number, hashHex: string, now: bigint) {
-    if (actor !== this.ids.bear) throw new GameError("only_bear");
-    if (roundId !== this.nextRoundId) throw new GameError("wrong_round");
-    if (fromHex(hashHex).length !== 32) throw new GameError("bad_commitment");
-    this.pendingCommit = { roundId, hash: hashHex.toLowerCase() };
-    this.emit("bear_commit", now, { round: roundId, commitment: hashHex.toLowerCase() });
-  }
-
-  bearReveal(actor: string, roundId: number, tactic: Tactic, saltHex: string, now: bigint) {
-    if (actor !== this.ids.bear) throw new GameError("only_bear");
-    const r = this.rounds.get(roundId);
-    if (!r || r.settlement) throw new GameError("not_revealable");
-    if (now < r.deadline) throw new GameError("round_not_over");
-    if (!r.commitment) throw new GameError("no_commitment");
-    if (r.reveal) throw new GameError("already_revealed");
-    if (!(tactic in Tactic) || tactic < 0 || tactic > 3) throw new GameError("bad_tactic");
-    if (toHex(tacticCommitment(tactic, fromHex(saltHex))) !== r.commitment) throw new GameError("commitment_mismatch");
-    r.reveal = { tactic, salt: saltHex.toLowerCase() };
-    this.emit("bear_reveal", now, { round: roundId, tactic });
-  }
-
   // ---------- settlement ----------
 
   /**
@@ -540,7 +528,6 @@ export class Game {
     if (!r) throw new GameError("no_round");
     if (r.settlement) throw new GameError("already_settled");
     if (now < r.deadline) throw new GameError("round_not_over");
-    if (r.commitment && !r.reveal && now < r.deadline + c.revealWindowSecs * NS) throw new GameError("reveal_window_open");
 
     let randomness: Uint8Array;
     if (c.randomness.mode === "drand") {
@@ -552,12 +539,7 @@ export class Game {
       randomness = nearSeedRandomness(nearSeed, fromHex(r.hitsChain), r.id);
     }
 
-    const tactic = r.reveal?.tactic ?? Tactic.None;
-    let penalty = 0n;
-    if (r.commitment && !r.reveal) {
-      penalty = noRevealPenalty(c, this.bal(this.ids.bear));
-      this.move(this.ids.bear, this.ids.treasury, penalty);
-    }
+    const { tactic, roll: tacticRoll } = drawTactic(randomness, r.id, r.mood, c.moodBps);
 
     let totalWeight = 0n;
     for (const p of r.participants) totalWeight += weight(p.early, p.late, tactic);
@@ -603,12 +585,11 @@ export class Game {
     r.settlement = {
       outcome: win ? "win" : "loss",
       tactic,
-      revealed: r.reveal !== null,
+      tacticRoll,
       effectiveHealth: effHealth,
       totalWeight,
       reward,
       steal,
-      penalty,
       tip,
       randomness: toHex(randomness),
       beaconRound: beacon?.round ?? null,
@@ -621,12 +602,11 @@ export class Game {
       round: r.id,
       outcome: r.settlement.outcome,
       tactic,
-      revealed: r.settlement.revealed,
+      tacticRoll,
       totalWeight,
       effectiveHealth: effHealth,
       reward,
       steal,
-      penalty,
       tip,
       settler: actor,
       randomness: r.settlement.randomness,

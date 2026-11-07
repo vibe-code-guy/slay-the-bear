@@ -1,14 +1,26 @@
 // NPC rules: the one readable file behind every NPC decision.
 //
-// NPCs are NEAR accounts with their own balances. Their agents can only call the methods the
-// contract allows each NPC (the Bear: commit and reveal; the smith: craft; villagers: the same
-// moves as any player), and the contract checks every move. These functions decide *which*
-// allowed move to make, and return a short reason that the UI shows in a tooltip.
+// The Bear and the smith hold no keys. Their rules run inside the contract (bear_mood and
+// smith_forge_bundles in contracts/game/src/rules.rs, bearMood and smithForgeBundles in
+// math.ts); this file only explains them in words for the UI tooltips.
+// Villagers are ordinary player accounts run by packages/agents. They can only make the moves
+// any player can make, and the contract checks every one. villagerHit decides which move.
 
-import { BPS } from "./config";
+import { BPS, type GameConfig } from "./config";
 import type { Game, Round } from "./engine";
-import { Tactic, TACTIC_NAMES, effectiveHealth, max, min, treasuryReward } from "./math";
 import { RECIPES } from "./items";
+import {
+  Tactic,
+  TACTIC_NAMES,
+  bearMood,
+  effectiveHealth,
+  max,
+  min,
+  moodWeights,
+  smithForgeBundles,
+  treasuryReward,
+  type MoodInput,
+} from "./math";
 
 export interface Decision<T> {
   value: T;
@@ -17,46 +29,47 @@ export interface Decision<T> {
 
 const pct = (num: bigint, den: bigint) => (den === 0n ? 0 : Number((num * 1000n) / den) / 10);
 
-/** The Bear picks its tactic for the next round from what happened in the last one. */
-export function chooseBearTactic(last: Round | null): Decision<Tactic> {
-  if (!last || !last.settlement) {
-    return { value: Tactic.Armor, reason: "First raid of the season. I put on my armor." };
-  }
-  const s = last.settlement;
+/** The Bear's mood for a round and why, in the Bear's words. */
+export function explainBearMood(last: MoodInput | null): Decision<Tactic> {
+  const mood = bearMood(last);
+  if (!last) return { value: mood, reason: "First raid of the season. I feel like wearing my armor." };
   const raw = last.totalEarly + last.totalLate;
   const lateShare = pct(last.totalLate, raw);
-  if (raw > 0n && lateShare >= 35) {
-    return {
-      value: Tactic.Feint,
-      reason: `${lateShare}% of the damage last round came in the final minutes. Feint: late hits count half.`,
-    };
+  if (mood === Tactic.Feint) {
+    return { value: mood, reason: `${lateShare}% of the damage last round came in the final minutes. I feel like a feint: late hits would count half.` };
   }
-  if (s.outcome === "loss") {
-    return { value: Tactic.Rage, reason: "I won last round and I am hungry. Rage: if I win again, I steal 50% more." };
+  if (!last.townWon) {
+    return { value: mood, reason: "I won last round and I am hungry. I feel like raging: if I win again, I steal 50% more." };
   }
-  const margin = pct(s.totalWeight, s.effectiveHealth);
-  if (margin < 125) {
-    return { value: Tactic.Armor, reason: `The town beat me by only ${(margin - 100).toFixed(1)}%. Armor: 20% more health.` };
+  const margin = pct(last.totalWeight, last.effectiveHealth);
+  if (mood === Tactic.Armor) {
+    return { value: mood, reason: `The town beat me by only ${(margin - 100).toFixed(1)}%. I feel like wearing armor: 20% more health.` };
   }
-  return { value: Tactic.Rage, reason: `The town won easily (${margin}% of my health). Rage, in case they get lazy.` };
+  return { value: mood, reason: `The town won easily (${margin}% of my health). I feel like raging, in case they get lazy.` };
 }
 
-/** The smith restocks clubs when stock falls below half the target. */
+/** "Armor 55%, None 15%, ..." for a mood. */
+export function describeMood(mood: Tactic, c: GameConfig): { tactic: Tactic; name: string; chanceBps: number }[] {
+  return moodWeights(mood, c.moodBps)
+    .map((w, t) => ({ tactic: t as Tactic, name: TACTIC_NAMES[t as Tactic], chanceBps: Number(w) }))
+    .sort((a, b) => b.chanceBps - a.chanceBps || a.tactic - b.tactic);
+}
+
+/** What the smith will do at the next round open, and why. */
 export function smithRestock(game: Game): Decision<bigint> {
-  const c = game.config.smith;
-  const stock = game.itemBal(game.ids.smith, "club");
-  if (stock * 2n >= c.clubTargetStock) {
+  const c = game.config;
+  const smith = game.ids.smith;
+  const stock = game.itemBal(smith, "club");
+  const wood = game.itemBal(smith, "wood");
+  const bundles = smithForgeBundles(c, stock, wood, game.bal(smith));
+  const rec = RECIPES.club;
+  if (stock * 2n >= c.smith.clubTargetStock) {
     return { value: 0n, reason: `I have ${stock} club charges. No need to forge.` };
   }
-  const wood = game.itemBal(game.ids.smith, "wood");
-  const rec = RECIPES.club;
-  const affordable = game.bal(game.ids.smith) / rec.fee;
-  const needed = (c.clubTargetStock - stock + rec.charges - 1n) / rec.charges;
-  const bundles = min(min(wood / rec.wood, affordable), needed);
   if (bundles <= 0n) {
-    return { value: 0n, reason: `Stock is low (${stock}) but I have only ${wood} wood. I am buying wood.` };
+    return { value: 0n, reason: `Stock is low (${stock}) but I have only ${wood} wood. Sell me wood!` };
   }
-  return { value: bundles, reason: `Stock is low (${stock}). Forging ${bundles * rec.charges} club charges from ${bundles * rec.wood} wood.` };
+  return { value: bundles, reason: `Stock is low (${stock}). At the next raid I forge ${bundles * rec.charges} club charges from ${bundles * rec.wood} wood.` };
 }
 
 export type Personality = "brave" | "follower" | "sniper" | "saver";
@@ -70,7 +83,7 @@ export const PERSONALITIES: Record<Personality, string> = {
 
 export interface RaidView {
   balance: bigint;
-  /** Health the town must beat if the Bear revealed Armor: the worst case. */
+  /** Health the town must beat if the Bear draws Armor: the worst case. */
   worstHealth: bigint;
   damageSoFar: bigint;
   /** Share of the round elapsed, in bps. */

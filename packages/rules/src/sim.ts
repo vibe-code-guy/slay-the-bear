@@ -4,9 +4,7 @@
 import { NS, ONE, type GameConfig } from "./config";
 import { makeTestBeacon, type TestBeacon } from "./drand";
 import { Game, GameError } from "./engine";
-import { chooseBearTactic, smithRestock, villagerHit, raidView, type Personality } from "./npc";
-import { tacticCommitment } from "./math";
-import { beBytes, sha256, toHex } from "./bytes";
+import { villagerHit, raidView, type Personality } from "./npc";
 
 /** Small deterministic PRNG (mulberry32), so every simulation run can be repeated exactly. */
 export function rng(seed: number) {
@@ -141,7 +139,6 @@ export function simulate(
   const stats: RoundStat[] = [];
   const endNs = start + BigInt(days) * 86_400n * NS;
   let lastDay = 0;
-  let salt = new Uint8Array(32);
 
   while (now < endNs) {
     const day = Number((now - start) / (86_400n * NS));
@@ -154,12 +151,7 @@ export function simulate(
       lastDay = day;
     }
 
-    // The Bear commits before the round opens.
-    const lastRound = game.rounds.get(game.nextRoundId - 1) ?? null;
-    const decision = chooseBearTactic(lastRound);
-    salt = sha256(beBytes(BigInt(game.nextRoundId), 8));
-    game.bearCommit(game.ids.bear, game.nextRoundId, toHex(tacticCommitment(decision.value, salt)), now);
-
+    // The open fixes the Bear's mood and lets the smith forge.
     const r = game.openRound(players[0]?.id ?? "nobody.sim.testnet", now);
 
     // Each present player checks the raid at three random moments.
@@ -181,9 +173,8 @@ export function simulate(
       }
     }
 
-    // Deadline: the Bear reveals, then anyone settles with the drand round fixed at the open.
+    // Deadline: anyone settles with the drand round fixed at the open, which also draws the tactic.
     now = r.deadline;
-    game.bearReveal(game.ids.bear, r.id, decision.value, toHex(salt), now);
     const b = beacon.sign(r.targetDrandRound);
     const s = game.settle(players[0]?.id ?? "nobody.sim.testnet", r.id, { round: b.round, signature: b.signature }, now + 30n * NS);
 
@@ -202,9 +193,6 @@ export function simulate(
         if (!(e instanceof GameError)) throw e;
       }
     }
-    const restock = smithRestock(game);
-    if (restock.value > 0n) game.smithCraft(game.ids.smith, restock.value, now + 100n * NS);
-
     game.checkInvariants();
     stats.push({
       round: r.id,

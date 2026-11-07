@@ -2,13 +2,12 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { DEMO_CONFIG, NS, ONE, cloneConfig } from "../src/config";
 import { makeTestBeacon } from "../src/drand";
 import { Game, GameError } from "../src/engine";
-import { Tactic, tacticCommitment } from "../src/math";
-import { toHex } from "../src/bytes";
+import { Tactic, drawTactic, effectiveHealth } from "../src/math";
+import { fromHex } from "../src/bytes";
 
 const beacon = makeTestBeacon("ab");
 const cfg = cloneConfig(DEMO_CONFIG, { randomness: { ...DEMO_CONFIG.randomness, publicKey: beacon.publicKey } });
 const T0 = (cfg.randomness.genesisTime + 100_000n) * NS;
-const salt = new Uint8Array(32).fill(9);
 
 function code(fn: () => unknown): string {
   try {
@@ -87,48 +86,62 @@ describe("engine", () => {
     expect(code(() => g.hit(g.ids.bear, 10n * ONE, null, r.deadline))).toBe("special_account");
   });
 
-  it("checks the Bear's commitment and applies its tactic", () => {
-    g.bearCommit(g.ids.bear, 1, toHex(tacticCommitment(Tactic.Armor, salt)), T0);
-    g.openRound("carol.testnet", T0);
-    // about 504 late damage: enough against 500 health, not against Armor's 600
-    g.hit("alice.testnet", 400n * ONE, null, T0 + 590n * NS);
-    g.hit("bob.testnet", 100n * ONE, null, T0 + 590n * NS);
-    const r = g.currentRound()!;
-    expect(r.commitment).not.toBeNull();
-    expect(code(() => g.bearReveal(g.ids.bear, r.id, Tactic.Armor, toHex(salt), r.deadline - 1n))).toBe("round_not_over");
-    expect(code(() => g.bearReveal(g.ids.bear, r.id, Tactic.Rage, toHex(salt), r.deadline))).toBe("commitment_mismatch");
-    expect(code(() => g.settle("carol.testnet", r.id, sign(r.targetDrandRound), r.deadline))).toBe("reveal_window_open");
-    g.bearReveal(g.ids.bear, r.id, Tactic.Armor, toHex(salt), r.deadline);
-    const s = g.settle("carol.testnet", r.id, sign(r.targetDrandRound), r.deadline);
-    expect(s.totalWeight).toBeGreaterThan(cfg.minHealth);
-    expect(s.tactic).toBe(Tactic.Armor);
-    expect(s.effectiveHealth).toBe((cfg.minHealth * 12n) / 10n);
-    expect(s.outcome).toBe("loss");
+  it("draws the Bear's tactic from the beacon, whoever settles and whenever", () => {
+    const play = (settler: string, delayNs: bigint) => {
+      const game = new Game(cfg, "slay.testnet");
+      for (const p of ["alice.testnet", "bob.testnet", "carol.testnet"]) game.claimPouch(p, T0);
+      game.openRound("carol.testnet", T0);
+      game.hit("alice.testnet", 400n * ONE, null, T0 + 590n * NS);
+      game.hit("bob.testnet", 100n * ONE, null, T0 + 590n * NS);
+      const r = game.currentRound()!;
+      return { r, s: game.settle(settler, r.id, sign(r.targetDrandRound), r.deadline + delayNs) };
+    };
+    const a = play("carol.testnet", 0n);
+    const b = play("bob.testnet", 3_600n * NS);
+    expect(a.r.mood).toBe(Tactic.Armor); // the first raid of a season
+    const want = drawTactic(fromHex(a.s.randomness), a.r.id, a.r.mood, cfg.moodBps);
+    expect([a.s.tactic, a.s.tacticRoll]).toEqual([want.tactic, want.roll]);
+    expect([b.s.tactic, b.s.tacticRoll, b.s.outcome]).toEqual([a.s.tactic, a.s.tacticRoll, a.s.outcome]);
+    expect(a.s.effectiveHealth).toBe(effectiveHealth(a.r.health, a.s.tactic));
   });
 
-  it("penalises a Bear that does not reveal", () => {
-    // first give the Bear a hoard
+  it("sets the Bear's mood from the last round", () => {
+    // round 1: a weak raid, the Bear wins, so it rages next
     g.hit("alice.testnet", 10n * ONE, null, T0);
     let r = g.currentRound()!;
     g.settle("bob.testnet", r.id, sign(r.targetDrandRound), r.deadline);
-    const hoard = g.bal(g.ids.bear);
-    expect(hoard).toBeGreaterThan(0n);
-    g.bearCommit(g.ids.bear, 2, toHex(tacticCommitment(Tactic.Armor, salt)), r.deadline);
-    g.hit("alice.testnet", 10n * ONE, null, r.deadline + NS);
+    g.openRound("bob.testnet", r.deadline + NS);
     r = g.currentRound()!;
-    const late = r.deadline + cfg.revealWindowSecs * NS;
-    const s = g.settle("bob.testnet", r.id, sign(r.targetDrandRound), late);
-    expect(s.revealed).toBe(false);
-    expect(s.tactic).toBe(Tactic.None);
-    expect(s.penalty).toBe(hoard / 10n);
+    expect(r.mood).toBe(Tactic.Rage);
+    // round 2: every hit lands late, so the Bear plans a feint
+    g.hit("alice.testnet", 10n * ONE, null, r.deadline - 10n * NS);
+    g.settle("bob.testnet", r.id, sign(r.targetDrandRound), r.deadline);
+    g.openRound("bob.testnet", r.deadline + NS);
+    expect(g.currentRound()!.mood).toBe(Tactic.Feint);
     g.checkInvariants();
   });
 
-  it("only the Bear commits, and only for the next round", () => {
-    const h = toHex(tacticCommitment(Tactic.Rage, salt));
-    expect(code(() => g.bearCommit("alice.testnet", 1, h, T0))).toBe("only_bear");
-    expect(code(() => g.bearCommit(g.ids.bear, 2, h, T0))).toBe("wrong_round");
-    g.bearCommit(g.ids.bear, 1, h, T0);
+  it("lets the smith forge at the open when its stock is low", () => {
+    g.buyFromSmith("alice.testnet", 120n, T0);
+    expect(g.itemBal(g.ids.smith, "club")).toBe(80n);
+    // without wood the smith cannot forge
+    g.openRound("bob.testnet", T0);
+    expect(g.itemBal(g.ids.smith, "club")).toBe(80n);
+    let r = g.currentRound()!;
+    g.settle("bob.testnet", r.id, sign(r.targetDrandRound), r.deadline);
+    // hand the smith 7 wood (as if players sold it): 3 bundles of 10 charges
+    g["mintItem"](g.ids.smith, "wood", 7n);
+    const burned = g.burned;
+    g.openRound("bob.testnet", r.deadline + NS);
+    expect(g.itemBal(g.ids.smith, "club")).toBe(110n);
+    expect(g.itemBal(g.ids.smith, "wood")).toBe(1n);
+    expect(g.burned - burned).toBe(30n * ONE);
+    // stock is above half the target again: no forging at the next open
+    r = g.currentRound()!;
+    g.settle("bob.testnet", r.id, sign(r.targetDrandRound), r.deadline);
+    g.openRound("bob.testnet", r.deadline + NS);
+    expect(g.itemBal(g.ids.smith, "club")).toBe(110n);
+    g.checkInvariants();
   });
 
   it("crafts, trades and deals with the smith", () => {
@@ -147,7 +160,6 @@ describe("engine", () => {
     expect(g.bal("alice.testnet") - before).toBe(8n * ONE - (8n * ONE * cfg.marketFeeBps) / 10_000n);
     expect(g.listings.has(id)).toBe(false);
     expect(code(() => g.sellToSmith("alice.testnet", "club", 1n, T0))).toBe("smith_only_buys_materials");
-    expect(code(() => g.smithCraft("alice.testnet", 1n, T0))).toBe("only_smith");
     g.checkInvariants();
   });
 

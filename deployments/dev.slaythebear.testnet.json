@@ -1,0 +1,18 @@
+{
+  "contractId": "dev.slaythebear.testnet",
+  "network": "testnet",
+  "preset": "demo",
+  "codeHash": "AiUhDw1RKTq8HHpEcA384V8R1eowFW1VPztfTFU56Q8H",
+  "wasmBytes": 373504,
+  "deployedAt": "2026-11-07T21:36:31.425Z",
+  "deployer": "slaythebear.testnet",
+  "bear": "bear.dev.slaythebear.testnet",
+  "smith": "smith.dev.slaythebear.testnet",
+  "txs": {
+    "createGame": "FjWL3BnPaczfqH6M2Hvno8o2Gb4pBvsFvBetAcpcjGL",
+    "create_bear": "HZSPvUkfiD7a77JvXbFtCYoY2jmFEMo72QxvDbQt21uo",
+    "create_smith": "92YP5upfC7wC1KbM7FLMzMcpuk2qZTZWwiogSXDD5qNj",
+    "deployAndInit": "2f5dqUradVbKsHyQk7et9Es1ymidoBJukbbEgmRYHQva"
+  },
+  "locked": false
+}

@@ -57,11 +57,9 @@ fn apply(c: &mut Contract, step: &Value) {
         "hit" => {
             c.hit(u128s(a, "amount"), opt_str(a, "weapon"));
         }
-        "bear_commit" => c.bear_commit(a["round_id"].as_u64().unwrap() as u32, s(a, "commitment")),
-        "bear_reveal" => c.bear_reveal(a["round_id"].as_u64().unwrap() as u32, a["tactic"].as_u64().unwrap() as u8, s(a, "salt")),
         "settle" => c.settle(
             a["round_id"].as_u64().unwrap() as u32,
-            a.get("beacon_round").and_then(|x| x.as_str()).map(|x| x.parse().unwrap()),
+            a.get("beacon_round").and_then(|x| x.as_u64()),
             opt_str(a, "signature"),
         ),
         "claim" => {
@@ -79,7 +77,6 @@ fn apply(c: &mut Contract, step: &Value) {
         "sell_to_smith" => {
             c.sell_to_smith(s(a, "token_id"), u128s(a, "qty"));
         }
-        "smith_craft" => c.smith_craft(u128s(a, "bundles")),
         m => panic!("unknown method {m}"),
     }
 }
@@ -107,13 +104,14 @@ fn check(c: &Contract, step_no: usize, expect: &Value) {
         assert_eq!(v.total_late.0.to_string(), s(r, "total_late"), "{}", label("total_late"));
         assert_eq!(v.hits_chain, s(r, "hits_chain"), "{}", label("hits_chain"));
         assert_eq!(v.target_drand_round.0.to_string(), s(r, "target_drand_round"), "{}", label("target_drand_round"));
+        assert_eq!(v.mood as u64, r["mood"].as_u64().unwrap(), "{}", label("mood"));
         if let Some(se) = r.get("settlement").filter(|x| !x.is_null()) {
             let got = v.settlement.expect("settled");
             assert_eq!(got.outcome, s(se, "outcome"), "{}", label("outcome"));
             assert_eq!(got.tactic as u64, se["tactic"].as_u64().unwrap(), "{}", label("tactic"));
+            assert_eq!(got.tactic_roll as u64, se["tactic_roll"].as_u64().unwrap(), "{}", label("tactic_roll"));
             assert_eq!(got.reward.0.to_string(), s(se, "reward"), "{}", label("reward"));
             assert_eq!(got.steal.0.to_string(), s(se, "steal"), "{}", label("steal"));
-            assert_eq!(got.penalty.0.to_string(), s(se, "penalty"), "{}", label("penalty"));
             assert_eq!(got.total_weight.0.to_string(), s(se, "total_weight"), "{}", label("total_weight"));
             assert_eq!(got.randomness, s(se, "randomness"), "{}", label("randomness"));
             let drops: Vec<String> = got.drops.iter().map(|d| format!("{}:{}:{}", d.account, d.token_id, d.qty.0)).collect();
@@ -151,11 +149,48 @@ fn npc_accounts_cannot_play() {
 }
 
 #[test]
-#[should_panic(expected = "only_bear")]
-fn only_the_bear_commits() {
-    let (mut c, now, _) = vec_contract();
-    ctx("alice.testnet", now, 0);
-    c.bear_commit(1, "00".repeat(32));
+fn npc_formulas_match_typescript() {
+    let v: Value = serde_json::from_str(VECTORS).unwrap();
+    let (c, _, _) = vec_contract();
+    let cfg = c.get_config();
+    let f = &v["formulas"];
+    for d in f["tacticDraws"].as_array().unwrap() {
+        let rnd = drand::from_hex(&s(d, "randomness")).unwrap();
+        let mut arr = [0u8; 32];
+        arr.copy_from_slice(&rnd);
+        let got = draw_tactic(&arr, d["round_id"].as_u64().unwrap() as u32, d["mood"].as_u64().unwrap() as u8, cfg.mood_bps);
+        assert_eq!((got.0 as u64, got.1 as u64), (d["tactic"].as_u64().unwrap(), d["roll"].as_u64().unwrap()), "draw {d}");
+    }
+    for m in f["moods"].as_array().unwrap() {
+        let last = m.get("last").filter(|x| !x.is_null()).map(|l| MoodInput {
+            total_early: s(l, "total_early").parse().unwrap(),
+            total_late: s(l, "total_late").parse().unwrap(),
+            town_won: l["town_won"].as_bool().unwrap(),
+            total_weight: s(l, "total_weight").parse().unwrap(),
+            effective_health: s(l, "effective_health").parse().unwrap(),
+        });
+        assert_eq!(bear_mood(last.as_ref()) as u64, m["mood"].as_u64().unwrap(), "mood {m}");
+    }
+    for x in f["forge"].as_array().unwrap() {
+        let got = smith_forge_bundles(
+            &cfg,
+            s(x, "stock").parse().unwrap(),
+            s(x, "wood").parse().unwrap(),
+            s(x, "balance").parse().unwrap(),
+        );
+        assert_eq!(got.to_string(), s(x, "bundles"), "forge {x}");
+    }
+}
+
+#[test]
+fn mood_weights_sum_to_one() {
+    for bps in [2_500u32, 5_500, 7_001, 10_000] {
+        for mood in 0..4u8 {
+            let w = mood_weights(mood, bps);
+            assert_eq!(w.iter().sum::<u32>(), 10_000);
+            assert!(w[mood as usize] >= bps);
+        }
+    }
 }
 
 #[test]

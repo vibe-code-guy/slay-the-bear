@@ -4,8 +4,10 @@
 //! - Every round a Bear appears. Players burn $SLAY to hit it. If the town kills it before the
 //!   deadline, raiders split its hoard plus a treasury reward by damage; if not, it takes a slice
 //!   of the treasury into its own balance.
-//! - Drops are decided by the drand quicknet round fixed at the open, verified on-chain.
-//! - The Bear commits to its tactic before the round opens and reveals it after the deadline.
+//! - The drand quicknet round fixed at the open decides the Bear's tactic and the drops. The
+//!   contract verifies the beacon's BLS signature itself, so nobody can pick or bend the roll.
+//! - The Bear and the smith are rules in this contract, not keys: the Bear's mood is set at each
+//!   open from the last round, and the smith forges clubs at each open when its stock is low.
 //! - The config is fixed at `new()`. The deployment script deletes every access key on this
 //!   account afterwards, so nobody can upgrade, pause, mint or withdraw.
 //!
@@ -79,12 +81,11 @@ pub struct Drop {
 pub struct Settlement {
     pub win: bool,
     pub tactic: u8,
-    pub revealed: bool,
+    pub tactic_roll: u32,
     pub effective_health: u128,
     pub total_weight: u128,
     pub reward: u128,
     pub steal: u128,
-    pub penalty: u128,
     pub tip: u128,
     pub randomness: [u8; 32],
     pub beacon_round: Option<u64>,
@@ -104,8 +105,7 @@ pub struct RoundMeta {
     pub base_health: u128,
     pub hoard_at_open: u128,
     pub health: u128,
-    pub commitment: Option<[u8; 32]>,
-    pub reveal: Option<(u8, [u8; 32])>,
+    pub mood: u8,
     pub participants: u32,
     pub total_early: u128,
     pub total_late: u128,
@@ -149,7 +149,6 @@ pub struct Contract {
     participants: LookupMap<(u32, u32), Participant>,
     participant_index: LookupMap<(u32, AccountId), u32>,
     next_round_id: u32,
-    pending_commit: Option<(u32, [u8; 32])>,
     listings: IterableMap<u64, Listing>,
     next_listing_id: u64,
     bear_won_last: bool,
@@ -218,7 +217,6 @@ impl Contract {
             participants: LookupMap::new(StorageKey::Participants),
             participant_index: LookupMap::new(StorageKey::ParticipantIndex),
             next_round_id: 1,
-            pending_commit: None,
             listings: IterableMap::new(StorageKey::Listings),
             next_listing_id: 1,
             bear_won_last: false,
@@ -514,79 +512,10 @@ impl Contract {
         U128(pay)
     }
 
-    // ---------- NPC actions ----------
-
-    pub fn smith_craft(&mut self, bundles: U128) {
-        let a = env::predecessor_account_id();
-        if a != self.ids.smith {
-            fail("only_smith");
-        }
-        let bundles = bundles.0;
-        if bundles == 0 {
-            fail("bad_quantity");
-        }
-        let rec = recipe("club").unwrap();
-        let fee = rec.fee * bundles;
-        if self.item_bal(&a, "wood") < rec.wood * bundles {
-            fail("need_wood");
-        }
-        if self.bal(&a) < fee {
-            fail("insufficient_balance");
-        }
-        self.burn_item(&a, "wood", rec.wood * bundles);
-        self.burn(&a, fee, "smith craft fee");
-        self.mint_item(&a, "club", rec.charges * bundles);
-        emit("slay", "smith_craft", json!({ "bundles": u(bundles), "charges": u(rec.charges * bundles), "fee": u(fee) }));
-    }
-
-    pub fn bear_commit(&mut self, round_id: u32, commitment: String) {
-        if env::predecessor_account_id() != self.ids.bear {
-            fail("only_bear");
-        }
-        if round_id != self.next_round_id {
-            fail("wrong_round");
-        }
-        let h = drand::from_hex(&commitment).filter(|h| h.len() == 32).unwrap_or_else(|| fail("bad_commitment"));
-        let mut arr = [0u8; 32];
-        arr.copy_from_slice(&h);
-        self.pending_commit = Some((round_id, arr));
-        emit("slay", "bear_commit", json!({ "round": round_id, "commitment": drand::to_hex(&arr) }));
-    }
-
-    pub fn bear_reveal(&mut self, round_id: u32, tactic: u8, salt: String) {
-        if env::predecessor_account_id() != self.ids.bear {
-            fail("only_bear");
-        }
-        let now = env::block_timestamp();
-        let Some(mut r) = self.rounds.get(&round_id).cloned() else { fail("not_revealable") };
-        if r.settlement.is_some() {
-            fail("not_revealable");
-        }
-        if now < r.deadline {
-            fail("round_not_over");
-        }
-        let Some(commitment) = r.commitment else { fail("no_commitment") };
-        if r.reveal.is_some() {
-            fail("already_revealed");
-        }
-        if tactic > TACTIC_FEINT {
-            fail("bad_tactic");
-        }
-        let s = drand::from_hex(&salt).filter(|s| s.len() == 32).unwrap_or_else(|| fail("commitment_mismatch"));
-        let mut salt_arr = [0u8; 32];
-        salt_arr.copy_from_slice(&s);
-        if tactic_commitment(tactic, &salt_arr) != commitment {
-            fail("commitment_mismatch");
-        }
-        r.reveal = Some((tactic, salt_arr));
-        self.rounds.insert(round_id, r);
-        emit("slay", "bear_reveal", json!({ "round": round_id, "tactic": tactic }));
-    }
-
     // ---------- settlement ----------
 
     /// Settles a finished round. In drand mode pass the drand round fixed at the open and its
-    /// signature (hex); in near-seed mode pass nothing.
+    /// signature (hex); in near-seed mode pass nothing. Anyone may settle and earns the tip.
     pub fn settle(&mut self, round_id: u32, beacon_round: Option<u64>, signature: Option<String>) {
         let actor = env::predecessor_account_id();
         self.require_player(&actor);
@@ -597,9 +526,6 @@ impl Contract {
         }
         if now < r.deadline {
             fail("round_not_over");
-        }
-        if r.commitment.is_some() && r.reveal.is_none() && now < r.deadline + self.config.reveal_window_secs * NS {
-            fail("reveal_window_open");
         }
 
         let mut beacon_sig: Option<Vec<u8>> = None;
@@ -620,13 +546,8 @@ impl Contract {
             RandomnessMode::NearSeed => near_seed_randomness(&env::random_seed(), &r.hits_chain, r.id),
         };
 
-        let tactic = r.reveal.map(|(t, _)| t).unwrap_or(TACTIC_NONE);
+        let (tactic, tactic_roll) = draw_tactic(&randomness, round_id, r.mood, self.config.mood_bps);
         let (treasury_id, bear_id, loot_id) = (self.ids.treasury.clone(), self.ids.bear.clone(), self.ids.loot.clone());
-        let mut penalty = 0;
-        if r.commitment.is_some() && r.reveal.is_none() {
-            penalty = no_reveal_penalty(&self.config, self.bal(&bear_id));
-            self.mv(&bear_id, &treasury_id, penalty);
-        }
 
         let mut weights: Vec<(AccountId, u128)> = Vec::with_capacity(r.participants as usize);
         let mut total_weight = 0u128;
@@ -689,13 +610,13 @@ impl Contract {
             json!({
                 "round": round_id,
                 "outcome": if win { "win" } else { "loss" },
+                "mood": r.mood,
                 "tactic": tactic,
-                "revealed": r.reveal.is_some(),
+                "tacticRoll": tactic_roll,
                 "totalWeight": u(total_weight),
                 "effectiveHealth": u(eff_health),
                 "reward": u(reward),
                 "steal": u(steal),
-                "penalty": u(penalty),
                 "tip": u(tip),
                 "settler": actor,
                 "randomness": drand::to_hex(&randomness),
@@ -706,12 +627,11 @@ impl Contract {
         r.settlement = Some(Settlement {
             win,
             tactic,
-            revealed: r.reveal.is_some(),
+            tactic_roll,
             effective_health: eff_health,
             total_weight,
             reward,
             steal,
-            penalty,
             tip,
             randomness,
             beacon_round: if self.config.randomness.mode == RandomnessMode::Drand { beacon_round } else { None },
@@ -864,21 +784,48 @@ impl Contract {
         }
     }
 
+    /// What the Bear remembers of the last settled round.
+    pub(crate) fn last_mood_input(&self) -> Option<MoodInput> {
+        let last = self.next_round_id.checked_sub(1)?;
+        let r = self.rounds.get(&last)?;
+        let s = r.settlement.as_ref()?;
+        Some(MoodInput {
+            total_early: r.total_early,
+            total_late: r.total_late,
+            town_won: s.win,
+            total_weight: s.total_weight,
+            effective_health: s.effective_health,
+        })
+    }
+
     fn internal_open(&mut self, actor: &AccountId, now: u64) -> u32 {
         if self.current_round_id().is_some() {
             fail("round_in_progress");
         }
         let id = self.next_round_id;
+
+        // Morning in town: the smith forges clubs if its stock is low.
+        let smith = self.ids.smith.clone();
+        let bundles =
+            smith_forge_bundles(&self.config, self.item_bal(&smith, "club"), self.item_bal(&smith, "wood"), self.bal(&smith));
+        if bundles > 0 {
+            let rec = recipe("club").unwrap();
+            self.burn_item(&smith, "wood", rec.wood * bundles);
+            self.burn(&smith, rec.fee * bundles, "smith forge");
+            self.mint_item(&smith, "club", rec.charges * bundles);
+            emit(
+                "slay",
+                "smith_craft",
+                json!({ "round": id, "bundles": u(bundles), "charges": u(rec.charges * bundles), "fee": u(rec.fee * bundles) }),
+            );
+        }
+
         let deadline = now + self.config.round_secs * NS;
         let supply = self.player_supply();
         let base = base_health(&self.config, supply, self.next_base);
         let hoard = self.bal(&self.ids.bear);
         let health = bear_health(&self.config, base, hoard, supply, self.peak_recent_damage());
-        let commitment = match self.pending_commit {
-            Some((rid, h)) if rid == id => Some(h),
-            _ => None,
-        };
-        self.pending_commit = None;
+        let mood = bear_mood(self.last_mood_input().as_ref());
         let target = drand_target_round(&self.config, deadline);
         self.rounds.insert(
             id,
@@ -890,8 +837,7 @@ impl Contract {
                 base_health: base,
                 hoard_at_open: hoard,
                 health,
-                commitment,
-                reveal: None,
+                mood,
                 participants: 0,
                 total_early: 0,
                 total_late: 0,
@@ -913,7 +859,8 @@ impl Contract {
                 "baseHealth": u(base),
                 "hoard": u(hoard),
                 "targetDrandRound": target,
-                "committed": commitment.is_some(),
+                "mood": mood,
+                "moodWeights": mood_weights(mood, self.config.mood_bps),
             }),
         );
         id
