@@ -6,3 +6,4 @@ export * from "./math";
 export * from "./engine";
 export * from "./npc";
 export * from "./sim";
+export * from "./contract";

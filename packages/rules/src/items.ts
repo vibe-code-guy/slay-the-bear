@@ -41,6 +41,9 @@ export const isTrophy = (tokenId: string) => /^trophy-\d+-\d+$/.test(tokenId);
 export const isWeapon = (tokenId: string): tokenId is WeaponId => tokenId in WEAPON_MULT_BPS;
 export const isMaterial = (tokenId: string): tokenId is MaterialId => tokenId === "wood" || tokenId === "iron";
 
+/** Token ids that exist from the start; trophies are added as they drop. */
+export const BASE_ITEMS = ["wood", "iron", "club", "sword", "slayer"] as const;
+
 export const ITEM_NAMES: Record<string, string> = {
   wood: "Wood",
   iron: "Iron",

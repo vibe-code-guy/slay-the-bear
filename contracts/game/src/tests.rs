@@ -1,0 +1,226 @@
+//! Contract unit tests. `replays_typescript_vectors` runs the scripted game in
+//! fixtures/vectors.json (produced by `npm run vectors` from the TypeScript engine) and checks
+//! that the contract ends every step in exactly the state the engine predicts.
+
+use super::*;
+use near_contract_standards::fungible_token::core::FungibleTokenCore;
+use near_contract_standards::fungible_token::metadata::FungibleTokenMetadataProvider;
+use near_sdk::serde_json::{self, Value};
+use near_sdk::test_utils::VMContextBuilder;
+use near_sdk::{testing_env, Gas, NearToken};
+
+const VECTORS: &str = include_str!("../../../fixtures/vectors.json");
+
+fn ctx(actor: &str, now: u64, deposit: u128) {
+    testing_env!(VMContextBuilder::new()
+        .current_account_id("slay.testnet".parse().unwrap())
+        .predecessor_account_id(actor.parse().unwrap())
+        .signer_account_id(actor.parse().unwrap())
+        .block_timestamp(now)
+        .attached_deposit(NearToken::from_yoctonear(deposit))
+        .account_balance(NearToken::from_near(1_000))
+        .prepaid_gas(Gas::from_tgas(300))
+        .random_seed([7u8; 32])
+        .build());
+}
+
+fn s(v: &Value, k: &str) -> String {
+    v[k].as_str().unwrap_or_else(|| panic!("missing {k} in {v}")).to_string()
+}
+
+fn u128s(v: &Value, k: &str) -> U128 {
+    U128(s(v, k).parse().unwrap())
+}
+
+fn opt_str(v: &Value, k: &str) -> Option<String> {
+    v.get(k).and_then(|x| x.as_str()).map(|x| x.to_string())
+}
+
+fn new_contract(cfg: &Value, now: u64) -> Contract {
+    ctx("deployer.testnet", now, 0);
+    let config: Config = serde_json::from_value(cfg.clone()).unwrap();
+    Contract::new(config)
+}
+
+fn apply(c: &mut Contract, step: &Value) {
+    let actor = s(step, "actor");
+    let now: u64 = s(step, "now").parse().unwrap();
+    let a = &step["args"];
+    ctx(&actor, now, 0);
+    match s(step, "method").as_str() {
+        "claim_pouch" => {
+            c.claim_pouch();
+        }
+        "open_round" => {
+            c.open_round();
+        }
+        "hit" => {
+            c.hit(u128s(a, "amount"), opt_str(a, "weapon"));
+        }
+        "bear_commit" => c.bear_commit(a["round_id"].as_u64().unwrap() as u32, s(a, "commitment")),
+        "bear_reveal" => c.bear_reveal(a["round_id"].as_u64().unwrap() as u32, a["tactic"].as_u64().unwrap() as u8, s(a, "salt")),
+        "settle" => c.settle(
+            a["round_id"].as_u64().unwrap() as u32,
+            a.get("beacon_round").and_then(|x| x.as_str()).map(|x| x.parse().unwrap()),
+            opt_str(a, "signature"),
+        ),
+        "claim" => {
+            c.claim(a["round_id"].as_u64().unwrap() as u32);
+        }
+        "craft" => c.craft(s(a, "recipe_id"), opt_str(a, "trophy_id")),
+        "list" => {
+            c.list(s(a, "token_id"), u128s(a, "qty"), u128s(a, "price"));
+        }
+        "buy" => c.buy(a["listing_id"].as_u64().unwrap(), u128s(a, "qty")),
+        "cancel" => c.cancel(a["listing_id"].as_u64().unwrap()),
+        "buy_from_smith" => {
+            c.buy_from_smith(u128s(a, "qty"));
+        }
+        "sell_to_smith" => {
+            c.sell_to_smith(s(a, "token_id"), u128s(a, "qty"));
+        }
+        "smith_craft" => c.smith_craft(u128s(a, "bundles")),
+        m => panic!("unknown method {m}"),
+    }
+}
+
+fn check(c: &Contract, step_no: usize, expect: &Value) {
+    let st = c.get_status();
+    let label = |k: &str| format!("step {step_no}: {k}");
+    assert_eq!(st.total_supply.0.to_string(), s(expect, "total_supply"), "{}", label("total_supply"));
+    assert_eq!(st.burned.0.to_string(), s(expect, "burned"), "{}", label("burned"));
+    assert_eq!(st.next_base.0.to_string(), s(expect, "next_base"), "{}", label("next_base"));
+    for (acc, bal) in expect["balances"].as_object().unwrap() {
+        let id: AccountId = acc.parse().unwrap();
+        assert_eq!(c.bal(&id).to_string(), bal.as_str().unwrap(), "{}", label(&format!("balance {acc}")));
+    }
+    for (key, qty) in expect["items"].as_object().unwrap() {
+        let (acc, token) = key.split_once('|').unwrap();
+        let id: AccountId = acc.parse().unwrap();
+        assert_eq!(c.item_bal(&id, token).to_string(), qty.as_str().unwrap(), "{}", label(&format!("item {key}")));
+    }
+    if let Some(r) = expect.get("round") {
+        let id = r["id"].as_u64().unwrap() as u32;
+        let v = c.get_round(id).unwrap();
+        assert_eq!(v.health.0.to_string(), s(r, "health"), "{}", label("round health"));
+        assert_eq!(v.total_early.0.to_string(), s(r, "total_early"), "{}", label("total_early"));
+        assert_eq!(v.total_late.0.to_string(), s(r, "total_late"), "{}", label("total_late"));
+        assert_eq!(v.hits_chain, s(r, "hits_chain"), "{}", label("hits_chain"));
+        assert_eq!(v.target_drand_round.0.to_string(), s(r, "target_drand_round"), "{}", label("target_drand_round"));
+        if let Some(se) = r.get("settlement").filter(|x| !x.is_null()) {
+            let got = v.settlement.expect("settled");
+            assert_eq!(got.outcome, s(se, "outcome"), "{}", label("outcome"));
+            assert_eq!(got.tactic as u64, se["tactic"].as_u64().unwrap(), "{}", label("tactic"));
+            assert_eq!(got.reward.0.to_string(), s(se, "reward"), "{}", label("reward"));
+            assert_eq!(got.steal.0.to_string(), s(se, "steal"), "{}", label("steal"));
+            assert_eq!(got.penalty.0.to_string(), s(se, "penalty"), "{}", label("penalty"));
+            assert_eq!(got.total_weight.0.to_string(), s(se, "total_weight"), "{}", label("total_weight"));
+            assert_eq!(got.randomness, s(se, "randomness"), "{}", label("randomness"));
+            let drops: Vec<String> = got.drops.iter().map(|d| format!("{}:{}:{}", d.account, d.token_id, d.qty.0)).collect();
+            let want: Vec<String> = se["drops"].as_array().unwrap().iter().map(|d| d.as_str().unwrap().to_string()).collect();
+            assert_eq!(drops, want, "{}", label("drops"));
+        }
+    }
+}
+
+#[test]
+fn replays_typescript_vectors() {
+    let v: Value = serde_json::from_str(VECTORS).unwrap();
+    let start: u64 = s(&v, "start").parse().unwrap();
+    let mut c = new_contract(&v["config"], start);
+    check(&c, 0, &v["initial"]);
+    for (i, step) in v["steps"].as_array().unwrap().iter().enumerate() {
+        apply(&mut c, step);
+        check(&c, i + 1, &step["expect"]);
+    }
+}
+
+fn vec_contract() -> (Contract, u64, Value) {
+    let v: Value = serde_json::from_str(VECTORS).unwrap();
+    let start: u64 = s(&v, "start").parse().unwrap();
+    let c = new_contract(&v["config"], start);
+    (c, start, v)
+}
+
+#[test]
+#[should_panic(expected = "special_account")]
+fn npc_accounts_cannot_play() {
+    let (mut c, now, _) = vec_contract();
+    ctx("bear.slay.testnet", now, 0);
+    c.claim_pouch();
+}
+
+#[test]
+#[should_panic(expected = "only_bear")]
+fn only_the_bear_commits() {
+    let (mut c, now, _) = vec_contract();
+    ctx("alice.testnet", now, 0);
+    c.bear_commit(1, "00".repeat(32));
+}
+
+#[test]
+#[should_panic(expected = "round_not_over")]
+fn cannot_settle_early() {
+    let (mut c, now, _) = vec_contract();
+    ctx("alice.testnet", now, 0);
+    c.claim_pouch();
+    c.hit(U128(10 * ONE), None);
+    c.settle(1, None, None);
+}
+
+#[test]
+#[should_panic(expected = "round_ended")]
+fn cannot_hit_after_deadline() {
+    let (mut c, now, v) = vec_contract();
+    ctx("alice.testnet", now, 0);
+    c.claim_pouch();
+    c.hit(U128(10 * ONE), None);
+    let round_secs = v["config"]["round_secs"].as_u64().unwrap();
+    ctx("alice.testnet", now + round_secs * NS, 0);
+    c.hit(U128(10 * ONE), None);
+}
+
+#[test]
+#[should_panic(expected = "bad_beacon")]
+fn rejects_a_forged_beacon() {
+    let (mut c, now, v) = vec_contract();
+    ctx("alice.testnet", now, 0);
+    c.claim_pouch();
+    c.hit(U128(10 * ONE), None);
+    let r = c.get_round(1).unwrap();
+    let round_secs = v["config"]["round_secs"].as_u64().unwrap();
+    ctx("alice.testnet", now + round_secs * NS, 0);
+    // a real quicknet signature, but for another round and key
+    let sig = "b55e7cb2d5c613ee0b2e28d6750aabbb78c39dcc96bd9d38c2c2e12198df95571de8e8e402a0cc48871c7089a2b3af4b";
+    c.settle(1, Some(r.target_drand_round.0), Some(sig.to_string()));
+}
+
+#[test]
+#[should_panic(expected = "wrong_beacon_round")]
+fn rejects_another_drand_round() {
+    let (mut c, now, v) = vec_contract();
+    ctx("alice.testnet", now, 0);
+    c.claim_pouch();
+    c.hit(U128(10 * ONE), None);
+    let r = c.get_round(1).unwrap();
+    let round_secs = v["config"]["round_secs"].as_u64().unwrap();
+    ctx("alice.testnet", now + round_secs * NS, 0);
+    c.settle(1, Some(r.target_drand_round.0 + 1), Some("00".repeat(48)));
+}
+
+#[test]
+#[should_panic(expected = "special_account")]
+fn npc_balances_cannot_be_transferred() {
+    let (mut c, now, _) = vec_contract();
+    ctx("smith.slay.testnet", now, 1);
+    c.ft_transfer("alice.testnet".parse().unwrap(), U128(1), None);
+}
+
+#[test]
+fn metadata_and_supply() {
+    let (c, _, v) = vec_contract();
+    let m = c.ft_metadata();
+    assert_eq!(m.symbol, "SLAY");
+    assert_eq!(m.decimals, 18);
+    assert_eq!(c.ft_total_supply().0.to_string(), s(&v["config"], "total_supply"));
+}
