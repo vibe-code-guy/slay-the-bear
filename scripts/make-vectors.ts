@@ -13,10 +13,16 @@ import {
   bearMood,
   cloneConfig,
   drawTactic,
+  feedJson,
+  listingsJson,
   makeTestBeacon,
+  participantsJson,
+  playerJson,
+  roundsJson,
   sha256,
   smithForgeBundles,
   snapshot,
+  statusJson,
   toContractConfig,
   toHex,
   utf8,
@@ -177,12 +183,22 @@ const out = {
   steps,
   formulas: { tacticDraws, moods, forge },
 };
-writeFileSync(new URL("../fixtures/vectors.json", import.meta.url), JSON.stringify(out, null, 2) + "\n");
 const rounds = [1, 2, 3, 4, 5].map((i) => {
   const rr = g.rounds.get(i)!;
   const s = rr.settlement!;
   return `${i}:${s.outcome} mood ${TACTIC_NAMES[rr.mood]} drew ${TACTIC_NAMES[s.tactic]} (roll ${s.tacticRoll}) drops ${s.drops.length}`;
 });
+// Final views, which the contract's own views must match field for field.
+const lastNow = BigInt((steps[steps.length - 1] as { now: string }).now);
+(out as Record<string, unknown>).views = {
+  status: statusJson(g, lastNow),
+  rounds: roundsJson(g, undefined, 50),
+  participants: Object.fromEntries([...g.rounds.values()].map((rr) => [rr.id, participantsJson(rr)])),
+  players: Object.fromEntries(players.map((p) => [p, playerJson(g, p)])),
+  listings: listingsJson(g),
+  feed: feedJson(g, 40),
+};
+writeFileSync(new URL("../fixtures/vectors.json", import.meta.url), JSON.stringify(out, null, 2) + "\n");
 const forged = g.events.filter((e) => e.event === "smith_craft").map((e) => `round ${e.round}: ${e.charges} charges`);
 console.log(`wrote fixtures/vectors.json: ${steps.length} steps`);
 for (const line of rounds) console.log("  " + line);

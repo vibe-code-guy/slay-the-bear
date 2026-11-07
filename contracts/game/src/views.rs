@@ -37,6 +37,7 @@ pub struct RoundView {
     pub target_drand_round: U64,
     pub base_health: U128,
     pub hoard_at_open: U128,
+    pub supply_at_open: U128,
     pub health: U128,
     pub mood: u8,
     /// Chance in bps of [None, Armor, Rage, Feint] being drawn at settlement.
@@ -108,6 +109,7 @@ impl Contract {
             target_drand_round: U64(r.target_drand_round),
             base_health: U128(r.base_health),
             hoard_at_open: U128(r.hoard_at_open),
+            supply_at_open: U128(r.supply_at_open),
             health: U128(r.health),
             mood: r.mood,
             mood_weights: mood_weights(r.mood, self.config.mood_bps),
@@ -238,6 +240,11 @@ impl Contract {
             trophies: self.trophies_of.get(&account_id).cloned().unwrap_or_default(),
             account: account_id,
         }
+    }
+
+    /// The newest town events (hits, claims, crafts, trades, opens, settlements), newest first.
+    pub fn get_feed(&self, limit: Option<u32>) -> Vec<FeedItem> {
+        self.feed_items(limit.unwrap_or(20) as u64)
     }
 
     pub fn get_listings(&self, from_index: Option<u32>, limit: Option<u32>) -> Vec<Listing> {

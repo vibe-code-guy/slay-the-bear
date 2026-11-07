@@ -502,6 +502,7 @@
           "hits_chain": "02d27e698ff7de96acd667c801012c811f750a168b9225ca1ebdeadf6f6fffcd",
           "target_drand_round": "33333540",
           "mood": 1,
+          "supply_at_open": "4000000000000000000000",
           "settlement": null
         }
       }
@@ -589,6 +590,7 @@
           "hits_chain": "4b7bd674c3c30a2ed0feb48f94b3a3bbbcdad77585d84508d4c3e5a47374d9c6",
           "target_drand_round": "33333540",
           "mood": 1,
+          "supply_at_open": "4000000000000000000000",
           "settlement": null
         }
       }
@@ -754,6 +756,7 @@
           "hits_chain": "5b42a35831721035a9512799e4684226857275967b0dc46449ebebb1b34f6759",
           "target_drand_round": "33333540",
           "mood": 1,
+          "supply_at_open": "4000000000000000000000",
           "settlement": null
         }
       }
@@ -841,6 +844,7 @@
           "hits_chain": "70768674b968c98dc52a1365481c38f4d6db316d0de1d0219537def6b78961ac",
           "target_drand_round": "33333540",
           "mood": 1,
+          "supply_at_open": "4000000000000000000000",
           "settlement": null
         }
       }
@@ -930,6 +934,7 @@
           "hits_chain": "70768674b968c98dc52a1365481c38f4d6db316d0de1d0219537def6b78961ac",
           "target_drand_round": "33333540",
           "mood": 1,
+          "supply_at_open": "4000000000000000000000",
           "settlement": {
             "outcome": "win",
             "tactic": 1,
@@ -1030,6 +1035,7 @@
           "hits_chain": "70768674b968c98dc52a1365481c38f4d6db316d0de1d0219537def6b78961ac",
           "target_drand_round": "33333540",
           "mood": 1,
+          "supply_at_open": "4000000000000000000000",
           "settlement": {
             "outcome": "win",
             "tactic": 1,
@@ -1130,6 +1136,7 @@
           "hits_chain": "70768674b968c98dc52a1365481c38f4d6db316d0de1d0219537def6b78961ac",
           "target_drand_round": "33333540",
           "mood": 1,
+          "supply_at_open": "4000000000000000000000",
           "settlement": {
             "outcome": "win",
             "tactic": 1,
@@ -1230,6 +1237,7 @@
           "hits_chain": "70768674b968c98dc52a1365481c38f4d6db316d0de1d0219537def6b78961ac",
           "target_drand_round": "33333540",
           "mood": 1,
+          "supply_at_open": "4000000000000000000000",
           "settlement": {
             "outcome": "win",
             "tactic": 1,
@@ -1330,6 +1338,7 @@
           "hits_chain": "70768674b968c98dc52a1365481c38f4d6db316d0de1d0219537def6b78961ac",
           "target_drand_round": "33333540",
           "mood": 1,
+          "supply_at_open": "4000000000000000000000",
           "settlement": {
             "outcome": "win",
             "tactic": 1,
@@ -1430,6 +1439,7 @@
           "hits_chain": "7f06c4eb5aed05d5f5c6533b5d3537b278009c6bde50445746a3202516b5c966",
           "target_drand_round": "33333747",
           "mood": 2,
+          "supply_at_open": "3994999999999999999998",
           "settlement": null
         }
       }
@@ -1519,6 +1529,7 @@
           "hits_chain": "7f06c4eb5aed05d5f5c6533b5d3537b278009c6bde50445746a3202516b5c966",
           "target_drand_round": "33333747",
           "mood": 2,
+          "supply_at_open": "3994999999999999999998",
           "settlement": {
             "outcome": "loss",
             "tactic": 2,
@@ -1849,6 +1860,7 @@
           "hits_chain": "69ad59adb3e5be2c2a76f52361db7a985a8cdb898ceb6d779b1ac4e5a08e637e",
           "target_drand_round": "33333954",
           "mood": 2,
+          "supply_at_open": "3994899999999999999998",
           "settlement": null
         }
       }
@@ -1937,6 +1949,7 @@
           "hits_chain": "3e45b5c0960e9117f298410fa3095c033a0b49e0119aabbfbf0a36bac86d5df9",
           "target_drand_round": "33333954",
           "mood": 2,
+          "supply_at_open": "3994899999999999999998",
           "settlement": null
         }
       }
@@ -2024,6 +2037,7 @@
           "hits_chain": "952cb079fbcaff138c963752281986f2c32b9aed36257907f994ef44f10227bd",
           "target_drand_round": "33333954",
           "mood": 2,
+          "supply_at_open": "3994899999999999999998",
           "settlement": null
         }
       }
@@ -2113,6 +2127,7 @@
           "hits_chain": "952cb079fbcaff138c963752281986f2c32b9aed36257907f994ef44f10227bd",
           "target_drand_round": "33333954",
           "mood": 2,
+          "supply_at_open": "3994899999999999999998",
           "settlement": {
             "outcome": "win",
             "tactic": 2,
@@ -2213,6 +2228,7 @@
           "hits_chain": "952cb079fbcaff138c963752281986f2c32b9aed36257907f994ef44f10227bd",
           "target_drand_round": "33333954",
           "mood": 2,
+          "supply_at_open": "3994899999999999999998",
           "settlement": {
             "outcome": "win",
             "tactic": 2,
@@ -2313,6 +2329,7 @@
           "hits_chain": "952cb079fbcaff138c963752281986f2c32b9aed36257907f994ef44f10227bd",
           "target_drand_round": "33333954",
           "mood": 2,
+          "supply_at_open": "3994899999999999999998",
           "settlement": {
             "outcome": "win",
             "tactic": 2,
@@ -2413,6 +2430,7 @@
           "hits_chain": "952cb079fbcaff138c963752281986f2c32b9aed36257907f994ef44f10227bd",
           "target_drand_round": "33333954",
           "mood": 2,
+          "supply_at_open": "3994899999999999999998",
           "settlement": {
             "outcome": "win",
             "tactic": 2,
@@ -3054,6 +3072,7 @@
           "hits_chain": "0000000000000000000000000000000000000000000000000000000000000000",
           "target_drand_round": "33334159",
           "mood": 2,
+          "supply_at_open": "3728704368768481530384",
           "settlement": null
         }
       }
@@ -3141,6 +3160,7 @@
           "hits_chain": "002de8e069a929a9d8c4f3b5fbd6c49d096e339c638f2dbcebe8e6eaa68da84d",
           "target_drand_round": "33334159",
           "mood": 2,
+          "supply_at_open": "3728704368768481530384",
           "settlement": null
         }
       }
@@ -3230,6 +3250,7 @@
           "hits_chain": "002de8e069a929a9d8c4f3b5fbd6c49d096e339c638f2dbcebe8e6eaa68da84d",
           "target_drand_round": "33334159",
           "mood": 2,
+          "supply_at_open": "3728704368768481530384",
           "settlement": {
             "outcome": "loss",
             "tactic": 2,
@@ -3324,6 +3345,7 @@
           "hits_chain": "0000000000000000000000000000000000000000000000000000000000000000",
           "target_drand_round": "33334361",
           "mood": 3,
+          "supply_at_open": "3713704368768481530384",
           "settlement": null
         }
       }
@@ -3411,6 +3433,7 @@
           "hits_chain": "cdb79d6756596602aa32d77dcfe31a231655e8fce7a80e92efb4cdfa83a250b7",
           "target_drand_round": "33334361",
           "mood": 3,
+          "supply_at_open": "3713704368768481530384",
           "settlement": null
         }
       }
@@ -3500,6 +3523,7 @@
           "hits_chain": "cdb79d6756596602aa32d77dcfe31a231655e8fce7a80e92efb4cdfa83a250b7",
           "target_drand_round": "33334361",
           "mood": 3,
+          "supply_at_open": "3713704368768481530384",
           "settlement": {
             "outcome": "loss",
             "tactic": 1,
@@ -3803,6 +3827,819 @@
         "wood": "3",
         "balance": "9000000000000000000",
         "bundles": "0"
+      }
+    ]
+  },
+  "views": {
+    "status": {
+      "now": "1792806439000000000",
+      "next_round_id": 6,
+      "current_round": null,
+      "total_supply": "999997877709823677581864010",
+      "burned": "2122290176322418135990",
+      "player_supply": "3715704368768481530384",
+      "treasury": "798997400000000000000000000",
+      "reserve": "199996000000000000000000000",
+      "hoard": "662500000000000000000",
+      "smith_balance": "1000099505454909100333622",
+      "loot": "4",
+      "bear_won_last": true,
+      "next_base": "500000000000000000000",
+      "peak_recent_damage": "1651050000000000000000",
+      "recent_damage": [
+        "1063516600000000000000",
+        "7500000000000000000",
+        "1651050000000000000000",
+        "20082000000000000000",
+        "3024900000000000000"
+      ],
+      "next_mood": 3,
+      "club_price": "4615384615384615383",
+      "wood_price": "3960396039603960396",
+      "iron_price": "7766990291262135922",
+      "smith_clubs": "112",
+      "smith_wood": "1",
+      "smith_iron": "3",
+      "pouches_today": 4,
+      "listings": 0
+    },
+    "rounds": [
+      {
+        "id": 5,
+        "opened_at": "1792805839000000000",
+        "deadline": "1792806439000000000",
+        "target_drand_round": "33334361",
+        "base_health": "500000000000000000000",
+        "hoard_at_open": "412500000000000000000",
+        "supply_at_open": "3713704368768481530384",
+        "health": "706250000000000000000",
+        "mood": 3,
+        "mood_weights": [
+          1500,
+          1500,
+          1500,
+          5500
+        ],
+        "participants": 1,
+        "total_early": "0",
+        "total_late": "3024900000000000000",
+        "hits": 1,
+        "hits_chain": "cdb79d6756596602aa32d77dcfe31a231655e8fce7a80e92efb4cdfa83a250b7",
+        "loot_claimed": "0",
+        "settlement": {
+          "outcome": "loss",
+          "tactic": 1,
+          "tactic_roll": 1703,
+          "effective_health": "847500000000000000000",
+          "total_weight": "3024900000000000000",
+          "reward": "0",
+          "steal": "250000000000000000000",
+          "tip": "5000000000000000000",
+          "randomness": "323f678ecd0c5b20729c8d2e263ff604ec9916cad8070bb70e6e05f6c220b696",
+          "beacon_round": "33334361",
+          "beacon_signature": "8b43c2d9efc00167f4782fd776fcfff5efa3ef9aef8130ad4807637be3099d6a5ad411f0ac112d3e03076aa9527df0f3",
+          "drops": [],
+          "settled_at": "1792806439000000000",
+          "settler": "bob.testnet"
+        }
+      },
+      {
+        "id": 4,
+        "opened_at": "1792805234000000000",
+        "deadline": "1792805834000000000",
+        "target_drand_round": "33334159",
+        "base_health": "550000000000000000000",
+        "hoard_at_open": "0",
+        "supply_at_open": "3728704368768481530384",
+        "health": "550000000000000000000",
+        "mood": 2,
+        "mood_weights": [
+          1500,
+          1500,
+          5500,
+          1500
+        ],
+        "participants": 1,
+        "total_early": "0",
+        "total_late": "20082000000000000000",
+        "hits": 1,
+        "hits_chain": "002de8e069a929a9d8c4f3b5fbd6c49d096e339c638f2dbcebe8e6eaa68da84d",
+        "loot_claimed": "0",
+        "settlement": {
+          "outcome": "loss",
+          "tactic": 2,
+          "tactic_roll": 3633,
+          "effective_health": "550000000000000000000",
+          "total_weight": "20082000000000000000",
+          "reward": "0",
+          "steal": "412500000000000000000",
+          "tip": "5000000000000000000",
+          "randomness": "efa7b0a7ea45752262533915c80d43c62083c4b59f61033fd030a42f22631d4a",
+          "beacon_round": "33334159",
+          "beacon_signature": "a1d58c46603d192e74872c31d98f5300c0fe7f3620f1fd11c7eab1aeb46465183bc20a89d1cf3162c5dba21dfe5d9517",
+          "drops": [],
+          "settled_at": "1792805834000000000",
+          "settler": "alice.testnet"
+        }
+      },
+      {
+        "id": 3,
+        "opened_at": "1792804619000000000",
+        "deadline": "1792805219000000000",
+        "target_drand_round": "33333954",
+        "base_health": "500000000000000000000",
+        "hoard_at_open": "412500000000000000000",
+        "supply_at_open": "3994899999999999999998",
+        "health": "706250000000000000000",
+        "mood": 2,
+        "mood_weights": [
+          1500,
+          1500,
+          5500,
+          1500
+        ],
+        "participants": 3,
+        "total_early": "1349550000000000000000",
+        "total_late": "301500000000000000000",
+        "hits": 3,
+        "hits_chain": "952cb079fbcaff138c963752281986f2c32b9aed36257907f994ef44f10227bd",
+        "loot_claimed": "1162499999999999999998",
+        "settlement": {
+          "outcome": "win",
+          "tactic": 2,
+          "tactic_roll": 4210,
+          "effective_health": "706250000000000000000",
+          "total_weight": "1651050000000000000000",
+          "reward": "1162500000000000000000",
+          "steal": "0",
+          "tip": "5000000000000000000",
+          "randomness": "ece63dd9af63ecb69976df13a4225b699c217e3ca61d059ec4a93eb17cadbeaa",
+          "beacon_round": "33333954",
+          "beacon_signature": "800c3e6c79385b20bb60ac4a9cd02584ef4cd91b9accab9333966a58af290cf57e881fcf4f540f33b70b807e81198bb6",
+          "drops": [
+            {
+              "account": "bob.testnet",
+              "token_id": "iron",
+              "qty": "2",
+              "draw": 0
+            },
+            {
+              "account": "alice.testnet",
+              "token_id": "iron",
+              "qty": "2",
+              "draw": 1
+            },
+            {
+              "account": "bob.testnet",
+              "token_id": "wood",
+              "qty": "3",
+              "draw": 2
+            }
+          ],
+          "settled_at": "1792805220000000000",
+          "settler": "carol.testnet"
+        }
+      },
+      {
+        "id": 2,
+        "opened_at": "1792803998000000000",
+        "deadline": "1792804598000000000",
+        "target_drand_round": "33333747",
+        "base_health": "550000000000000000000",
+        "hoard_at_open": "0",
+        "supply_at_open": "3994999999999999999998",
+        "health": "550000000000000000000",
+        "mood": 2,
+        "mood_weights": [
+          1500,
+          1500,
+          5500,
+          1500
+        ],
+        "participants": 1,
+        "total_early": "7500000000000000000",
+        "total_late": "0",
+        "hits": 1,
+        "hits_chain": "7f06c4eb5aed05d5f5c6533b5d3537b278009c6bde50445746a3202516b5c966",
+        "loot_claimed": "0",
+        "settlement": {
+          "outcome": "loss",
+          "tactic": 2,
+          "tactic_roll": 6451,
+          "effective_health": "550000000000000000000",
+          "total_weight": "7500000000000000000",
+          "reward": "0",
+          "steal": "412500000000000000000",
+          "tip": "5000000000000000000",
+          "randomness": "b392a394eee82e9594b61a0091d77427f946e3f6e39630ef4603194127c5ba0d",
+          "beacon_round": "33333747",
+          "beacon_signature": "a55a3dd3b4b0a3d6352e5560f01e7a1324fe17575e0a31d3418ecc6ba3770f48e04e2668c6d8100e8e00c72a3527defb",
+          "drops": [],
+          "settled_at": "1792804601000000000",
+          "settler": "bob.testnet"
+        }
+      },
+      {
+        "id": 1,
+        "opened_at": "1792803377000000000",
+        "deadline": "1792803977000000000",
+        "target_drand_round": "33333540",
+        "base_health": "500000000000000000000",
+        "hoard_at_open": "0",
+        "supply_at_open": "4000000000000000000000",
+        "health": "500000000000000000000",
+        "mood": 1,
+        "mood_weights": [
+          1500,
+          5500,
+          1500,
+          1500
+        ],
+        "participants": 4,
+        "total_early": "806250000000000000000",
+        "total_late": "257266600000000000000",
+        "hits": 4,
+        "hits_chain": "70768674b968c98dc52a1365481c38f4d6db316d0de1d0219537def6b78961ac",
+        "loot_claimed": "749999999999999999998",
+        "settlement": {
+          "outcome": "win",
+          "tactic": 1,
+          "tactic_roll": 3640,
+          "effective_health": "600000000000000000000",
+          "total_weight": "1063516600000000000000",
+          "reward": "750000000000000000000",
+          "steal": "0",
+          "tip": "5000000000000000000",
+          "randomness": "dea4adaf74a2a230891d1430624532facb7b84d9aa002522f63b810cae6cd88f",
+          "beacon_round": "33333540",
+          "beacon_signature": "895b4377e4213bf3e1fa3a9d16d8dea581ee05cde8c47b5c6fbcd1c14db26eea1cc5fa82948a505003ffe51e79516645",
+          "drops": [
+            {
+              "account": "bob.testnet",
+              "token_id": "iron",
+              "qty": "2",
+              "draw": 0
+            },
+            {
+              "account": "carol.testnet",
+              "token_id": "wood",
+              "qty": "3",
+              "draw": 1
+            },
+            {
+              "account": "carol.testnet",
+              "token_id": "wood",
+              "qty": "3",
+              "draw": 2
+            }
+          ],
+          "settled_at": "1792803982000000000",
+          "settler": "dave.testnet"
+        }
+      }
+    ],
+    "participants": {
+      "1": [
+        {
+          "index": 0,
+          "account": "alice.testnet",
+          "early": "450000000000000000000",
+          "late": "0",
+          "hits": 1,
+          "claimed": true
+        },
+        {
+          "index": 1,
+          "account": "bob.testnet",
+          "early": "356250000000000000000",
+          "late": "0",
+          "hits": 1,
+          "claimed": true
+        },
+        {
+          "index": 2,
+          "account": "carol.testnet",
+          "early": "0",
+          "late": "256250000000000000000",
+          "hits": 1,
+          "claimed": true
+        },
+        {
+          "index": 3,
+          "account": "dave.testnet",
+          "early": "0",
+          "late": "1016600000000000000",
+          "hits": 1,
+          "claimed": true
+        }
+      ],
+      "2": [
+        {
+          "index": 0,
+          "account": "alice.testnet",
+          "early": "7500000000000000000",
+          "late": "0",
+          "hits": 1,
+          "claimed": false
+        }
+      ],
+      "3": [
+        {
+          "index": 0,
+          "account": "alice.testnet",
+          "early": "600000000000000000000",
+          "late": "0",
+          "hits": 1,
+          "claimed": true
+        },
+        {
+          "index": 1,
+          "account": "bob.testnet",
+          "early": "749550000000000000000",
+          "late": "0",
+          "hits": 1,
+          "claimed": true
+        },
+        {
+          "index": 2,
+          "account": "carol.testnet",
+          "early": "0",
+          "late": "301500000000000000000",
+          "hits": 1,
+          "claimed": true
+        }
+      ],
+      "4": [
+        {
+          "index": 0,
+          "account": "dave.testnet",
+          "early": "0",
+          "late": "20082000000000000000",
+          "hits": 1,
+          "claimed": false
+        }
+      ],
+      "5": [
+        {
+          "index": 0,
+          "account": "carol.testnet",
+          "early": "0",
+          "late": "3024900000000000000",
+          "hits": 1,
+          "claimed": false
+        }
+      ]
+    },
+    "players": {
+      "alice.testnet": {
+        "account": "alice.testnet",
+        "registered": true,
+        "balance": "1055801860175858149323",
+        "pouch_claimed": true,
+        "items": [],
+        "trophies": []
+      },
+      "bob.testnet": {
+        "account": "bob.testnet",
+        "registered": true,
+        "balance": "1095829549023767767174",
+        "pouch_claimed": true,
+        "items": [
+          [
+            "sword",
+            "10"
+          ]
+        ],
+        "trophies": []
+      },
+      "carol.testnet": {
+        "account": "carol.testnet",
+        "registered": true,
+        "balance": "896736398157061270041",
+        "pouch_claimed": true,
+        "items": [
+          [
+            "club",
+            "11"
+          ]
+        ],
+        "trophies": []
+      },
+      "dave.testnet": {
+        "account": "dave.testnet",
+        "registered": true,
+        "balance": "667336561411794343846",
+        "pouch_claimed": true,
+        "items": [
+          [
+            "club",
+            "105"
+          ]
+        ],
+        "trophies": []
+      }
+    },
+    "listings": [],
+    "feed": [
+      {
+        "seq": 41,
+        "at": "1792806439000000000",
+        "kind": "settle",
+        "account": "bob.testnet",
+        "round": 5,
+        "amount": "250000000000000000000",
+        "value": "1",
+        "detail": "loss"
+      },
+      {
+        "seq": 40,
+        "at": "1792806429000000000",
+        "kind": "hit",
+        "account": "carol.testnet",
+        "round": 5,
+        "amount": "3000000000000000000",
+        "value": "3024900000000000000",
+        "detail": "late"
+      },
+      {
+        "seq": 39,
+        "at": "1792805839000000000",
+        "kind": "open",
+        "account": "bob.testnet",
+        "round": 5,
+        "amount": "706250000000000000000",
+        "value": "3",
+        "detail": null
+      },
+      {
+        "seq": 38,
+        "at": "1792805834000000000",
+        "kind": "settle",
+        "account": "alice.testnet",
+        "round": 4,
+        "amount": "412500000000000000000",
+        "value": "2",
+        "detail": "loss"
+      },
+      {
+        "seq": 37,
+        "at": "1792805829000000000",
+        "kind": "hit",
+        "account": "dave.testnet",
+        "round": 4,
+        "amount": "20000000000000000000",
+        "value": "20082000000000000000",
+        "detail": "late"
+      },
+      {
+        "seq": 36,
+        "at": "1792805234000000000",
+        "kind": "open",
+        "account": "bob.testnet",
+        "round": 4,
+        "amount": "550000000000000000000",
+        "value": "2",
+        "detail": null
+      },
+      {
+        "seq": 35,
+        "at": "1792805234000000000",
+        "kind": "smith_forge",
+        "account": "smith.slay.testnet",
+        "round": 4,
+        "amount": "20000000000000000000",
+        "value": "20",
+        "detail": null
+      },
+      {
+        "seq": 34,
+        "at": "1792805225000000000",
+        "kind": "smith_sell",
+        "account": "dave.testnet",
+        "round": null,
+        "amount": "317380352644836271980",
+        "value": "105",
+        "detail": "club"
+      },
+      {
+        "seq": 33,
+        "at": "1792805224000000000",
+        "kind": "smith_buy",
+        "account": "carol.testnet",
+        "round": null,
+        "amount": "15841584158415841584",
+        "value": "4",
+        "detail": "wood"
+      },
+      {
+        "seq": 32,
+        "at": "1792805224000000000",
+        "kind": "craft",
+        "account": "carol.testnet",
+        "round": null,
+        "amount": "10000000000000000000",
+        "value": "10",
+        "detail": "club"
+      },
+      {
+        "seq": 31,
+        "at": "1792805224000000000",
+        "kind": "smith_buy",
+        "account": "bob.testnet",
+        "round": null,
+        "amount": "7843137254901960784",
+        "value": "1",
+        "detail": "iron"
+      },
+      {
+        "seq": 30,
+        "at": "1792805224000000000",
+        "kind": "smith_buy",
+        "account": "bob.testnet",
+        "round": null,
+        "amount": "4000000000000000000",
+        "value": "1",
+        "detail": "wood"
+      },
+      {
+        "seq": 29,
+        "at": "1792805224000000000",
+        "kind": "craft",
+        "account": "bob.testnet",
+        "round": null,
+        "amount": "50000000000000000000",
+        "value": "10",
+        "detail": "sword"
+      },
+      {
+        "seq": 28,
+        "at": "1792805224000000000",
+        "kind": "smith_buy",
+        "account": "alice.testnet",
+        "round": null,
+        "amount": "16000000000000000000",
+        "value": "2",
+        "detail": "iron"
+      },
+      {
+        "seq": 27,
+        "at": "1792805221000000000",
+        "kind": "claim",
+        "account": "carol.testnet",
+        "round": 3,
+        "amount": "212285363859362224039",
+        "value": "0",
+        "detail": null
+      },
+      {
+        "seq": 26,
+        "at": "1792805221000000000",
+        "kind": "claim",
+        "account": "bob.testnet",
+        "round": 3,
+        "amount": "527756200599618424638",
+        "value": "0",
+        "detail": null
+      },
+      {
+        "seq": 25,
+        "at": "1792805221000000000",
+        "kind": "claim",
+        "account": "alice.testnet",
+        "round": 3,
+        "amount": "422458435541019351321",
+        "value": "0",
+        "detail": null
+      },
+      {
+        "seq": 24,
+        "at": "1792805220000000000",
+        "kind": "settle",
+        "account": "carol.testnet",
+        "round": 3,
+        "amount": "1162500000000000000000",
+        "value": "2",
+        "detail": "win"
+      },
+      {
+        "seq": 23,
+        "at": "1792805213000000000",
+        "kind": "hit",
+        "account": "carol.testnet",
+        "round": 3,
+        "amount": "300000000000000000000",
+        "value": "301500000000000000000",
+        "detail": "late"
+      },
+      {
+        "seq": 22,
+        "at": "1792804620000000000",
+        "kind": "hit",
+        "account": "bob.testnet",
+        "round": 3,
+        "amount": "400000000000000000000",
+        "value": "749550000000000000000",
+        "detail": "club"
+      },
+      {
+        "seq": 21,
+        "at": "1792804619000000000",
+        "kind": "hit",
+        "account": "alice.testnet",
+        "round": 3,
+        "amount": "400000000000000000000",
+        "value": "600000000000000000000",
+        "detail": null
+      },
+      {
+        "seq": 20,
+        "at": "1792804619000000000",
+        "kind": "open",
+        "account": "alice.testnet",
+        "round": 3,
+        "amount": "706250000000000000000",
+        "value": "2",
+        "detail": null
+      },
+      {
+        "seq": 19,
+        "at": "1792804609000000000",
+        "kind": "buy",
+        "account": "bob.testnet",
+        "round": null,
+        "amount": "5000000000000000000",
+        "value": "1",
+        "detail": "club"
+      },
+      {
+        "seq": 18,
+        "at": "1792804608000000000",
+        "kind": "list",
+        "account": "carol.testnet",
+        "round": null,
+        "amount": "5000000000000000000",
+        "value": "2",
+        "detail": "club"
+      },
+      {
+        "seq": 17,
+        "at": "1792804601000000000",
+        "kind": "settle",
+        "account": "bob.testnet",
+        "round": 2,
+        "amount": "412500000000000000000",
+        "value": "2",
+        "detail": "loss"
+      },
+      {
+        "seq": 16,
+        "at": "1792803998000000000",
+        "kind": "hit",
+        "account": "alice.testnet",
+        "round": 2,
+        "amount": "5000000000000000000",
+        "value": "7500000000000000000",
+        "detail": null
+      },
+      {
+        "seq": 15,
+        "at": "1792803998000000000",
+        "kind": "open",
+        "account": "alice.testnet",
+        "round": 2,
+        "amount": "550000000000000000000",
+        "value": "2",
+        "detail": null
+      },
+      {
+        "seq": 14,
+        "at": "1792803987000000000",
+        "kind": "claim",
+        "account": "dave.testnet",
+        "round": 1,
+        "amount": "716914056630615826",
+        "value": "0",
+        "detail": null
+      },
+      {
+        "seq": 13,
+        "at": "1792803987000000000",
+        "kind": "claim",
+        "account": "carol.testnet",
+        "round": 1,
+        "amount": "180709450139283204418",
+        "value": "0",
+        "detail": null
+      },
+      {
+        "seq": 12,
+        "at": "1792803987000000000",
+        "kind": "claim",
+        "account": "bob.testnet",
+        "round": 1,
+        "amount": "251230211169247381752",
+        "value": "0",
+        "detail": null
+      },
+      {
+        "seq": 11,
+        "at": "1792803987000000000",
+        "kind": "claim",
+        "account": "alice.testnet",
+        "round": 1,
+        "amount": "317343424634838798002",
+        "value": "0",
+        "detail": null
+      },
+      {
+        "seq": 10,
+        "at": "1792803982000000000",
+        "kind": "settle",
+        "account": "dave.testnet",
+        "round": 1,
+        "amount": "750000000000000000000",
+        "value": "1",
+        "detail": "win"
+      },
+      {
+        "seq": 9,
+        "at": "1792803957000000000",
+        "kind": "hit",
+        "account": "dave.testnet",
+        "round": 1,
+        "amount": "1000000000000000000",
+        "value": "1016600000000000000",
+        "detail": "late"
+      },
+      {
+        "seq": 8,
+        "at": "1792803947000000000",
+        "kind": "hit",
+        "account": "carol.testnet",
+        "round": 1,
+        "amount": "200000000000000000000",
+        "value": "256250000000000000000",
+        "detail": "club,late"
+      },
+      {
+        "seq": 7,
+        "at": "1792803487000000000",
+        "kind": "smith_sell",
+        "account": "carol.testnet",
+        "round": null,
+        "amount": "9000000000000000000",
+        "value": "3",
+        "detail": "club"
+      },
+      {
+        "seq": 6,
+        "at": "1792803467000000000",
+        "kind": "hit",
+        "account": "bob.testnet",
+        "round": 1,
+        "amount": "250000000000000000000",
+        "value": "356250000000000000000",
+        "detail": null
+      },
+      {
+        "seq": 5,
+        "at": "1792803377000000000",
+        "kind": "hit",
+        "account": "alice.testnet",
+        "round": 1,
+        "amount": "300000000000000000000",
+        "value": "450000000000000000000",
+        "detail": null
+      },
+      {
+        "seq": 4,
+        "at": "1792803377000000000",
+        "kind": "open",
+        "account": "alice.testnet",
+        "round": 1,
+        "amount": "500000000000000000000",
+        "value": "1",
+        "detail": null
+      },
+      {
+        "seq": 3,
+        "at": "1792803367000000000",
+        "kind": "pouch",
+        "account": "dave.testnet",
+        "round": null,
+        "amount": "1000000000000000000000",
+        "value": "0",
+        "detail": null
+      },
+      {
+        "seq": 2,
+        "at": "1792803367000000000",
+        "kind": "pouch",
+        "account": "carol.testnet",
+        "round": null,
+        "amount": "1000000000000000000000",
+        "value": "0",
+        "detail": null
       }
     ]
   }

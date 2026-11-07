@@ -105,6 +105,7 @@ fn check(c: &Contract, step_no: usize, expect: &Value) {
         assert_eq!(v.hits_chain, s(r, "hits_chain"), "{}", label("hits_chain"));
         assert_eq!(v.target_drand_round.0.to_string(), s(r, "target_drand_round"), "{}", label("target_drand_round"));
         assert_eq!(v.mood as u64, r["mood"].as_u64().unwrap(), "{}", label("mood"));
+        assert_eq!(v.supply_at_open.0.to_string(), s(r, "supply_at_open"), "{}", label("supply_at_open"));
         if let Some(se) = r.get("settlement").filter(|x| !x.is_null()) {
             let got = v.settlement.expect("settled");
             assert_eq!(got.outcome, s(se, "outcome"), "{}", label("outcome"));
@@ -121,16 +122,45 @@ fn check(c: &Contract, step_no: usize, expect: &Value) {
     }
 }
 
-#[test]
-fn replays_typescript_vectors() {
-    let v: Value = serde_json::from_str(VECTORS).unwrap();
-    let start: u64 = s(&v, "start").parse().unwrap();
+fn replay(v: &Value) -> Contract {
+    let start: u64 = s(v, "start").parse().unwrap();
     let mut c = new_contract(&v["config"], start);
     check(&c, 0, &v["initial"]);
     for (i, step) in v["steps"].as_array().unwrap().iter().enumerate() {
         apply(&mut c, step);
         check(&c, i + 1, &step["expect"]);
     }
+    c
+}
+
+#[test]
+fn replays_typescript_vectors() {
+    let v: Value = serde_json::from_str(VECTORS).unwrap();
+    replay(&v);
+}
+
+/// The web app's simulation renders the TypeScript engine's views; they must be the
+/// contract's views exactly.
+#[test]
+fn views_match_typescript() {
+    let v: Value = serde_json::from_str(VECTORS).unwrap();
+    let c = replay(&v);
+    let want = &v["views"];
+    let j = |x: Value| x;
+    let mut st = serde_json::to_value(c.get_status()).unwrap();
+    st["now"] = want["status"]["now"].clone();
+    assert_eq!(j(st), want["status"], "status");
+    assert_eq!(serde_json::to_value(c.get_rounds(None, Some(50))).unwrap(), want["rounds"], "rounds");
+    for (id, parts) in want["participants"].as_object().unwrap() {
+        let got = serde_json::to_value(c.get_round_participants(id.parse().unwrap(), None, None)).unwrap();
+        assert_eq!(&got, parts, "participants of round {id}");
+    }
+    for (acc, p) in want["players"].as_object().unwrap() {
+        let got = serde_json::to_value(c.get_player(acc.parse().unwrap())).unwrap();
+        assert_eq!(&got, p, "player {acc}");
+    }
+    assert_eq!(serde_json::to_value(c.get_listings(None, None)).unwrap(), want["listings"], "listings");
+    assert_eq!(serde_json::to_value(c.get_feed(Some(40))).unwrap(), want["feed"], "feed");
 }
 
 fn vec_contract() -> (Contract, u64, Value) {
@@ -180,6 +210,27 @@ fn npc_formulas_match_typescript() {
         );
         assert_eq!(got.to_string(), s(x, "bundles"), "forge {x}");
     }
+}
+
+#[test]
+fn feed_keeps_the_newest_events() {
+    let (mut c, now, _) = vec_contract();
+    ctx("alice.testnet", now, 0);
+    c.claim_pouch();
+    c.hit(U128(10 * ONE), None);
+    let f = c.get_feed(None);
+    let kinds: Vec<&str> = f.iter().map(|x| x.kind.as_str()).collect();
+    assert_eq!(kinds, vec!["hit", "open", "pouch"]);
+    assert_eq!(f[0].amount.0, 10 * ONE);
+    assert_eq!(f[0].round, Some(1));
+    for i in 0..(FEED_SIZE + 5) {
+        ctx("alice.testnet", now + (i + 1) * NS, 0);
+        c.hit(U128(ONE), None);
+    }
+    let f = c.get_feed(Some(100));
+    assert_eq!(f.len() as u64, FEED_SIZE);
+    assert!(f.windows(2).all(|w| w[0].seq == w[1].seq + 1));
+    assert_eq!(f[0].seq, FEED_SIZE + 7);
 }
 
 #[test]

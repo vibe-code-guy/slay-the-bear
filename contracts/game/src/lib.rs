@@ -44,6 +44,24 @@ enum StorageKey {
     Participants,
     ParticipantIndex,
     Listings,
+    Feed,
+}
+
+/// How many recent town events `get_feed` keeps.
+pub const FEED_SIZE: u64 = 40;
+
+/// One line of the town feed: the last FEED_SIZE moves, readable without an indexer.
+#[near(serializers = [borsh, json])]
+#[derive(Clone, Debug)]
+pub struct FeedItem {
+    pub seq: u64,
+    pub at: near_sdk::json_types::U64,
+    pub kind: String,
+    pub account: AccountId,
+    pub round: Option<u32>,
+    pub amount: U128,
+    pub value: U128,
+    pub detail: Option<String>,
 }
 
 #[near(serializers = [borsh, json])]
@@ -104,6 +122,7 @@ pub struct RoundMeta {
     pub target_drand_round: u64,
     pub base_health: u128,
     pub hoard_at_open: u128,
+    pub supply_at_open: u128,
     pub health: u128,
     pub mood: u8,
     pub participants: u32,
@@ -154,6 +173,8 @@ pub struct Contract {
     bear_won_last: bool,
     next_base: u128,
     recent_damage: Vec<u128>,
+    feed: LookupMap<u64, FeedItem>,
+    feed_seq: u64,
 }
 
 pub(crate) fn fail(code: &str) -> ! {
@@ -222,6 +243,8 @@ impl Contract {
             bear_won_last: false,
             next_base,
             recent_damage: Vec::new(),
+            feed: LookupMap::new(StorageKey::Feed),
+            feed_seq: 0,
         };
         c.mint_item(&ids.smith, "club", initial_clubs);
         c
@@ -254,6 +277,7 @@ impl Contract {
         self.pouch_claimed.insert(a.clone());
         self.pouches_today += 1;
         emit("slay", "pouch", json!({ "account": a, "amount": u(amount) }));
+        self.push_feed("pouch", &a, None, amount, 0, None);
         U128(amount)
     }
 
@@ -331,6 +355,13 @@ impl Contract {
             "hit",
             json!({ "round": rid, "account": a, "amount": u(amount), "weapon": weapon, "damage": u(damage), "late": late }),
         );
+        let detail = match (&weapon, late) {
+            (Some(w), true) => Some(format!("{w},late")),
+            (Some(w), false) => Some(w.clone()),
+            (None, true) => Some("late".to_string()),
+            (None, false) => None,
+        };
+        self.push_feed("hit", &a, Some(rid), amount, damage, detail);
         HitResult { round: rid, damage: U128(damage), late }
     }
 
@@ -354,6 +385,7 @@ impl Contract {
         let loot = self.ids.loot.clone();
         self.mv(&loot, &a, share);
         emit("slay", "claim", json!({ "round": round_id, "account": a, "amount": u(share) }));
+        self.push_feed("claim", &a, Some(round_id), share, 0, None);
         U128(share)
     }
 
@@ -390,6 +422,7 @@ impl Contract {
             "craft",
             json!({ "account": a, "recipe": recipe_id, "trophy": trophy_id, "charges": u(rec.charges), "fee": u(rec.fee) }),
         );
+        self.push_feed("craft", &a, None, rec.fee, rec.charges, Some(recipe_id));
     }
 
     pub fn list(&mut self, token_id: String, qty: U128, price: U128) -> u64 {
@@ -408,6 +441,7 @@ impl Contract {
             "list",
             json!({ "listing": id, "seller": a, "tokenId": token_id, "qty": u(qty.0), "price": u(price.0) }),
         );
+        self.push_feed("list", &a, None, price.0, qty.0, Some(token_id));
         id
     }
 
@@ -443,6 +477,7 @@ impl Contract {
             "buy",
             json!({ "listing": listing_id, "buyer": a, "seller": seller, "tokenId": l.token_id, "qty": u(qty), "cost": u(cost), "fee": u(fee) }),
         );
+        self.push_feed("buy", &a, None, cost, qty, Some(l.token_id.clone()));
     }
 
     pub fn cancel(&mut self, listing_id: u64) {
@@ -483,6 +518,7 @@ impl Contract {
             "smith_sell",
             json!({ "account": a, "qty": u(qty), "price": u(price), "cost": u(cost), "burned": u(burn_part) }),
         );
+        self.push_feed("smith_sell", &a, None, cost, qty, Some("club".to_string()));
         U128(cost)
     }
 
@@ -509,6 +545,7 @@ impl Contract {
             "smith_buy",
             json!({ "account": a, "tokenId": token_id, "qty": u(qty), "price": u(price), "paid": u(pay) }),
         );
+        self.push_feed("smith_buy", &a, None, pay, qty, Some(token_id));
         U128(pay)
     }
 
@@ -600,6 +637,8 @@ impl Contract {
             self.recent_damage.remove(0);
         }
 
+        let outcome = if win { "win" } else { "loss" };
+        self.push_feed("settle", &actor, Some(round_id), if win { reward } else { steal }, tactic as u128, Some(outcome.to_string()));
         let drops_json: Vec<Value> = drops
             .iter()
             .map(|d| json!({ "account": d.account, "tokenId": d.token_id, "qty": u(d.qty), "draw": d.draw }))
@@ -784,6 +823,28 @@ impl Contract {
         }
     }
 
+    fn push_feed(&mut self, kind: &str, account: &AccountId, round: Option<u32>, amount: u128, value: u128, detail: Option<String>) {
+        let seq = self.feed_seq;
+        self.feed_seq += 1;
+        let item = FeedItem {
+            seq,
+            at: near_sdk::json_types::U64(env::block_timestamp()),
+            kind: kind.to_string(),
+            account: account.clone(),
+            round,
+            amount: U128(amount),
+            value: U128(value),
+            detail,
+        };
+        self.feed.insert(seq % FEED_SIZE, item);
+    }
+
+    /// The newest `limit` feed items, newest first.
+    pub(crate) fn feed_items(&self, limit: u64) -> Vec<FeedItem> {
+        let n = limit.min(FEED_SIZE).min(self.feed_seq);
+        (0..n).filter_map(|i| self.feed.get(&((self.feed_seq - 1 - i) % FEED_SIZE)).cloned()).collect()
+    }
+
     /// What the Bear remembers of the last settled round.
     pub(crate) fn last_mood_input(&self) -> Option<MoodInput> {
         let last = self.next_round_id.checked_sub(1)?;
@@ -818,6 +879,7 @@ impl Contract {
                 "smith_craft",
                 json!({ "round": id, "bundles": u(bundles), "charges": u(rec.charges * bundles), "fee": u(rec.fee * bundles) }),
             );
+            self.push_feed("smith_forge", &smith, Some(id), rec.fee * bundles, rec.charges * bundles, None);
         }
 
         let deadline = now + self.config.round_secs * NS;
@@ -836,6 +898,7 @@ impl Contract {
                 target_drand_round: target,
                 base_health: base,
                 hoard_at_open: hoard,
+                supply_at_open: supply,
                 health,
                 mood,
                 participants: 0,
@@ -848,6 +911,7 @@ impl Contract {
             },
         );
         self.next_round_id = id + 1;
+        self.push_feed("open", actor, Some(id), health, mood as u128, None);
         emit(
             "slay",
             "round_open",

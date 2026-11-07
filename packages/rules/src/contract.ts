@@ -136,6 +136,7 @@ export function snapshot(g: Game, accounts: string[], roundId: number | null) {
       hits_chain: r.hitsChain,
       target_drand_round: r.targetDrandRound.toString(),
       mood: r.mood,
+      supply_at_open: r.supplyAtOpen.toString(),
       settlement: r.settlement
         ? {
             outcome: r.settlement.outcome,
@@ -187,6 +188,7 @@ export interface RoundJson {
   target_drand_round: string;
   base_health: string;
   hoard_at_open: string;
+  supply_at_open: string;
   health: string;
   mood: number;
   mood_weights: number[];
@@ -259,4 +261,24 @@ export interface IdsJson {
   smith: string;
   loot: string;
   market: string;
+}
+
+/**
+ * One line of the town feed (`get_feed`). kind and the meaning of amount / value / detail:
+ * pouch (amount), hit (amount burned, value damage, detail weapon and/or "late"),
+ * claim (amount), craft (amount fee, value charges, detail recipe), list (amount price,
+ * value qty, detail token), buy (amount cost, value qty, detail token), smith_sell (amount
+ * cost, value qty), smith_buy (amount paid, value qty, detail token), open (amount health,
+ * value mood), smith_forge (amount fee, value charges), settle (amount reward or steal,
+ * value tactic, detail outcome).
+ */
+export interface FeedItemJson {
+  seq: number;
+  at: string;
+  kind: string;
+  account: string;
+  round: number | null;
+  amount: string;
+  value: string;
+  detail: string | null;
 }

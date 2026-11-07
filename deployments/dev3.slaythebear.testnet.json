@@ -1,0 +1,14 @@
+{
+  "contractId": "dev3.slaythebear.testnet",
+  "network": "testnet",
+  "preset": "demo",
+  "codeHash": "AgzkaQz7jKRUj7JLh9uEWDJvKhBt3nPykJYnHeMNSh5p",
+  "wasmBytes": 372602,
+  "deployedAt": "2026-11-07T22:01:43.070Z",
+  "deployer": "slaythebear.testnet",
+  "txs": {
+    "createAccount": "5FL1B7m6hSrKSUEyaK2mnaJ5Mce4yCumU8BkGdFVTxnf",
+    "deployAndInit": "DaK4K6fjY2hkYe8B9hDyCUwEwXoQwAizH4m73g5BJ8wP"
+  },
+  "locked": false
+}

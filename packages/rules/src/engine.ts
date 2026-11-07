@@ -79,6 +79,8 @@ export interface Round {
   targetDrandRound: bigint;
   baseHealth: bigint;
   hoardAtOpen: bigint;
+  /** Player supply at the open, so anyone can recompute the health from the views. */
+  supplyAtOpen: bigint;
   health: bigint;
   /** The Bear's favourite tactic this round; the tactic itself is drawn at settlement. */
   mood: Tactic;
@@ -339,6 +341,7 @@ export class Game {
       targetDrandRound: drandTargetRound(c, deadline),
       baseHealth: base,
       hoardAtOpen: hoard,
+      supplyAtOpen: supply,
       health: bearHealth(c, base, hoard, supply, this.peakRecentDamage()),
       mood,
       participants: [],

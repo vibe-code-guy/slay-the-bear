@@ -7,3 +7,5 @@ export * from "./engine";
 export * from "./npc";
 export * from "./sim";
 export * from "./contract";
+export * from "./views";
+export * from "./verify";
