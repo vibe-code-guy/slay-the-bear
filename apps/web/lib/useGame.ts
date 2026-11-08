@@ -6,7 +6,8 @@ export type Mode = "live" | "sim";
 
 export interface Toast {
   id: number;
-  kind: "ok" | "error" | "info";
+  /** "prize": a goal, an achievement or a level, shown in gold */
+  kind: "ok" | "error" | "info" | "prize";
   text: string;
   txHash?: string;
 }
@@ -141,5 +142,5 @@ export function useGame(mode: Mode) {
     [refresh],
   );
 
-  return { backend, snap, now: Date.now() + offset, act, join, skip, pending, toasts, loadError, refresh };
+  return { backend, snap, now: Date.now() + offset, act, join, skip, pending, toasts, notify: toast, loadError, refresh };
 }

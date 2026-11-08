@@ -94,6 +94,9 @@ async function main() {
       await chest.click();
       await page.waitForTimeout(300);
       await shot(page, "7a-fly");
+      // then a level-up, if this raid's damage was enough
+      await page.waitForTimeout(1400);
+      await shot(page, "7a-after");
     }
     // the result card comes in once the VICTORY / THE BEAR WINS banner (and the chest) has gone
     await page.getByText(/: the town won|: the Bear won/).waitFor({ timeout: 15_000 });

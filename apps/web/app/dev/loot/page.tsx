@@ -3,6 +3,7 @@
 // art and layout without waiting for a 5% drop. Not part of the production build.
 import { notFound } from "next/navigation";
 import { useState } from "react";
+import { HoardPile } from "@/components/game/HoardPile";
 import { LootReveal } from "@/components/game/LootReveal";
 
 // a sample settlement randomness (32 bytes, hex); any value gives some trophy look
@@ -35,6 +36,17 @@ export default function Page() {
           />
         </div>
       ))}
+      {/* the Bear's hoard at a few sizes */}
+      <div className="flex flex-wrap items-end gap-4">
+        {[5, 500, 20_000, 2_000_000].map((h) => (
+          <div key={h} className="text-center text-xs text-dim">
+            <div className="h-16" style={{ aspectRatio: "9 / 2" }}>
+              <HoardPile hoardWhole={h} />
+            </div>
+            {h.toLocaleString("en-US")} $SLAY
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

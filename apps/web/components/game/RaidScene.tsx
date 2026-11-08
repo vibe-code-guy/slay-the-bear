@@ -4,11 +4,27 @@
 // exposes an imperative API for the player's own moves, which animate at once and settle when
 // the transaction confirms. Every number it shows comes from the contract's views.
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
-import { ONE, Tactic, TACTIC_EFFECTS, explainBearMood, isTrophy, itemName, moodInputOf, moodWeights, roundTime, type GameConfig, type RoundJson } from "@slay/rules";
+import {
+  ONE,
+  Tactic,
+  TACTIC_EFFECTS,
+  explainBearMood,
+  isTrophy,
+  itemName,
+  lootShare,
+  moodInputOf,
+  moodWeights,
+  roundTime,
+  weight,
+  type GameConfig,
+  type RoundJson,
+} from "@slay/rules";
 import { Bear, type BearPose } from "./Bear";
 import { Backdrop } from "./Backdrop";
-import { Hero, heroKindOf, type HeroKind, type HeroLook } from "./Hero";
+import { GEAR_STEPS, Hero, heroKindOf, type HeroKind, type HeroLook } from "./Hero";
+import { HoardPile } from "./HoardPile";
 import { LootReveal, type LootItem } from "./LootReveal";
+import { titleOf } from "./Progress";
 import { Particles, type ParticlesHandle } from "./Particles";
 import { Wheel, type WheelStage } from "./Wheel";
 import { isMuted, onMuteChange, play, setMuted, unlockAudio } from "@/lib/sfx";
@@ -113,9 +129,13 @@ export const RaidScene = forwardRef<SceneHandle, {
   onReveal: (r: RevealState | null) => void;
   /** gear each raider has earned (from levels and trophies), by account */
   looks?: Map<string, HeroLook>;
+  /** your level once the settled raids are read; a rise is celebrated after the raid's reveal */
+  myLevel?: number | null;
+  /** true from the start of a raid's reveal (the wheel) until its banner and loot chest are done */
+  onBusy?: (busy: boolean) => void;
   /** drawn over the scene, e.g. the title screen */
   overlay?: React.ReactNode;
-}>(function RaidScene({ mode, config, snap, now, account, villagerSuffix, weapon, charging, onReveal, looks, overlay }, ref) {
+}>(function RaidScene({ mode, config, snap, now, account, villagerSuffix, weapon, charging, onReveal, looks, myLevel = null, onBusy, overlay }, ref) {
   const particles = useRef<ParticlesHandle>(null);
   const [nums, setNums] = useState<FloatNum[]>([]);
   const [banner, setBanner] = useState<Banner | null>(null);
@@ -137,6 +157,10 @@ export const RaidScene = forwardRef<SceneHandle, {
   snapRef.current = snap;
   const accountRef = useRef(account);
   accountRef.current = account;
+  /** the wheel's landing, its banner and your loot chest: a level-up waits until they are done */
+  const afterReveal = useRef(false);
+  const lastLevel = useRef<number | null>(null);
+  const pendingLevel = useRef<number | null>(null);
   const seenSeq = useRef<number | null>(null);
   const prev = useRef<{ id: number; settled: boolean } | null>(null);
   const prevPhase = useRef<{ id: number | null; phase: string } | null>(null);
@@ -149,10 +173,15 @@ export const RaidScene = forwardRef<SceneHandle, {
     return onMuteChange(setMutedState);
   }, []);
 
+  const onBusyRef = useRef(onBusy);
+  onBusyRef.current = onBusy;
   const setReveal = useCallback(
     (r: RevealState | null) => {
       setRevealState(r);
       onReveal(r);
+      // a raid's result is being revealed: news that follows from it (goals, levels) waits
+      if (r && r.stage !== "landed") onBusyRef.current?.(true);
+      if (!r) onBusyRef.current?.(false);
     },
     [onReveal],
   );
@@ -345,10 +374,44 @@ export const RaidScene = forwardRef<SceneHandle, {
     }
   }, [now, phase, live]);
 
+  const celebrateLevel = useCallback(
+    (level: number) => {
+      const gear = GEAR_STEPS.find((g) => g.level === level)?.name;
+      flash(`LEVEL ${level}!`, "gold", gear ? `${titleOf(level)}: your hero earned ${gear}` : `New title: ${titleOf(level)}`, 3400);
+      play("levelup");
+      setTimeout(() => play("sparkle"), 260);
+      const at = { x: YOU_SLOT.x, y: 1 - YOU_SLOT.b - YOU_SLOT.s * 0.55 };
+      particles.current?.burst(at.x, at.y, "spark", 40, 1.3);
+      particles.current?.burst(at.x, at.y, "coin", 12, 0.9);
+      if (accountRef.current) lunge(accountRef.current);
+    },
+    [flash, lunge],
+  );
+
+  /** The reveal is over: a level-up that came in meanwhile gets its moment. */
+  const revealDone = useCallback(() => {
+    afterReveal.current = false;
+    onBusyRef.current?.(false);
+    const l = pendingLevel.current;
+    pendingLevel.current = null;
+    if (l) setTimeout(() => celebrateLevel(l), 900);
+  }, [celebrateLevel]);
+
+  // your level rising (it only counts settled raids, so this follows a settlement)
+  useEffect(() => {
+    const prev = lastLevel.current;
+    lastLevel.current = myLevel;
+    if (myLevel === null || prev === null || myLevel <= prev) return;
+    const busy = afterReveal.current || (!!revealRef.current && revealRef.current.stage !== "landed");
+    if (busy) pendingLevel.current = Math.max(pendingLevel.current ?? 0, myLevel);
+    else celebrateLevel(myLevel);
+  }, [myLevel, celebrateLevel]);
+
   const onLanded = useCallback(() => {
     const r = revealRef.current;
     if (!r || r.stage !== "landing") return;
     setReveal({ ...r, stage: "landed" });
+    afterReveal.current = true;
     // the result card follows the banner (3.6 s) instead of sitting under it
     setHoldCard(true);
     if (r.outcome === "win") {
@@ -371,6 +434,7 @@ export const RaidScene = forwardRef<SceneHandle, {
       const theirTrophies = st ? st.drops.filter((d) => isTrophy(d.token_id) && d.account !== me) : [];
       afterLoot.current = () => {
         setHoldCard(false);
+        revealDone();
         say("bear", "Ugh… I'll be back, with a bigger hoard.", 4500);
         // a trophy that dropped to someone else: they say so, with sparks
         theirTrophies.forEach((d, i) =>
@@ -391,7 +455,10 @@ export const RaidScene = forwardRef<SceneHandle, {
         }
       }, 3700);
     } else {
-      setTimeout(() => setHoldCard(false), 3500);
+      setTimeout(() => {
+        setHoldCard(false);
+        revealDone();
+      }, 3500);
       flash("THE BEAR WINS", "red", `The wheel picked ${tacticName(r.tactic ?? 0)}. It raids the treasury`, 3600);
       play("lose");
       setTimeout(() => play("roar"), 500);
@@ -399,7 +466,7 @@ export const RaidScene = forwardRef<SceneHandle, {
       setCheer("loss");
       setTimeout(() => say("bear", "Delicious treasury! Come back when you're stronger.", 4500), 3800);
     }
-  }, [flash, setReveal, say]);
+  }, [flash, setReveal, say, revealDone]);
 
   useImperativeHandle(
     ref,
@@ -503,11 +570,30 @@ export const RaidScene = forwardRef<SceneHandle, {
   const prevRound = live ? snap.history.find((h) => h.id === live.id - 1) ?? null : snap.history.find((h) => h.settlement) ?? null;
   const moodWhy = explainBearMood(prevRound ? moodInputOf(prevRound) : null).reason;
 
+  // your part in the settled raid, for the result card
+  const recap = useMemo(() => {
+    const me = snap.me;
+    if (!settled || !round || !account || !me || me.account !== account) return null;
+    const dmg = (p: { early: string; late: string }) => BigInt(p.early) + BigInt(p.late);
+    const mine = dmg(me);
+    const rank = 1 + snap.participants.filter((p) => p.account !== account && dmg(p) > mine).length;
+    const share = settled.outcome === "win" ? lootShare(weight(BigInt(me.early), BigInt(me.late), settled.tactic as Tactic), BigInt(settled.total_weight), BigInt(settled.reward)) : null;
+    const drops = groupDrops(settled.drops.filter((d) => d.account === account))
+      .map((d) => (isTrophy(d.token_id) ? trophyTraits(d.token_id, settled.randomness).name : `${d.qty} ${itemTitle(d.token_id).toLowerCase()}`))
+      .join(", ");
+    return { damage: mine, rank, of: Math.max(rank, snap.participants.length), share, drops };
+  }, [settled, round, account, snap.me, snap.participants]);
+
   return (
     <section className="relative overflow-hidden rounded-2xl border border-edge bg-night shadow-2xl" aria-label="The raid">
       {/* scene-box (globals.css): the shape for the screen, capped to the room the page measured */}
       <div ref={sceneBox} key={shakeKey} className={`scene-box relative [container-type:size] ${shakeKey ? "scene-shake" : ""}`}>
         <Backdrop dusk={dusk} mood={sky} />
+
+        {/* the hoard it sleeps on, behind the Bear */}
+        <div className="pointer-events-none absolute bottom-[1%] left-1/2 h-[19%] -translate-x-1/2" style={{ aspectRatio: "9 / 2" }}>
+          <HoardPile hoardWhole={Number(BigInt(snap.status.hoard) / ONE)} />
+        </div>
 
         {/* the Bear */}
         <div className="absolute bottom-[3%] left-1/2 h-[70%] -translate-x-1/2" style={{ aspectRatio: "320 / 340" }}>
@@ -704,6 +790,13 @@ export const RaidScene = forwardRef<SceneHandle, {
               {slay(settled.total_weight)} damage vs {slay(settled.effective_health)} health ·{" "}
               {settled.outcome === "win" ? `${slay(settled.reward)} $SLAY loot` : `${slay(settled.steal)} $SLAY stolen`}
             </div>
+            {recap && (
+              <div className="mt-1 font-semibold text-[#fde68a]">
+                You: {slay(recap.damage)} damage (#{recap.rank} of {recap.of})
+                {recap.share !== null && recap.share > 0n ? ` · +${slay(recap.share, 2)} $SLAY` : ""}
+                {recap.drops ? ` · ${recap.drops}` : ""}
+              </div>
+            )}
             {settled.drops.length > 0 && (
               <div className="mt-1 hidden text-dim @xl:block">
                 Drops:{" "}

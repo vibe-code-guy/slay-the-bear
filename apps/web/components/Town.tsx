@@ -10,7 +10,7 @@ import { HudBar, MENU, type PanelId } from "./game/HudBar";
 import { Panel } from "./game/Panel";
 import { TitleScreen } from "./game/TitleScreen";
 import { Tutorial } from "./game/Tutorial";
-import { levelOf, useSlayers } from "./game/Progress";
+import { badgesOf, levelOf, useSlayers } from "./game/Progress";
 import { lookOf, type HeroLook } from "./game/Hero";
 import { BackpackPanel } from "./game/panels/BackpackPanel";
 import { ForgePanel } from "./game/panels/ForgePanel";
@@ -29,6 +29,7 @@ import { centerOf, flyTo } from "@/lib/fly";
 import { play as sound } from "@/lib/sfx";
 import { explain } from "@/lib/types";
 import { useNewItems } from "@/lib/useNewItems";
+import { usePrizes } from "@/lib/usePrizes";
 
 export function Town() {
   const [mode, setMode] = useState<Mode | null>(null);
@@ -162,8 +163,11 @@ function TownView({ mode, choose }: { mode: Mode; choose: (m: Mode) => void }) {
   const slayers = useSlayers(
     backend ?? ({ rounds: async () => [], participants: async () => [] } as never),
     snap?.history ?? [],
+    !!snap,
   );
   const myRow = slayers.rows.find((r) => r.account === account);
+  // your level, once the settled raids are read (so the scene can tell a level-up from a page load)
+  const myLevel = account && slayers.loaded ? levelOf(Number((myRow?.damage ?? 0n) / ONE)).level : null;
   const trophies = useTrophies(backend, snap?.history ?? [], snap?.listings ?? [], panel === "trophies", snap?.player?.trophies ?? [], account);
 
   // goals count today's settled raids and the one in progress
@@ -175,6 +179,10 @@ function TownView({ mode, choose }: { mode: Mode; choose: (m: Mode) => void }) {
     return list;
   }, [slayers.rounds, snap?.round, snap?.participants, claimedHere, account]);
   const goals = useGoals(account, goalRounds, now);
+  const badges = useMemo(() => badgesOf(myRow, snap?.player ?? null), [myRow, snap?.player]);
+  // no spoilers: what a raid's result earned you is announced once the scene has revealed it
+  const [sceneBusy, setSceneBusy] = useState(false);
+  usePrizes(account, slayers.loaded && !!snap?.player && !sceneBusy, goals, badges, Math.floor(now / 86_400_000), g.notify);
 
   // the gear every raider has earned: from their level, and whether a trophy dropped to them
   const looks = useMemo(() => {
@@ -304,6 +312,8 @@ function TownView({ mode, choose }: { mode: Mode; choose: (m: Mode) => void }) {
               charging={charging}
               onReveal={setReveal}
               looks={looks}
+              myLevel={myLevel}
+              onBusy={setSceneBusy}
               overlay={
                 !account ? (
                   <TitleScreen
@@ -419,7 +429,10 @@ function TownView({ mode, choose }: { mode: Mode; choose: (m: Mode) => void }) {
         aria-live="polite"
       >
         {g.toasts.map((t) => (
-          <div key={t.id} className={`toast-in card py-2 text-sm shadow-lg ${t.kind === "error" ? "border-blood" : t.kind === "info" ? "border-edge" : "border-moss"}`}>
+          <div
+            key={t.id}
+            className={`toast-in card py-2 text-sm shadow-lg ${t.kind === "error" ? "border-blood" : t.kind === "info" ? "border-edge" : t.kind === "prize" ? "prize-toast border-ember font-semibold text-[#fde68a]" : "border-moss"}`}
+          >
             {t.text}
             {t.txHash && mode === "live" && (
               <>

@@ -29,6 +29,9 @@ const TITLES: [number, string][] = [
   [1, "Peasant"],
 ];
 
+/** The title that goes with a level. */
+export const titleOf = (level: number) => TITLES.find(([l]) => level >= l)![1];
+
 /** Level from total raw damage in whole $SLAY: level n needs 100 × (n-1)² damage. */
 export function levelOf(damageWhole: number) {
   const level = Math.floor(Math.sqrt(Math.max(0, damageWhole) / 100)) + 1;
@@ -37,20 +40,23 @@ export function levelOf(damageWhole: number) {
   return { level, title: TITLES.find(([l]) => level >= l)![1], progress: (damageWhole - base) / (next - base), toNext: next - damageWhole };
 }
 
-export function useSlayers(backend: Backend, history: RoundJson[]) {
+export function useSlayers(backend: Backend, history: RoundJson[], ready = true) {
   const cache = useRef(new Map<number, { round: RoundJson; parts: ParticipantJson[] }>());
   const [version, setVersion] = useState(0);
+  // the cache has caught up with the history at least once (so a level that rises later is news)
+  const [loaded, setLoaded] = useState(false);
   const settledIds = history.filter((r) => r.settlement).map((r) => r.id);
   const key = settledIds.join(",");
 
   useEffect(() => {
     let off = false;
     (async () => {
+      if (!ready) return;
       const newest = settledIds[0];
-      if (newest === undefined) return;
+      if (newest === undefined) return setLoaded(true);
       const want: number[] = [];
       for (let id = newest; id > Math.max(0, newest - WINDOW); id--) if (!cache.current.has(id)) want.push(id);
-      if (want.length === 0) return;
+      if (want.length === 0) return setLoaded(true);
       // rounds beyond the snapshot's history come from get_rounds
       const known = new Map(history.map((r) => [r.id, r]));
       const missing = want.filter((id) => !known.has(id));
@@ -68,12 +74,13 @@ export function useSlayers(backend: Backend, history: RoundJson[]) {
         if (off) return;
       }
       setVersion((v) => v + 1);
+      setLoaded(true);
     })();
     return () => {
       off = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [backend, key]);
+  }, [backend, key, ready]);
 
   return useMemo(() => {
     const rows = new Map<string, SlayerRow>();
@@ -95,9 +102,10 @@ export function useSlayers(backend: Backend, history: RoundJson[]) {
       raids: cache.current.size,
       /** the settled raids counted, with their raiders (for goals) */
       rounds: [...cache.current.values()],
+      loaded,
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [version]);
+  }, [version, loaded]);
 }
 
 export function TopSlayers({ rows, raids, account }: { rows: SlayerRow[]; raids: number; account: string | null }) {
