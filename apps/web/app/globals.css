@@ -998,6 +998,153 @@ button.item-card:hover {
   }
 }
 
+/* ---------- atmosphere (Backdrop) and scene moods ---------- */
+/* the sky and the hills drift a little with the pointer: RaidScene sets --px and --py (-1..1) */
+.bd-parallax-far,
+.bd-parallax-mid {
+  transition: transform 0.7s ease-out;
+}
+.bd-parallax-far {
+  transform: translate(calc(var(--px, 0) * -12px), calc(var(--py, 0) * -6px));
+}
+.bd-parallax-mid {
+  transform: translate(calc(var(--px, 0) * -6px), calc(var(--py, 0) * -2px));
+}
+.bd-cloud {
+  transform-box: fill-box;
+  animation: bd-cloud 70s ease-in-out infinite alternate;
+}
+.bd-cloud-2 {
+  animation-duration: 95s;
+  animation-delay: -40s;
+}
+.bd-cloud-3 {
+  animation-duration: 82s;
+  animation-delay: -20s;
+}
+@keyframes bd-cloud {
+  from {
+    transform: translateX(-140px);
+  }
+  to {
+    transform: translateX(140px);
+  }
+}
+.bd-torchlight {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  animation: bd-torchlight 2.3s ease-in-out infinite;
+}
+@keyframes bd-torchlight {
+  0%,
+  100% {
+    opacity: 0.85;
+    transform: scale(1);
+  }
+  30% {
+    opacity: 1;
+    transform: scale(1.06);
+  }
+  65% {
+    opacity: 0.72;
+    transform: scale(0.96);
+  }
+}
+.bd-ember {
+  transform-box: fill-box;
+  opacity: 0;
+  animation: bd-ember 2.2s ease-out infinite;
+}
+@keyframes bd-ember {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0);
+  }
+  15% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(8px, -80px) scale(0.4);
+  }
+}
+/* your hero winding up while you hold the strike button */
+.hero-charge {
+  transform-origin: 50% 100%;
+  animation: hero-charge 0.16s ease-in-out infinite alternate;
+}
+@keyframes hero-charge {
+  from {
+    transform: rotate(-4deg);
+  }
+  to {
+    transform: rotate(-6deg) translateY(-1.5%);
+  }
+}
+.hero-charge .hero-weapon {
+  transform: rotate(-40deg);
+  transition: transform 0.25s ease-out;
+}
+.hero-aura {
+  position: absolute;
+  inset: 5% -25% -8%;
+  border-radius: 50%;
+  pointer-events: none;
+  background: radial-gradient(
+    closest-side,
+    rgba(253, 224, 71, calc(0.35 + var(--charge, 0) * 0.5)) 0%,
+    rgba(251, 191, 36, calc(0.25 + var(--charge, 0) * 0.4)) 55%,
+    rgba(245, 158, 11, 0) 100%
+  );
+  transform: scale(calc(0.75 + var(--charge, 0) * 0.5));
+  animation: hero-aura 0.45s ease-in-out infinite alternate;
+}
+@keyframes hero-aura {
+  to {
+    opacity: 0.7;
+  }
+}
+/* the last ten seconds: the Bear rears up, the edges of the scene glow red */
+.bear-rage {
+  transform-origin: 50% 100%;
+  animation: bear-rage 0.9s ease-in-out infinite;
+}
+@keyframes bear-rage {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 10px rgba(220, 38, 38, 0.45));
+  }
+  50% {
+    transform: scale(1.03) translateY(-1%);
+    filter: drop-shadow(0 0 24px rgba(220, 38, 38, 0.85));
+  }
+}
+.scene-danger {
+  background: radial-gradient(75% 70% at 50% 50%, transparent 55%, rgba(185, 28, 28, 0.42));
+  animation: scene-danger 1s ease-in-out infinite;
+}
+@keyframes scene-danger {
+  50% {
+    opacity: 0.45;
+  }
+}
+/* a big hit knocks the Bear back on its heels */
+.bear-stagger {
+  transform-origin: 50% 100%;
+  animation: bear-stagger 0.6s cubic-bezier(0.3, 0.8, 0.4, 1);
+}
+@keyframes bear-stagger {
+  20% {
+    transform: rotate(-6deg) translateX(-2.5%) scale(0.98, 1.02);
+  }
+  45% {
+    transform: rotate(3deg) translateX(1%);
+  }
+  70% {
+    transform: rotate(-1.5deg);
+  }
+}
+
 /* a goal, an achievement or a level: a gold toast */
 .prize-toast {
   background: linear-gradient(135deg, #3d2b1b, #241910);
@@ -1025,6 +1172,18 @@ button.item-card:hover {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .bd-parallax-far,
+  .bd-parallax-mid {
+    transform: none !important;
+  }
+  .bd-cloud,
+  .bd-torchlight,
+  .bd-ember,
+  .hero-charge,
+  .hero-aura,
+  .bear-rage,
+  .scene-danger,
+  .bear-stagger,
   .prize-toast,
   .hoard-glint,
   .loot-veil,

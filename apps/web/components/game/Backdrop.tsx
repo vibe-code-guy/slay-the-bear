@@ -22,17 +22,37 @@ export function Backdrop({ dusk, mood }: { dusk: number; mood: "calm" | "raid" |
           <stop offset="0" stopColor="#3a2a1c" />
           <stop offset="1" stopColor="#1c140d" />
         </linearGradient>
+        <radialGradient id="bd-torch" cx="0.5" cy="0.5" r="0.5">
+          <stop offset="0" stopColor="#fbbf24" stopOpacity="0.55" />
+          <stop offset="0.45" stopColor="#f59e0b" stopOpacity="0.18" />
+          <stop offset="1" stopColor="#f59e0b" stopOpacity="0" />
+        </radialGradient>
+        <radialGradient id="bd-cloud" cx="0.5" cy="0.5" r="0.5">
+          <stop offset="0" stopColor="#e9d5ff" stopOpacity="0.16" />
+          <stop offset="1" stopColor="#e9d5ff" stopOpacity="0" />
+        </radialGradient>
       </defs>
       <rect width="1200" height="560" fill="url(#bd-sky)" style={{ transition: "all 1s" }} />
-      <g fill="#fdf6e3">
-        {STARS.map(([x, y, r], i) => (
-          <circle key={i} cx={x} cy={y} r={r} className="bd-twinkle" style={{ animationDelay: `${(i % 7) * 0.6}s`, opacity: mood === "win" ? 0.2 : 0.8 }} />
-        ))}
+      {/* the sky drifts a little with the pointer (--px, --py on the scene), the plaza does not */}
+      <g className="bd-parallax-far">
+        <g fill="#fdf6e3">
+          {STARS.map(([x, y, r], i) => (
+            <circle key={i} cx={x} cy={y} r={r} className="bd-twinkle" style={{ animationDelay: `${(i % 7) * 0.6}s`, opacity: mood === "win" ? 0.2 : 0.8 }} />
+          ))}
+        </g>
+        {/* slow clouds */}
+        <g fill="url(#bd-cloud)">
+          <ellipse cx="260" cy="120" rx="230" ry="38" className="bd-cloud" />
+          <ellipse cx="820" cy="80" rx="280" ry="34" className="bd-cloud bd-cloud-2" />
+          <ellipse cx="560" cy="190" rx="200" ry="26" className="bd-cloud bd-cloud-3" />
+        </g>
       </g>
 
       {/* far hills */}
-      <path d="M0 330 Q150 260 300 310 T600 300 T900 290 T1200 300 L1200 420 L0 420 Z" fill="#1d1428" opacity="0.8" />
-      <path d="M0 360 Q200 310 380 350 T760 340 T1200 350 L1200 440 L0 440 Z" fill="#160f1c" />
+      <g className="bd-parallax-mid">
+        <path d="M-40 330 Q150 260 300 310 T600 300 T900 290 T1240 300 L1240 420 L-40 420 Z" fill="#1d1428" opacity="0.8" />
+        <path d="M-40 360 Q200 310 380 350 T760 340 T1240 350 L1240 440 L-40 440 Z" fill="#160f1c" />
+      </g>
 
       {/* town houses */}
       <g fill="#120c09">
@@ -50,12 +70,18 @@ export function Backdrop({ dusk, mood }: { dusk: number; mood: "calm" | "raid" |
           ) : null,
         )}
       </g>
-      {/* torches */}
-      {[150, 1050].map((x) => (
+      {/* torches: a flickering pool of light, the flame, and embers rising from it */}
+      {[150, 1050].map((x, t) => (
         <g key={x}>
+          <circle cx={x} cy="400" r="120" fill="url(#bd-torch)" className="bd-torchlight" style={{ animationDelay: `${t * 0.37}s` }} />
           <rect x={x - 4} y="400" width="8" height="80" fill="#3b2617" />
           <ellipse cx={x} cy="392" rx="12" ry="18" fill="#f59e0b" className="bd-flame" />
           <ellipse cx={x} cy="396" rx="6" ry="10" fill="#fde68a" className="bd-flame" />
+          <g fill="#fdba74">
+            {[0, 1, 2, 3].map((e) => (
+              <circle key={e} cx={x + (e - 1.5) * 5} cy="380" r={1.6 + (e % 2) * 0.6} className="bd-ember" style={{ animationDelay: `${t * 0.5 + e * 0.55}s` }} />
+            ))}
+          </g>
         </g>
       ))}
 
@@ -70,7 +96,7 @@ export function Backdrop({ dusk, mood }: { dusk: number; mood: "calm" | "raid" |
       </g>
     </svg>
     {/* the moon sits on the scene itself, not the cropped backdrop, so a narrow scene keeps it whole */}
-    <svg viewBox="0 0 100 100" className="absolute left-[4%] top-[19%] h-[18%] w-auto overflow-visible" style={{ aspectRatio: "1 / 1" }} aria-hidden>
+    <svg viewBox="0 0 100 100" className="bd-parallax-far absolute left-[4%] top-[19%] h-[18%] w-auto overflow-visible" style={{ aspectRatio: "1 / 1" }} aria-hidden>
       <defs>
         <radialGradient id="bd-moon" cx="0.5" cy="0.5" r="0.5">
           <stop offset="0.55" stopColor="#fef3c7" />

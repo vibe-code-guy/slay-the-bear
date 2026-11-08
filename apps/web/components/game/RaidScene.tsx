@@ -27,7 +27,9 @@ import { LootReveal, type LootItem } from "./LootReveal";
 import { titleOf } from "./Progress";
 import { Particles, type ParticlesHandle } from "./Particles";
 import { Wheel, type WheelStage } from "./Wheel";
-import { isMuted, onMuteChange, play, setMuted, unlockAudio } from "@/lib/sfx";
+import { setMusicMood } from "@/lib/music";
+import { play, unlockAudio } from "@/lib/sfx";
+import { SoundControls } from "./SoundControls";
 import { clock, itemIcon, pct, slay, TACTIC_ICON, tacticName, who } from "@/lib/format";
 import { lateStartsAtMs, lootPool, outcomes, phaseOf, previewHit, winChanceBps } from "@/lib/derive";
 import { flyTo } from "@/lib/fly";
@@ -142,10 +144,10 @@ export const RaidScene = forwardRef<SceneHandle, {
   const [lunges, setLunges] = useState<Record<string, number>>({});
   const [cheer, setCheer] = useState<"win" | "loss" | null>(null);
   const [hitKey, setHitKey] = useState(0);
+  const [hitBig, setHitBig] = useState(false);
   const [shakeKey, setShakeKey] = useState(0);
   const [roarUntil, setRoarUntil] = useState(0);
   const [reveal, setRevealState] = useState<RevealState | null>(null);
-  const [muted, setMutedState] = useState(false);
   const [holdWheel, setHoldWheel] = useState(false);
   const [holdCard, setHoldCard] = useState(false);
   const [says, setSays] = useState<Record<string, { id: number; text: string }>>({});
@@ -167,11 +169,6 @@ export const RaidScene = forwardRef<SceneHandle, {
   const lastDrum = useRef(0);
   const revealRef = useRef<RevealState | null>(null);
   revealRef.current = reveal;
-
-  useEffect(() => {
-    setMutedState(isMuted());
-    return onMuteChange(setMutedState);
-  }, []);
 
   const onBusyRef = useRef(onBusy);
   onBusyRef.current = onBusy;
@@ -221,6 +218,21 @@ export const RaidScene = forwardRef<SceneHandle, {
   const slotOfRef = useRef(slotOf);
   slotOfRef.current = slotOf;
 
+  /** The pointer over the scene, as --px and --py from -1 to 1, for the backdrop's parallax. */
+  const pointerFrame = useRef(0);
+  const onPointer = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.pointerType !== "mouse") return;
+    const el = e.currentTarget;
+    const r = el.getBoundingClientRect();
+    const x = ((e.clientX - r.left) / r.width) * 2 - 1;
+    const y = ((e.clientY - r.top) / r.height) * 2 - 1;
+    cancelAnimationFrame(pointerFrame.current);
+    pointerFrame.current = requestAnimationFrame(() => {
+      el.style.setProperty("--px", x.toFixed(3));
+      el.style.setProperty("--py", y.toFixed(3));
+    });
+  }, []);
+
   /** A point of the scene (fractions of its size) on the screen, for things that fly to the HUD. */
   const onScreen = useCallback((x: number, y: number) => {
     const r = sceneBox.current?.getBoundingClientRect();
@@ -242,6 +254,7 @@ export const RaidScene = forwardRef<SceneHandle, {
   }, []);
 
   const impact = useCallback((damage: bigint, big: boolean, volume = 1) => {
+    setHitBig(big);
     setHitKey((k) => k + 1);
     particles.current?.burst(IMPACT.x + (Math.random() - 0.5) * 0.06, IMPACT.y + (Math.random() - 0.5) * 0.08, "spark", big ? 30 : 16, big ? 1.4 : 1);
     if (volume > 0.5) play(big ? "crit" : "hit", 0.9 + Math.random() * 0.2);
@@ -363,6 +376,11 @@ export const RaidScene = forwardRef<SceneHandle, {
       setReveal({ roundId: round.id, stage: "landing", roll: s.tactic_roll, tactic: s.tactic, outcome: s.outcome });
     }
   }, [reveal, round, setReveal]);
+
+  // the music (if it is on) picks up drums while a raid is on
+  useEffect(() => {
+    setMusicMood(phase === "open" ? "raid" : "town");
+  }, [phase]);
 
   // drums in the last ten seconds
   useEffect(() => {
@@ -537,7 +555,9 @@ export const RaidScene = forwardRef<SceneHandle, {
             : outcome === "loss"
               ? "gloat"
               : "sleep";
-  const roaring = Date.now() < roarUntil;
+  // the last ten seconds of a raid: the Bear rears up with its claws raised
+  const finalCount = !!live && phase === "open" && nsMs(live.deadline) - now <= 10_000;
+  const roaring = Date.now() < roarUntil || finalCount;
   const shownMood = live ? live.mood : outcome && settled ? settled.tactic : snap.status.next_mood;
   // the wheel shows the odds of the raid it is deciding: the settled round's mood while it lands
   const revealing = !!reveal && !!round && reveal.roundId === round.id;
@@ -587,8 +607,18 @@ export const RaidScene = forwardRef<SceneHandle, {
   return (
     <section className="relative overflow-hidden rounded-2xl border border-edge bg-night shadow-2xl" aria-label="The raid">
       {/* scene-box (globals.css): the shape for the screen, capped to the room the page measured */}
-      <div ref={sceneBox} key={shakeKey} className={`scene-box relative [container-type:size] ${shakeKey ? "scene-shake" : ""}`}>
+      <div
+        ref={sceneBox}
+        key={shakeKey}
+        className={`scene-box relative [container-type:size] ${shakeKey ? "scene-shake" : ""}`}
+        onPointerMove={onPointer}
+        onPointerLeave={() => {
+          sceneBox.current?.style.setProperty("--px", "0");
+          sceneBox.current?.style.setProperty("--py", "0");
+        }}
+      >
         <Backdrop dusk={dusk} mood={sky} />
+        {finalCount && <div className="scene-danger pointer-events-none absolute inset-0 z-[5]" aria-hidden />}
 
         {/* the hoard it sleeps on, behind the Bear */}
         <div className="pointer-events-none absolute bottom-[1%] left-1/2 h-[19%] -translate-x-1/2" style={{ aspectRatio: "9 / 2" }}>
@@ -596,8 +626,8 @@ export const RaidScene = forwardRef<SceneHandle, {
         </div>
 
         {/* the Bear */}
-        <div className="absolute bottom-[3%] left-1/2 h-[70%] -translate-x-1/2" style={{ aspectRatio: "320 / 340" }}>
-          <div key={hitKey} className={`h-full w-full ${hitKey ? "bear-hit" : ""}`}>
+        <div className={`absolute bottom-[3%] left-1/2 h-[70%] -translate-x-1/2 ${finalCount ? "bear-rage" : ""}`} style={{ aspectRatio: "320 / 340" }}>
+          <div key={hitKey} className={`h-full w-full ${hitKey ? (hitBig ? "bear-stagger" : "bear-hit") : ""}`}>
             <Bear pose={pose} mood={shownMood} roaring={roaring} />
           </div>
         </div>
@@ -613,7 +643,26 @@ export const RaidScene = forwardRef<SceneHandle, {
               style={{ left: `${h.x * 100}%`, bottom: `${h.b * 100}%`, height: `${h.s * 100}%`, aspectRatio: "100 / 130", zIndex: Math.round((1 - h.b) * 10) }}
             >
               {/* keys: a new one replays the lunge; kinds in front, so they can't clash with the bubble's */}
-              <div key={`lunge-${k}`} className={`h-full w-full ${k ? (left ? "hero-lunge-r" : "hero-lunge-l") : cheer === "win" ? "hero-cheer" : cheer === "loss" ? "hero-cower" : "hero-idle"}`}>
+              {h.kind === "you" && charging !== null && (
+                // brighter as the swing grows: 10 $SLAY is a third, 1,000 is all of it
+                <div className="hero-aura" style={{ ["--charge" as string]: Math.min(1, Math.log10(Math.max(1, charging)) / 3).toFixed(2) }} aria-hidden />
+              )}
+              <div
+                key={`lunge-${k}`}
+                className={`h-full w-full ${
+                  h.kind === "you" && charging !== null
+                    ? "hero-charge"
+                    : k
+                      ? left
+                        ? "hero-lunge-r"
+                        : "hero-lunge-l"
+                      : cheer === "win"
+                        ? "hero-cheer"
+                        : cheer === "loss"
+                          ? "hero-cower"
+                          : "hero-idle"
+                }`}
+              >
                 <div className="h-full w-full" style={{ transform: left ? undefined : "scaleX(-1)" }}>
                   <Hero kind={h.kind} account={h.account} weapon={h.kind === "you" ? weapon : undefined} look={looks?.get(h.account)} />
                 </div>
@@ -849,17 +898,7 @@ export const RaidScene = forwardRef<SceneHandle, {
           </div>
         )}
 
-        <button
-          type="button"
-          className="absolute bottom-2 right-2 z-30 rounded-full bg-black/60 px-2 py-1 text-sm"
-          aria-label={muted ? "Turn sound on" : "Mute"}
-          onClick={() => {
-            void unlockAudio();
-            setMuted(!muted);
-          }}
-        >
-          {muted ? "🔇" : "🔊"}
-        </button>
+        <SoundControls />
 
         {overlay}
       </div>
