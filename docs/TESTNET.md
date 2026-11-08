@@ -88,6 +88,49 @@ PASS the Bear's hoard 0.0000 SLAY follows the raids (0.0000 SLAY)
 ALL PASS
 ```
 
+### Raids 10 to 38: the villagers trade (8 Nov)
+
+The villagers then played on their own (`npm run agents -- --game game.slaythebear.testnet
+--interval 30 --open-if-idle`), one raid every five to six minutes. The town won 26 of these 29
+raids; the Bear won raids 28 to 30, and the next won raid, 31, paid its hoard out. Six Bear
+trophies dropped (raids 13, 19, 20, 22, 23 and 33), each a one-of-one NEP-245 token. Their looks,
+derived from each raid's settlement randomness (`npx tsx scripts/trophy-check.ts --game
+game.slaythebear.testnet`): Shadow Paw, Moss Paw, Storm Paw, Ember Paw and Shadow Paw (all bronze),
+then Storm Claw (silver).
+
+After raid 30 the villagers also trade with their drops, by `villagerTrade` in
+`packages/rules/src/npc.ts`:
+
+| Move | Tx |
+| --- | --- |
+| Bjorn forges a Bear-slayer from a trophy and 5 iron (the trophy is burned) | `E4WtSYVZJMvLY3JQ8Etm92qHiY1gUH9wFc8378KeqMqY` |
+| Fern lists a trophy at the market for 250 $SLAY | `2p2LAzDp1SukcDndThUkGnif8sMbZU68h3orZsH6YVMi` |
+| Bjorn lists a spare trophy for 350 $SLAY | `GFWBtTe6ow1jZE3eGiNVY7Rcw3yMS581eMPvWGYTDZbF` |
+| Fern forges 10 sword charges | `HUj2iSNNBC56arAjEz7WLGJETDedohtPv4xG7VtNdERW` |
+| Bjorn hits 1,000 $SLAY with the Bear-slayer (×2 damage) | `779ajEiKeyBEqW6cLFoLUDBptUQ9Ywa5g8ZoHPCknDF6` |
+| Fern sells spare wood to the smith | `7eD8v57rk3wJSJM7v28i9PuvrF8JrdKdG64eeHyocbwZ` |
+| Bjorn sells spare iron to the smith | `B7TK4thtkgDjQrxx8aT9iEKvsqE2E97LAwMHaQJTGcMK` |
+
+Raid 38 was settled by a guest, `p-eawmbchh.slaythebear.testnet`, pressing **Spin the Wheel of
+Fate** in the new game shell (`scripts/ui-check.ts --live` against a production build).
+`npm run verify:game` afterwards:
+
+```
+39 round(s), 38 settled
+PASS round 10: win, Rage (roll 5559), 2 raiders, 13 checks
+PASS round 11: win, Armor (roll 4596), 2 raiders, 13 checks
+…
+PASS round 37: win, Feint (roll 9719), 2 raiders, 13 checks
+PASS round 38: win, Rage (roll 7541), 2 raiders, 13 checks
+  ---- round 39: in progress
+ledger
+PASS supply 999,910,207.6096 SLAY + burned 89,792.3903 SLAY = minted 1,000,000,000.0000 SLAY
+PASS loot chest 1,667.1660 SLAY = loot not yet claimed 1,667.1660 SLAY
+PASS treasury 798,867,964.2483 SLAY = start - rewards - thefts - tips (798,867,964.2483 SLAY)
+PASS the Bear's hoard 0.0000 SLAY follows the raids (0.0000 SLAY)
+ALL PASS
+```
+
 `npm run verify:live`: the deployed code hash equals the local reproducible build
 (`Br6G5zJ8f5hyPuiyDsZ5RZehWNLmXwLpqSB9SwLhJJov`); NEP-330 metadata points at
 `https://github.com/vibe-code-guy/slay-the-bear/tree/2038bbd6ae4b3246d1ceec067990e2beefe14767`

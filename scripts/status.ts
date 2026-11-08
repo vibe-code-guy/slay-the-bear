@@ -32,7 +32,7 @@ async function main() {
         if (!s) continue;
         const drops = s.drops.map((d) => `${d.qty} ${d.token_id}${d.token_id.startsWith("trophy-") ? " 🏆" : ""} → ${d.account.split(".")[0]}`);
         trophies += s.drops.filter((d) => d.token_id.startsWith("trophy-")).length;
-        console.log(`  #${r.id} ${s.outcome}${drops.length ? `: ${drops.join(", ")}` : ""}`);
+        console.log(`  #${r.id} ${s.outcome}, settled by ${s.settler.split(".")[0]}${drops.length ? `: ${drops.join(", ")}` : ""}`);
       }
       if (page.length < 20) break;
       before = page[page.length - 1]!.id;

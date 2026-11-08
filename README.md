@@ -11,7 +11,7 @@ signature itself. Anyone can recompute any raid from public data.
 
 Built at NEAR HACKATHON for **Memecoins With Mechanics** and **Games With Real Economies**.
 
-![Raid 9 on game.slaythebear.testnet: the timer and early bonus, the Bear's health bar with the win chance and a win/lose chip per tactic, the Bear in its Rage mood saying why, the four villagers and the player's hero, the Wheel of Fate with the mood odds, and the hold-to-strike button](docs/img/town.png)
+![Raid 40 on game.slaythebear.testnet, played by a guest: the HUD with the hero's level, the game menu and the $SLAY counter; the timer and early bonus; the Bear's health bar with the win chance and a win/lose chip per tactic; the Bear in its Rage mood; the villagers in the plate, capes and crowns of their levels; the Wheel of Fate with the mood odds; today's goals and the hold-to-strike button](docs/img/town.png)
 
 | | |
 | --- | --- |
@@ -26,16 +26,20 @@ Built at NEAR HACKATHON for **Memecoins With Mechanics** and **Games With Real E
 
 | Do | See |
 | --- | --- |
-| Open the demo and press **Play as a guest (free)** | A new testnet account `p-xxxxxxxx.slaythebear.testnet` and 1,000 $SLAY in **Your pouch**. No wallet, no gas prompt. |
-| Hold the red **HOLD** button and let go (or hold Space) | The longer you hold, the more $SLAY the strike burns, up to your **Max swing**. Your hero lunges, the damage number flies off the Bear and turns final when the transaction lands; the health bar, **Raid board** and **Town feed** follow. The toast links the transaction on nearblocks. |
-| Watch the villagers (Bjorn, Fern, Sid, Sara) | NPC raiders charging in by their published rules, with the **win chance** and the win/lose chip for each tactic updating after every hit. |
-| When the timer ends, press **Spin the Wheel of Fate** (or wait for the keeper) | The wheel spins while the contract checks the drand signature, then stops on the roll (out of 10,000) that drew the Bear's tactic: victory or defeat, the loot and the item drops. |
-| If the town won, press **Claim** | Your share of the loot flies into your pouch. |
-| Open **Past raids** and press **Verify**, or open **/verify** | 13 checks recomputed in your browser from the contract's views and the drand beacon, all green. |
+| Open the demo and press **Play as a guest (free)** on the title screen | A new testnet account `p-xxxxxxxx.slaythebear.testnet`; 1,000 $SLAY fly into your coin counter. No wallet, no gas prompt. A five-step tutorial points at each control during your first raid. |
+| Hold the red **HOLD** button and let go (or hold Space) | Your hero leans back in a growing glow while you hold; the longer you hold, the more $SLAY the strike burns, up to your **Max swing**. The hero lunges, the damage number flies off the Bear and turns final when the transaction lands. The toast links the transaction on nearblocks. |
+| Watch the villagers (Bjorn, Fern, Sid, Sara) | NPC raiders charging in by their published rules, wearing the gear of their levels, with the **win chance** and the win/lose chip for each tactic updating after every hit. In the last ten seconds the Bear rears up and the scene's edges glow red. |
+| When the timer ends, press **Spin the Wheel of Fate** (or wait 15 s for the keeper) | The wheel spins while the contract checks the drand signature, then stops on the roll (out of 10,000) that drew the Bear's tactic. On a win, a loot chest opens with the drops the beacon gave you and your share; a Bear trophy gets its own reveal. A level gained shows next, then your goals and achievements. |
+| Press **Claim** | Your share of the loot flies to your coin counter. |
+| Open the menu: **Backpack**, **Forge**, **Market**, **Smith**, **Trophies**, **Tavern**, **Guide** | Your items with their art, crafting, the player market (the villagers sell their trophies there), the smith's shop, every Bear trophy and who holds it, the leaderboard and town feed, and the rules in a minute. |
+| In the **Tavern**, open **Past raids** and press **Verify**, or open **/verify** | 13 checks recomputed in your browser from the contract's views and the drand beacon, all green. |
 
 The scene only animates what the contract reports. The wheel's segments are the mood odds from
-`get_config`, it stops at `roll / 10,000` of a turn after the settlement is on chain, and the
-levels and **Top slayers** are computed from the participants of the last 20 settled raids.
+`get_config`, it stops at `roll / 10,000` of a turn after the settlement is on chain, the loot
+chest shows the settlement's drops, and the levels, goals, achievements and **Top slayers** are
+computed from the participants of the last 20 settled raids. Music is off until you press 🎵.
+
+![The Trophy Hall on game.slaythebear.testnet: six Bear trophies, each a one-of-one NEP-245 token whose look (kind, element, grade, marks) comes from its raid's drand randomness; four are for sale by villagers, two were forged into Bear-slayers](docs/img/trophies.png)
 
 ### From a clone
 
@@ -55,7 +59,7 @@ npm run simulate             # the economy simulation; open sim-out/report.html
 | --- | --- |
 | `npm run verify:game` | `PASS round 1: win, Rage (roll 7622), 2 raiders, 13 checks` and a line like it for every raid, then four ledger identities and `ALL PASS`. |
 | `npm run demo`, open http://localhost:3000 | The live town, read straight from the testnet contract. Guest play needs the hosted site's relayer, so a clone shows "has no relayer" when you press Play. |
-| Switch to **Offline simulation**, press **Start the simulation**, strike, then **to the deadline** | A full raid with the same rules engine and a local beacon, settled a few seconds after the deadline. **Verify** under **Past raids** shows 13 green checks. |
+| Switch to **Offline**, press **Start the simulation**, strike, then **⏭** (to the deadline) and **Spin the Wheel of Fate** | A full raid with the same rules engine and a local beacon, villagers included. **Verify** under the Tavern's **Past raids** shows 13 green checks. |
 | Open **/fast-forward** and press **Run** | 90 days of raids in a second: win rate, longest Bear streak, health against damage, the hoard and the burn. |
 | `git checkout 2038bbd`, `npm run build:contract:reproducible` (needs Docker), `git checkout main`, `npm run verify:live` | The deployed code hash equals your reproducible build of the commit named in the contract's metadata. |
 
@@ -81,7 +85,14 @@ town ([docs/GAME_DESIGN.md](docs/GAME_DESIGN.md)).
 
 Around the raid: weapons, materials and trophies are NEP-245 items in the same contract. Players
 craft (fees burned), trade on a player market (2% burned) and deal with the smith NPC, whose
-prices move with its stock and whose forge runs at every raid's open.
+prices move with its stock and whose forge runs at every raid's open. The villagers use the same
+moves with their own drops: they forge weapons when their charges run out, put trophies up at
+the market and sell spare wood to the smith (`villagerTrade` in `packages/rules/src/npc.ts`).
+Each Bear trophy's look (kind, element, grade, marks) is derived from its raid's drand
+randomness, so nobody picks it and anyone can recompute it (`scripts/trophy-check.ts`); it is
+cosmetic, and on-chain all trophies are equal.
+
+![A loot chest after a won raid in the offline simulation: the drops the beacon gave the player and their share of the loot](docs/img/loot.png)
 
 ## Why a raid can't be rigged
 
@@ -113,10 +124,12 @@ when it succeeds. All parameters are readable with `get_config`, and a 60-day si
 community behaviours chose them.
 
 **Games With Real Economies.** NPCs with wallets (the Bear's hoard, the smith's float and stock)
-act by rules in the contract; villager NPCs play with ordinary accounts. Players own their items
-(NEP-245), craft them, trade them on a player market and sell materials to the smith. The
-economy adjusts itself every raid: difficulty, the Bear's mood, the jackpot and smith prices,
-with no dev patch. Guests never see a wallet or a gas prompt.
+act by rules in the contract; villager NPCs play and trade with ordinary accounts: on testnet
+they have forged Bear-slayers from their trophies and put others up for sale
+([docs/TESTNET.md](docs/TESTNET.md)). Players own their items (NEP-245), craft them, trade them
+on a player market and sell materials to the smith. The economy adjusts itself every raid:
+difficulty, the Bear's mood, the jackpot and smith prices, with no dev patch. Guests never see a
+wallet or a gas prompt.
 
 ## Repository
 
@@ -135,8 +148,10 @@ Other commands: `npm run typecheck`, `npm run fast-forward` (a week of raids in 
 `npm run vectors` (regenerate the vectors),
 `npm run build:contract`, `npm run status -- --game <id>`, `npm run agents -- --game <id>`,
 `npm run test:ui` (drives the site in Chrome; needs a running site), `npm run test:fit -- --url
-<site>` (checks the scene and the strike button fit without scrolling at 12 window sizes, from a
-phone held sideways to a desktop). Running your own instance,
+<site>` (checks the HUD, the scene and the strike button fit without scrolling at 12 window
+sizes, from a phone held sideways to a desktop), and `scripts/ui-game.ts`, `ui-tour.ts`,
+`ui-moods.ts` and `ui-readme.ts` (a raid, every panel, the scene's moods and the README
+screenshots, in headless Chrome). Running your own instance,
 relayer and hosted site: [docs/DEPLOY.md](docs/DEPLOY.md).
 
 ## Limits
@@ -160,8 +175,9 @@ relayer and hosted site: [docs/DEPLOY.md](docs/DEPLOY.md).
 near-sdk and near-contract-standards 5.30, cargo-near 0.22 (reproducible build image
 `sourcescan/cargo-near:0.22.0-rust-1.99.1`), near-api-js 7.4, borsh, @noble/curves and
 @noble/hashes 2.4 (BLS12-381 and SHA-256 in TypeScript), Next.js 16, React 19, Tailwind CSS 4,
-ZzFX 1.4 (sound effects), canvas-confetti 1.9, Vitest 5, tsx, playwright-core (UI checks only),
-and the drand quicknet beacon run by the League of Entropy. The town's art is hand-written SVG.
+ZzFX 1.4 (sound effects), the Web Audio API (the optional music), canvas-confetti 1.9, Vitest 5,
+tsx, playwright-core (UI checks only), and the drand quicknet beacon run by the League of
+Entropy. The town's art, items and trophies are hand-written SVG.
 
 ## AI disclosure
 
