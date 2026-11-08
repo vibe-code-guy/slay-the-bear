@@ -90,7 +90,12 @@ export function useSlayers(backend: Backend, history: RoundJson[]) {
         rows.set(p.account, row);
       }
     }
-    return { rows: [...rows.values()].sort((a, b) => (b.damage > a.damage ? 1 : b.damage < a.damage ? -1 : 0)), raids: cache.current.size };
+    return {
+      rows: [...rows.values()].sort((a, b) => (b.damage > a.damage ? 1 : b.damage < a.damage ? -1 : 0)),
+      raids: cache.current.size,
+      /** the settled raids counted, with their raiders (for goals) */
+      rounds: [...cache.current.values()],
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [version]);
 }

@@ -185,6 +185,11 @@ export async function createLiveBackend(): Promise<Backend> {
 
     participants: (roundId) => client.participants(roundId),
     rounds: (beforeId, limit) => client.rounds(beforeId, limit),
+    player: (account) => client.player(account),
+    async itemSupply(tokenId) {
+      const s = await client.view<string | null>("mt_supply", { token_id: tokenId });
+      return s === null ? null : BigInt(s);
+    },
 
     act(a: Action): Promise<ActionResult> {
       return serial(async () => {

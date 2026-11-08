@@ -7,7 +7,7 @@ import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRe
 import { ONE, Tactic, TACTIC_EFFECTS, explainBearMood, itemName, moodInputOf, moodWeights, roundTime, type GameConfig, type RoundJson } from "@slay/rules";
 import { Bear, type BearPose } from "./Bear";
 import { Backdrop } from "./Backdrop";
-import { Hero, heroKindOf, type HeroKind } from "./Hero";
+import { Hero, heroKindOf, type HeroKind, type HeroLook } from "./Hero";
 import { Particles, type ParticlesHandle } from "./Particles";
 import { Wheel, type WheelStage } from "./Wheel";
 import { isMuted, onMuteChange, play, setMuted, unlockAudio } from "@/lib/sfx";
@@ -107,7 +107,11 @@ export const RaidScene = forwardRef<SceneHandle, {
   weapon: string | null;
   charging: number | null;
   onReveal: (r: RevealState | null) => void;
-}>(function RaidScene({ mode, config, snap, now, account, villagerSuffix, weapon, charging, onReveal }, ref) {
+  /** gear each raider has earned (from levels and trophies), by account */
+  looks?: Map<string, HeroLook>;
+  /** drawn over the scene, e.g. the title screen */
+  overlay?: React.ReactNode;
+}>(function RaidScene({ mode, config, snap, now, account, villagerSuffix, weapon, charging, onReveal, looks, overlay }, ref) {
   const particles = useRef<ParticlesHandle>(null);
   const [nums, setNums] = useState<FloatNum[]>([]);
   const [banner, setBanner] = useState<Banner | null>(null);
@@ -457,9 +461,10 @@ export const RaidScene = forwardRef<SceneHandle, {
               className="absolute -translate-x-1/2"
               style={{ left: `${h.x * 100}%`, bottom: `${h.b * 100}%`, height: `${h.s * 100}%`, aspectRatio: "100 / 130", zIndex: Math.round((1 - h.b) * 10) }}
             >
-              <div key={k} className={`h-full w-full ${k ? (left ? "hero-lunge-r" : "hero-lunge-l") : cheer === "win" ? "hero-cheer" : cheer === "loss" ? "hero-cower" : "hero-idle"}`}>
+              {/* keys: a new one replays the lunge; kinds in front, so they can't clash with the bubble's */}
+              <div key={`lunge-${k}`} className={`h-full w-full ${k ? (left ? "hero-lunge-r" : "hero-lunge-l") : cheer === "win" ? "hero-cheer" : cheer === "loss" ? "hero-cower" : "hero-idle"}`}>
                 <div className="h-full w-full" style={{ transform: left ? undefined : "scaleX(-1)" }}>
-                  <Hero kind={h.kind} account={h.account} weapon={h.kind === "you" ? weapon : undefined} />
+                  <Hero kind={h.kind} account={h.account} weapon={h.kind === "you" ? weapon : undefined} look={looks?.get(h.account)} />
                 </div>
               </div>
               <div className="pointer-events-none absolute bottom-0 left-1/2 -translate-x-1/2 whitespace-nowrap rounded bg-black/60 px-1.5 text-[9px] leading-4 text-parch @xl:text-[11px]">
@@ -473,7 +478,7 @@ export const RaidScene = forwardRef<SceneHandle, {
               )}
               {says[h.account] && !banner && (
                 <div
-                  key={says[h.account]!.id}
+                  key={`say-${says[h.account]!.id}`}
                   // raiders near the edge speak inwards, so the bubble stays inside the scene
                   className={`bubble-pop pointer-events-none absolute -top-1 z-20 w-max max-w-[11rem] -translate-y-full rounded-xl bg-parch px-2 py-1 text-[10px] font-semibold leading-tight text-night shadow-lg @xl:text-xs ${
                     h.x < 0.2 ? "left-0" : h.x > 0.8 ? "right-0" : "left-1/2 -translate-x-1/2"
@@ -490,7 +495,7 @@ export const RaidScene = forwardRef<SceneHandle, {
 
         {says.bear && !wheelCentered && !banner && (
           <div
-            key={says.bear.id}
+            key={`bear-say-${says.bear.id}`}
             className="bubble-pop pointer-events-none absolute left-[57%] top-[38%] z-20 max-w-[26%] rounded-2xl border-2 border-night bg-parch px-2 py-1 text-[10px] font-bold leading-snug text-night shadow-xl @xl:left-[60%] @xl:top-[31%] @xl:max-w-[24%] @xl:px-3 @xl:py-1.5 @xl:text-sm"
           >
             {says.bear.text}
@@ -565,7 +570,7 @@ export const RaidScene = forwardRef<SceneHandle, {
         {/* health bar */}
         {live && (
           // below the timer and its early-bonus bar, however short the scene is
-          <div className="pointer-events-none absolute left-1/2 top-[max(21cqh,3.5rem)] w-[64%] -translate-x-1/2 @xl:top-[max(17cqh,4.9rem)] @xl:w-[44%]">
+          <div data-tour="health" className="pointer-events-none absolute left-1/2 top-[max(21cqh,3.5rem)] w-[64%] -translate-x-1/2 @xl:top-[max(17cqh,4.9rem)] @xl:w-[44%]">
             <div className="mb-0.5 flex justify-between text-[10px] font-bold text-parch drop-shadow @xl:text-xs">
               <span>
                 ⚔️ {slay(damage)} / ❤️ {slay(health)}
@@ -657,7 +662,7 @@ export const RaidScene = forwardRef<SceneHandle, {
 
         {/* banner */}
         {banner && (
-          <div key={banner.id} className="banner-pop pointer-events-none absolute inset-x-0 top-[40%] z-30 bg-gradient-to-r from-transparent via-black/70 to-transparent py-1.5 text-center @xl:top-[33%] @xl:py-3">
+          <div key={`banner-${banner.id}`} className="banner-pop pointer-events-none absolute inset-x-0 top-[40%] z-30 bg-gradient-to-r from-transparent via-black/70 to-transparent py-1.5 text-center @xl:top-[33%] @xl:py-3">
             <div
               // sized by the scene's height, so a banner never fills a small scene
               className="font-[family-name:var(--font-display)] text-[clamp(1.5rem,11cqh,3.75rem)] font-black leading-tight tracking-wide"
@@ -684,6 +689,8 @@ export const RaidScene = forwardRef<SceneHandle, {
         >
           {muted ? "🔇" : "🔊"}
         </button>
+
+        {overlay}
       </div>
     </section>
   );

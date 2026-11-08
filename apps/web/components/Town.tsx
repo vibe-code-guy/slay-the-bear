@@ -1,16 +1,31 @@
 "use client";
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { ONE } from "@slay/rules";
+// The town: the HUD and game menu, the raid scene with the controls beside or under it, and the
+// panels the menu opens (backpack, forge, market, smith, trophies, tavern, how to play). A title
+// screen sits over the scene until you join; a short tutorial walks you through your first raid.
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { ONE, RECIPES, type RecipeId } from "@slay/rules";
 import { RaidScene, type RevealState, type SceneHandle } from "./game/RaidScene";
 import { ControlBar } from "./game/ControlBar";
-import { TopSlayers, useSlayers } from "./game/Progress";
-import { Feed, RaidBoard } from "./RaidBoard";
-import { Forge, Market, Pouch, Smith, TownStats } from "./Sidebar";
-import { History } from "./History";
+import { HudBar, MENU, type PanelId } from "./game/HudBar";
+import { Panel } from "./game/Panel";
+import { TitleScreen } from "./game/TitleScreen";
+import { Tutorial } from "./game/Tutorial";
+import { levelOf, useSlayers } from "./game/Progress";
+import { lookOf, type HeroLook } from "./game/Hero";
+import { BackpackPanel } from "./game/panels/BackpackPanel";
+import { ForgePanel } from "./game/panels/ForgePanel";
+import { MarketPanel } from "./game/panels/MarketPanel";
+import { SmithPanel } from "./game/panels/SmithPanel";
+import { TrophyHall } from "./game/panels/TrophyHall";
+import { TavernPanel } from "./game/panels/TavernPanel";
+import { HowToPlay } from "./game/panels/HowToPlay";
 import { useGame, type Mode } from "@/lib/useGame";
+import { useGoals } from "@/lib/goals";
+import { useTrophies } from "@/lib/useTrophies";
 import { lootPool, phaseOf, previewHit } from "@/lib/derive";
 import { GAME_ID, LIVE_AVAILABLE, ROOT_ACCOUNT, accountUrl, txUrl } from "@/lib/env";
-import { slay } from "@/lib/format";
+import { clock, slay } from "@/lib/format";
+import { play as sound } from "@/lib/sfx";
 import { explain } from "@/lib/types";
 
 export function Town() {
@@ -53,12 +68,11 @@ function useFitToScreen(ready: boolean) {
       const top = play.getBoundingClientRect().top + window.scrollY;
       let room = window.innerHeight - top - 12;
       if (!side.matches) {
-        const controls = play.querySelector<HTMLElement>(".controls, .controls-join");
-        const action = play.querySelector<HTMLElement>(".controls-action") ?? controls;
+        const controls = play.querySelector<HTMLElement>(".controls");
+        const action = play.querySelector<HTMLElement>(".controls-action");
         if (controls && action) {
           const gap = parseFloat(getComputedStyle(play).rowGap) || 0;
-          // the card's own bottom padding, unless the whole card was measured
-          const padding = action === controls ? 0 : parseFloat(getComputedStyle(controls).paddingBottom) || 0;
+          const padding = parseFloat(getComputedStyle(controls).paddingBottom) || 0;
           room -= gap + (action.getBoundingClientRect().bottom - controls.getBoundingClientRect().top) + padding;
         }
       }
@@ -84,29 +98,6 @@ function useFitToScreen(ready: boolean) {
   return ref;
 }
 
-function Tabs({ tabs }: { tabs: { id: string; label: string; body: React.ReactNode }[] }) {
-  const [active, setActive] = useState(tabs[0]!.id);
-  const current = tabs.find((t) => t.id === active) ?? tabs[0]!;
-  return (
-    <div>
-      <div className="mb-2 flex flex-wrap gap-1" role="tablist">
-        {tabs.map((t) => (
-          <button
-            key={t.id}
-            role="tab"
-            aria-selected={t.id === current.id}
-            className={`rounded-lg px-3 py-1.5 text-sm font-semibold ${t.id === current.id ? "bg-ember text-night" : "bg-bark text-dim hover:text-parch"}`}
-            onClick={() => setActive(t.id)}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
-      <div role="tabpanel">{current.body}</div>
-    </div>
-  );
-}
-
 function TownView({ mode, choose }: { mode: Mode; choose: (m: Mode) => void }) {
   const g = useGame(mode);
   const { backend, snap, now } = g;
@@ -115,12 +106,17 @@ function TownView({ mode, choose }: { mode: Mode; choose: (m: Mode) => void }) {
   const [reveal, setReveal] = useState<RevealState | null>(null);
   const [weapon, setWeaponState] = useState<string | null>(null);
   const [charging, setCharging] = useState<number | null>(null);
+  const [panel, setPanelState] = useState<PanelId | null>(null);
 
   useEffect(() => setWeaponState(localStorage.getItem("slay-weapon") || null), []);
   const setWeapon = (w: string | null) => {
     setWeaponState(w);
     localStorage.setItem("slay-weapon", w ?? "");
   };
+  const setPanel = useCallback((p: PanelId | null) => {
+    if (p) sound("open");
+    setPanelState(p);
+  }, []);
 
   const strike = useCallback(
     async (amountWhole: number, w: string | null) => {
@@ -145,10 +141,16 @@ function TownView({ mode, choose }: { mode: Mode; choose: (m: Mode) => void }) {
     [g],
   );
 
+  // raids you claimed in this tab: the settled raids cached for levels and goals still have
+  // their participants as they were read, before the claim
+  const [claimedHere, setClaimedHere] = useState<ReadonlySet<number>>(new Set());
   const claim = useCallback(
     async (roundId: number, share: bigint) => {
       const res = await g.act({ method: "claim", roundId }, "Claim", "");
-      if (res.ok) scene.current?.claimed(res.amount ? BigInt(res.amount) : share);
+      if (res.ok) {
+        scene.current?.claimed(res.amount ? BigInt(res.amount) : share);
+        setClaimedHere((s) => new Set(s).add(roundId));
+      }
     },
     [g],
   );
@@ -157,60 +159,105 @@ function TownView({ mode, choose }: { mode: Mode; choose: (m: Mode) => void }) {
     backend ?? ({ rounds: async () => [], participants: async () => [] } as never),
     snap?.history ?? [],
   );
-  const play = useFitToScreen(!!(backend && snap));
+  const myRow = slayers.rows.find((r) => r.account === account);
+  const trophies = useTrophies(backend, snap?.history ?? [], snap?.listings ?? [], panel === "trophies", snap?.player?.trophies ?? [], account);
+
+  // goals count today's settled raids and the one in progress
+  const goalRounds = useMemo(() => {
+    const list = slayers.rounds.map((x) =>
+      account && claimedHere.has(x.round.id) ? { round: x.round, parts: x.parts.map((p) => (p.account === account ? { ...p, claimed: true } : p)) } : x,
+    );
+    if (snap?.round && !snap.round.settlement && !list.some((x) => x.round.id === snap.round!.id)) list.push({ round: snap.round, parts: snap.participants });
+    return list;
+  }, [slayers.rounds, snap?.round, snap?.participants, claimedHere, account]);
+  const goals = useGoals(account, goalRounds, now);
+
+  // the gear every raider has earned: from their level, and whether a trophy dropped to them
+  const looks = useMemo(() => {
+    const m = new Map<string, HeroLook>();
+    const holders = new Set(trophies.list.filter((t) => t.where.kind !== "forged").map((t) => (t.where.kind === "held" ? t.where.owner : t.droppedTo)));
+    for (const r of slayers.rows) m.set(r.account, lookOf(levelOf(Number(r.damage / ONE)).level, holders.has(r.account)));
+    if (account) {
+      const mine = lookOf(levelOf(Number((myRow?.damage ?? 0n) / ONE)).level, (snap?.player?.trophies.length ?? 0) > 0, goals.allDone);
+      m.set(account, mine);
+    }
+    return m;
+  }, [slayers.rows, trophies.list, account, myRow, snap?.player?.trophies.length, goals.allDone]);
+
+  const fit = useFitToScreen(!!(backend && snap));
+  const phase = phaseOf(snap?.round ?? null, now);
+  const player = snap?.player ?? null;
+
+  // a red dot on the forge when something can be forged now
+  const craftable = useMemo(() => {
+    if (!player) return 0;
+    const have = (t: string) => BigInt(player.items.find(([x]) => x === t)?.[1] ?? "0");
+    return (Object.keys(RECIPES) as RecipeId[]).filter((id) => {
+      const r = RECIPES[id];
+      return have("wood") >= r.wood && have("iron") >= r.iron && BigInt(player.balance) >= r.fee && (r.trophy === 0n || player.trophies.length > 0);
+    }).length;
+  }, [player]);
+
+  const status = useMemo(() => {
+    if (!snap || !backend) return "";
+    const r = snap.round;
+    if (r && phase === "open") return `Raid #${r.id} is on: ${clock(Number(BigInt(r.deadline) / 1_000_000n) - now)} left, ${slay(lootPool(backend.config, snap.status, r))} $SLAY of loot`;
+    if (r && phase === "ended") return `Raid #${r.id} is over: the Wheel of Fate is about to spin`;
+    return BigInt(snap.status.hoard) > 0n
+      ? `The Bear sleeps on a hoard of ${slay(snap.status.hoard)} $SLAY. Be the one to wake it.`
+      : "The Bear is asleep. Be the one to wake it.";
+  }, [snap, backend, phase, now]);
+
+  const simControls =
+    mode === "sim" && backend?.skip && snap ? (
+      <span className="flex items-center gap-1 text-xs">
+        <span className="text-dim max-lg:hidden" aria-hidden>
+          ⏩
+        </span>
+        <button className="btn px-2 py-1 text-xs" onClick={() => g.skip(30)} aria-label="+30 s" title="Skip 30 seconds">
+          +30s
+        </button>
+        <button className="btn px-2 py-1 text-xs max-lg:hidden" onClick={() => g.skip(120)} aria-label="+2 min" title="Skip 2 minutes">
+          +2m
+        </button>
+        {snap.round && !snap.round.settlement && (
+          <button
+            className="btn px-2 py-1 text-xs"
+            onClick={() => g.skip(Math.max(1, (Number(BigInt(snap.round!.deadline) / 1_000_000n) - now) / 1000 + 1))}
+            aria-label="to the deadline"
+            title="Skip to the end of the raid"
+          >
+            ⏭<span className="max-lg:hidden"> end</span>
+          </button>
+        )}
+      </span>
+    ) : null;
+
+  const menu = MENU.find((m) => m.id === panel);
 
   return (
     <div className="space-y-4 short:space-y-2">
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="inline-flex overflow-hidden rounded-lg border border-edge text-sm">
-          <button className={`px-3 py-1.5 ${mode === "live" ? "bg-ember text-night" : "bg-bark"}`} disabled={!LIVE_AVAILABLE} onClick={() => choose("live")}>
-            Live on NEAR testnet
-          </button>
-          <button className={`px-3 py-1.5 ${mode === "sim" ? "bg-ember text-night" : "bg-bark"}`} onClick={() => choose("sim")}>
-            Offline simulation
-          </button>
-        </div>
-        {mode === "live" && (
-          <span className="text-xs text-dim">
-            Contract{" "}
-            <a className="link" href={accountUrl(GAME_ID)} target="_blank" rel="noreferrer">
-              {GAME_ID}
-            </a>
-          </span>
-        )}
-        {mode === "sim" && backend?.skip && snap && (
-          <span className="flex items-center gap-2 text-xs">
-            <span className="text-dim">Skip ahead:</span>
-            <button className="btn px-2 py-1 text-xs" onClick={() => g.skip(30)}>
-              +30 s
-            </button>
-            <button className="btn px-2 py-1 text-xs" onClick={() => g.skip(120)}>
-              +2 min
-            </button>
-            {snap.round && !snap.round.settlement && (
-              <button className="btn px-2 py-1 text-xs" onClick={() => g.skip(Math.max(1, (Number(BigInt(snap.round!.deadline) / 1_000_000n) - now) / 1000 + 1))}>
-                to the deadline
-              </button>
-            )}
-          </span>
-        )}
-        {account && snap?.player && (
-          <span className="ml-auto text-sm">
-            <span className="text-dim">{mode === "live" ? "Playing as " : ""}</span>
-            {mode === "live" ? (
-              <a className="link" href={accountUrl(account)} target="_blank" rel="noreferrer">
-                {account.split(".")[0]}
-              </a>
-            ) : (
-              "you"
-            )}{" "}
-            · <b>{slay(snap.player.balance)}</b> $SLAY
-          </span>
-        )}
-      </div>
+      <HudBar
+        mode={mode}
+        liveAvailable={LIVE_AVAILABLE}
+        choose={choose}
+        account={account}
+        balance={player ? BigInt(player.balance) : null}
+        damage={myRow?.damage ?? 0n}
+        dots={{ forge: craftable, trophies: player?.trophies.length ?? 0 }}
+        onOpen={setPanel}
+        sim={simControls}
+        contractUrl={mode === "live" ? accountUrl(GAME_ID) : null}
+        accountUrl={mode === "live" && account ? accountUrl(account) : null}
+        look={account ? looks.get(account) : undefined}
+      />
 
       {!snap && !g.loadError && (
-        <div className="card flex aspect-[2.15/1] items-center justify-center text-dim">Reading the contract…</div>
+        <div className="card flex aspect-[2.15/1] max-h-[calc(100dvh-8rem)] w-full items-center justify-center text-dim">
+          <span className="flex items-center gap-2">
+            <span className="spinner" aria-hidden /> Reading the contract…
+          </span>
+        </div>
       )}
       {g.loadError && !snap && (
         <div className="card text-blood">
@@ -224,94 +271,126 @@ function TownView({ mode, choose }: { mode: Mode; choose: (m: Mode) => void }) {
       )}
 
       {backend && snap && (
-        <>
-          <div ref={play} className="play">
+        <div ref={fit} className="play">
           <div className="play-scene">
-          <RaidScene
-            ref={scene}
-            mode={mode}
-            config={backend.config}
-            snap={snap}
-            now={now}
-            account={account}
-            villagerSuffix={mode === "live" ? ROOT_ACCOUNT : backend.contractId}
-            weapon={weapon}
-            charging={charging}
-            onReveal={setReveal}
-          />
+            <RaidScene
+              ref={scene}
+              mode={mode}
+              config={backend.config}
+              snap={snap}
+              now={now}
+              account={account}
+              villagerSuffix={mode === "live" ? ROOT_ACCOUNT : backend.contractId}
+              weapon={weapon}
+              charging={charging}
+              onReveal={setReveal}
+              looks={looks}
+              overlay={
+                !account ? (
+                  <TitleScreen
+                    mode={mode}
+                    liveAvailable={LIVE_AVAILABLE}
+                    pending={g.pending}
+                    status={status}
+                    onPlay={() => void g.join()}
+                    onSwitch={() => choose(mode === "live" ? "sim" : "live")}
+                  />
+                ) : null
+              }
+            />
           </div>
           <div className="play-controls">
-          <ControlBar
-            mode={mode}
-            config={backend.config}
-            round={snap.round}
-            phase={phaseOf(snap.round, now)}
-            now={now}
-            player={snap.player}
-            me={snap.me}
-            account={account}
-            claimable={snap.claimable}
-            pending={g.pending}
-            reveal={reveal}
-            myRow={slayers.rows.find((r) => r.account === account)}
-            weapon={weapon}
-            setWeapon={setWeapon}
-            onCharge={setCharging}
-            onJoin={() => void g.join()}
-            onPouch={() => void g.act({ method: "claim_pouch" }, "Claim pouch", "1,000 $SLAY claimed")}
-            onStrike={(a, w) => void strike(a, w)}
-            onSpin={(id) => void spin(id)}
-            onClaim={(id, share) => void claim(id, share)}
-          />
+            <ControlBar
+              mode={mode}
+              config={backend.config}
+              round={snap.round}
+              phase={phase}
+              now={now}
+              player={player}
+              me={snap.me}
+              account={account}
+              claimable={snap.claimable}
+              pending={g.pending}
+              reveal={reveal}
+              weapon={weapon}
+              setWeapon={setWeapon}
+              goals={goals}
+              onOpen={setPanel}
+              onCharge={setCharging}
+              onPouch={() => void g.act({ method: "claim_pouch" }, "Claim pouch", "1,000 $SLAY claimed")}
+              onStrike={(a, w) => void strike(a, w)}
+              onSpin={(id) => void spin(id)}
+              onClaim={(id, share) => void claim(id, share)}
+            />
           </div>
-          </div>
-
-          <div className="grid gap-4 lg:grid-cols-3">
-            <div className="lg:col-span-2">
-              <Tabs
-                tabs={[
-                  {
-                    id: "board",
-                    label: "⚔️ Raid board",
-                    body: snap.round ? (
-                      <RaidBoard round={snap.round} participants={snap.participants} pool={lootPool(backend.config, snap.status, snap.round)} account={account} mode={mode} />
-                    ) : (
-                      <div className="card text-dim">No raid yet. Strike to start the first one.</div>
-                    ),
-                  },
-                  { id: "feed", label: "📜 Town feed", body: <Feed feed={snap.feed} now={now} account={account} /> },
-                  { id: "past", label: "🎡 Past raids", body: <History history={snap.history} backend={backend} account={account} /> },
-                ]}
-              />
-            </div>
-            <div className="space-y-4">
-              <TopSlayers rows={slayers.rows} raids={slayers.raids} account={account} />
-              <Tabs
-                tabs={[
-                  {
-                    id: "pouch",
-                    label: "👛 Pouch",
-                    body: snap.player ? <Pouch player={snap.player} account={account} mode={mode} /> : <div className="card text-dim">Join to get a pouch.</div>,
-                  },
-                  { id: "forge", label: "🔨 Forge", body: <Forge player={snap.player} pending={g.pending} act={g.act} /> },
-                  { id: "smith", label: "⚒️ Smith", body: <Smith config={backend.config} status={snap.status} player={snap.player} pending={g.pending} act={g.act} /> },
-                  { id: "market", label: "🏷️ Market", body: <Market listings={snap.listings} player={snap.player} account={account} pending={g.pending} act={g.act} /> },
-                ]}
-              />
-              <TownStats status={snap.status} />
-            </div>
-          </div>
-        </>
+        </div>
       )}
 
-      {/* bottom right; on short screens only as wide as the controls column, over its level card;
+      {panel && menu && backend && snap && (
+        <Panel title={menu.label} icon={menu.icon} onClose={() => setPanel(null)} wide={panel === "trophies" || panel === "tavern" || panel === "backpack" || panel === "market"}>
+          {panel === "backpack" && (
+            <BackpackPanel
+              player={player}
+              account={account}
+              accountHref={mode === "live" && account ? accountUrl(account) : null}
+              mode={mode}
+              myRow={myRow}
+              weapon={weapon}
+              setWeapon={setWeapon}
+              randomness={trophies.randomness}
+              open={setPanel}
+              look={account ? looks.get(account) : undefined}
+            />
+          )}
+          {panel === "forge" && <ForgePanel player={player} pending={g.pending} act={g.act} randomness={trophies.randomness} />}
+          {panel === "market" && <MarketPanel listings={snap.listings} player={player} account={account} pending={g.pending} act={g.act} randomness={trophies.randomness} />}
+          {panel === "smith" && <SmithPanel config={backend.config} status={snap.status} player={player} pending={g.pending} act={g.act} />}
+          {panel === "trophies" && (
+            <TrophyHall
+              trophies={trophies.list}
+              account={account}
+              balance={player ? BigInt(player.balance) : null}
+              pending={g.pending}
+              act={g.act}
+              now={now}
+              verifyHref={(r) => (mode === "live" ? `/verify?round=${r}` : null)}
+            />
+          )}
+          {panel === "tavern" && (
+            <TavernPanel
+              backend={backend}
+              slayers={slayers}
+              round={snap.round}
+              participants={snap.participants}
+              pool={snap.round ? lootPool(backend.config, snap.status, snap.round) : 0n}
+              history={snap.history}
+              feed={snap.feed}
+              status={snap.status}
+              now={now}
+              account={account}
+            />
+          )}
+          {panel === "help" && <HowToPlay config={backend.config} />}
+        </Panel>
+      )}
+
+      <Tutorial
+        joined={!!account && !!player?.pouch_claimed}
+        hits={snap?.me?.hits ?? 0}
+        phase={phase}
+        claimable={(snap?.claimable.length ?? 0) > 0}
+        outcome={snap?.round?.settlement?.outcome ?? null}
+        blocked={!!panel}
+      />
+
+      {/* bottom right; on short screens only as wide as the controls column, over its goals;
           on phones held sideways bottom left, over the scene rather than the strike controls */}
       <div
         className="fixed inset-x-4 bottom-4 z-40 flex flex-col gap-2 sm:left-auto sm:w-80 short:sm:w-64 short:lg:w-72 tiny:sm:left-4 tiny:sm:right-auto tiny:sm:w-60 tiny:sm:text-xs"
         aria-live="polite"
       >
         {g.toasts.map((t) => (
-          <div key={t.id} className={`card py-2 text-sm shadow-lg ${t.kind === "error" ? "border-blood" : t.kind === "info" ? "border-edge" : "border-moss"}`}>
+          <div key={t.id} className={`toast-in card py-2 text-sm shadow-lg ${t.kind === "error" ? "border-blood" : t.kind === "info" ? "border-edge" : "border-moss"}`}>
             {t.text}
             {t.txHash && mode === "live" && (
               <>

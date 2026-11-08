@@ -73,6 +73,10 @@ export interface Backend {
   /** For the verifier: all raiders of a round, and rounds before an id (newest first). */
   participants(roundId: number): Promise<ParticipantJson[]>;
   rounds(beforeId: number, limit: number): Promise<RoundJson[]>;
+  /** Any account's balance, items and trophies (get_player). */
+  player(account: string): Promise<PlayerJson>;
+  /** Supply of an item (mt_supply): 0 once a trophy is forged into a Bear-slayer. */
+  itemSupply(tokenId: string): Promise<bigint | null>;
   /** Simulation only: jump the clock forward. */
   skip?(seconds: number): void;
 }

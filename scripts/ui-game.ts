@@ -76,9 +76,14 @@ async function main() {
     await page.getByRole("button", { name: "to the deadline" }).click();
     await page.waitForTimeout(1200);
     await shot(page, "5-times-up");
-    await page.waitForTimeout(6500);
+    // spin the wheel yourself once the beacon is out (the keeper waits 15 s for a player)
+    const spin = page.getByRole("button", { name: /Spin the Wheel of Fate/ });
+    await spin.waitFor({ timeout: 30_000 });
+    await shot(page, "5b-ready");
+    await spin.click();
+    await page.waitForTimeout(1500);
     await shot(page, "6-wheel-spin");
-    await page.waitForTimeout(4500);
+    await page.getByText(/^(VICTORY!|THE BEAR WINS)$/).waitFor({ timeout: 30_000 });
     await shot(page, "7-result", true);
     // the result card comes in once the VICTORY / THE BEAR WINS banner has gone
     await page.getByText(/: the town won|: the Bear won/).waitFor({ timeout: 15_000 });
@@ -86,10 +91,14 @@ async function main() {
     await shot(page, "7b-card");
     const claim = page.getByRole("button", { name: /Claim \+/ });
     if (await claim.count()) {
+      await shot(page, "7c-claim-ready");
       await claim.first().click();
       await page.waitForTimeout(700);
       await shot(page, "8-claim");
     }
+    await page.waitForTimeout(1000);
+    // a newcomer's tutorial ends with the first raid: "done" once the loot is claimed (or lost)
+    console.log(`tutorial: ${await page.evaluate("localStorage.getItem('slay-tutorial-v1')")}, bubbles left: ${await page.getByRole("dialog", { name: /^Tutorial/ }).count()}`);
   } else {
     // live: sit out the real raid, then settle it from the UI with the drand beacon
     if (canStrike) {

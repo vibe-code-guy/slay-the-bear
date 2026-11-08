@@ -29,6 +29,8 @@ async function main() {
   mkdirSync(out, { recursive: true });
   const browser = await chromium.launch({ executablePath: exe, headless: true });
   const ctx = await browser.newContext({ viewport: { width: 1360, height: 900 } });
+  // a returning player: no tutorial bubbles in front of the buttons
+  await ctx.addInitScript("localStorage.setItem('slay-tutorial-v1', 'done')");
   const page = await ctx.newPage();
   const errors: string[] = [];
   page.on("console", (m) => {
@@ -39,15 +41,18 @@ async function main() {
   // Simulation: join, strike, skip to the deadline, watch the wheel, verify the raid.
   await page.goto(`${url}/?mode=sim`);
   await page.getByRole("button", { name: /Start the simulation/ }).click();
-  await page.getByText("Your pouch").waitFor();
   await strike(page);
-  await page.getByText("Raid board").first().waitFor();
+  await page.getByText(/^Raid #\d+$/).waitFor();
   await page.waitForTimeout(1500);
   await shot(page, "sim-raid");
   await page.getByRole("button", { name: "to the deadline" }).click();
-  await page.getByText(/the town won|the Bear won/).waitFor({ timeout: 30_000 });
+  // spin the wheel once the beacon is out, as a player would
+  await page.getByRole("button", { name: /Spin the Wheel of Fate/ }).click({ timeout: 30_000 });
+  await page.getByText(/: the town won|: the Bear won/).waitFor({ timeout: 30_000 });
   await page.waitForTimeout(1500);
   await shot(page, "sim-settled");
+  // past raids are in the Tavern; each one can be verified in the browser
+  await page.getByRole("button", { name: "Tavern" }).click();
   await page.getByRole("tab", { name: /Past raids/ }).click();
   const verifyButtons = page.getByRole("button", { name: "Verify" });
   if (await verifyButtons.count()) {
@@ -55,13 +60,17 @@ async function main() {
     await page.getByText(/checks out|failed for raid/).waitFor({ timeout: 15000 });
     await shot(page, "sim-verify");
   } else {
-    errors.push("no Verify button under Past raids");
+    errors.push("no Verify button under the Tavern's past raids");
   }
+  await page.keyboard.press("Escape");
 
   if (flag("live")) {
     await page.goto(`${url}/?mode=live`);
     await page.getByRole("button", { name: /Play as a guest/ }).click({ timeout: 30000 });
-    await page.getByText("Your pouch").waitFor({ timeout: 90000 });
+    await page
+      .locator('button[aria-label*="Hold to charge"], button:has-text("Claim your starter pouch"), button:has-text("Spin the Wheel of Fate"), button:has-text("drand beacon in")')
+      .first()
+      .waitFor({ timeout: 90000 });
     await page.waitForTimeout(3000);
     await shot(page, "live-joined");
     const pouch = page.getByRole("button", { name: /Claim your starter pouch/ });

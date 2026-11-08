@@ -15,7 +15,6 @@ const errors: string[] = [];
 page.on("pageerror", (e) => errors.push(String(e)));
 await page.goto(`${url}/?mode=sim`);
 await page.getByRole("button", { name: /Start the simulation/ }).click();
-await page.getByText("Your pouch").waitFor();
 // one strike: hold the button, let go
 const btn = page.getByRole("button", { name: /Hold to charge/ });
 await btn.waitFor({ timeout: 60_000 });

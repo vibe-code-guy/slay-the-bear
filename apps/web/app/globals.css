@@ -4,6 +4,9 @@
 @custom-variant short (@media (max-height: 800px));
 /* phones held sideways */
 @custom-variant tiny (@media (max-height: 440px));
+/* short windows narrower than a laptop (phones held sideways, small tablets): the controls sit
+   beside the scene, so the HUD packs into one row of icons */
+@custom-variant compact (@media (min-width: 640px) and (max-width: 1023.98px) and (max-height: 800px));
 
 @theme {
   --color-night: #15110d;
@@ -635,6 +638,274 @@ a.link {
     box-shadow: 0 0 0 6px rgba(245, 158, 11, 0.25), 0 0 26px rgba(245, 158, 11, 0.55);
   }
 }
+/* ---------- game shell: panels, HUD, title screen, tutorial ---------- */
+
+.wood-frame {
+  background:
+    radial-gradient(120% 80% at 50% 0%, rgba(245, 158, 11, 0.08), transparent 60%),
+    linear-gradient(180deg, #2a1f15, #1c140e);
+  border: 3px solid #8b6b3d;
+  box-shadow:
+    0 0 0 2px #2a1d12,
+    0 0 0 5px #5a4126,
+    0 24px 60px rgba(0, 0, 0, 0.65);
+}
+.panel-fade {
+  animation: panel-fade 0.2s ease-out both;
+}
+@keyframes panel-fade {
+  from {
+    opacity: 0;
+  }
+}
+.panel-pop {
+  animation: panel-pop 0.28s cubic-bezier(0.34, 1.4, 0.64, 1) both;
+}
+@keyframes panel-pop {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.96);
+  }
+}
+.hud-btn {
+  transition: transform 120ms, border-color 120ms, background 120ms;
+}
+.hud-btn:hover {
+  transform: translateY(-2px);
+}
+.hud-btn:active {
+  transform: translateY(0) scale(0.96);
+}
+.coin-up {
+  animation: coin-up 0.9s ease-out;
+}
+@keyframes coin-up {
+  30% {
+    transform: scale(1.12);
+    box-shadow: 0 0 18px rgba(34, 163, 90, 0.6);
+  }
+}
+.toast-in {
+  animation: toast-in 0.3s cubic-bezier(0.34, 1.4, 0.64, 1) both;
+}
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+}
+
+.title-screen {
+  background:
+    radial-gradient(70% 60% at 50% 45%, rgba(10, 6, 4, 0.35), rgba(10, 6, 4, 0.82)),
+    linear-gradient(180deg, rgba(10, 6, 4, 0.2), rgba(10, 6, 4, 0.75));
+  backdrop-filter: blur(1.5px);
+}
+.title-logo {
+  background: linear-gradient(180deg, #fff7d6 0%, #fde68a 35%, #f59e0b 70%, #b45309 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-stroke: 2px #3b1d06;
+  filter: drop-shadow(0 4px 0 #1b0d03) drop-shadow(0 0 24px rgba(245, 158, 11, 0.35));
+  letter-spacing: 0.02em;
+}
+.title-in {
+  animation: title-in 0.6s cubic-bezier(0.22, 1.2, 0.36, 1) both;
+}
+/* a short scene (phones, small windows): the name, one line, the status and the play button.
+   The HUD has the live/offline switch. */
+@container (max-height: 330px) {
+  .title-screen .title-more {
+    display: none;
+  }
+}
+@keyframes title-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.97);
+  }
+}
+.play-cta {
+  animation: play-cta 1.6s ease-in-out infinite;
+}
+/* glow only: a button that keeps moving can't be clicked reliably (and test tools refuse to) */
+@keyframes play-cta {
+  50% {
+    box-shadow:
+      0 0 0 7px rgba(245, 158, 11, 0.22),
+      0 0 36px rgba(245, 158, 11, 0.65);
+  }
+}
+.spinner {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  border-radius: 9999px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.tour-ring {
+  border: 3px solid #f59e0b;
+  box-shadow:
+    0 0 0 9999px rgba(0, 0, 0, 0.35),
+    0 0 24px rgba(245, 158, 11, 0.7);
+  animation: tour-ring 1.4s ease-in-out infinite;
+}
+@keyframes tour-ring {
+  50% {
+    box-shadow:
+      0 0 0 9999px rgba(0, 0, 0, 0.35),
+      0 0 4px rgba(245, 158, 11, 0.3);
+  }
+}
+.tour-pop {
+  animation: panel-pop 0.3s cubic-bezier(0.34, 1.4, 0.64, 1) both;
+}
+
+/* ---------- items, trophies, the forge ---------- */
+
+.ia-glow {
+  animation: ia-glow 2.2s ease-in-out infinite;
+}
+@keyframes ia-glow {
+  50% {
+    opacity: 0.55;
+    filter: brightness(1.6);
+  }
+}
+.ia-twinkle {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: ia-twinkle 2.4s ease-in-out infinite;
+}
+@keyframes ia-twinkle {
+  0%,
+  100% {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+}
+.item-card {
+  transition: transform 140ms, border-color 140ms;
+}
+button.item-card:hover {
+  transform: translateY(-2px);
+}
+.trophy-card {
+  transition: transform 160ms, box-shadow 160ms;
+}
+.trophy-card:hover {
+  transform: translateY(-3px) rotate(-0.6deg);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45);
+}
+.trophy-spin {
+  animation: trophy-float 3.2s ease-in-out infinite;
+}
+@keyframes trophy-float {
+  50% {
+    transform: translateY(-6px) rotate(1.5deg);
+  }
+}
+.forge-working {
+  animation: forge-glow 0.42s ease-in-out infinite alternate;
+}
+@keyframes forge-glow {
+  to {
+    box-shadow: inset 0 0 40px rgba(245, 158, 11, 0.25);
+  }
+}
+.forge-hammer {
+  transform-origin: 80% 80%;
+  animation: forge-hammer 0.42s cubic-bezier(0.5, 0, 0.75, 0) infinite;
+}
+@keyframes forge-hammer {
+  0% {
+    transform: rotate(-40deg);
+  }
+  70% {
+    transform: rotate(20deg);
+  }
+  100% {
+    transform: rotate(-40deg);
+  }
+}
+.forge-spark {
+  animation: forge-spark 0.42s ease-out infinite;
+}
+@keyframes forge-spark {
+  from {
+    opacity: 1;
+    transform: rotate(var(--a)) translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: rotate(var(--a)) translateX(26px);
+  }
+}
+.forge-reveal {
+  animation: forge-reveal 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  filter: drop-shadow(0 0 12px rgba(253, 230, 138, 0.9));
+}
+@keyframes forge-reveal {
+  from {
+    transform: scale(0.3) rotate(-30deg);
+    opacity: 0;
+  }
+}
+.forge-banner {
+  animation: panel-fade 0.25s ease-out both;
+}
+.smith-hammer {
+  transform-origin: 76px 62px;
+  animation: smith-hammer 2.6s ease-in-out infinite;
+}
+@keyframes smith-hammer {
+  0%,
+  70%,
+  100% {
+    transform: rotate(0);
+  }
+  80% {
+    transform: rotate(-22deg);
+  }
+  88% {
+    transform: rotate(8deg);
+  }
+}
+
+.hero-cape {
+  transform-origin: 50px 60px;
+  animation: hero-cape 2.8s ease-in-out infinite;
+}
+@keyframes hero-cape {
+  50% {
+    transform: skewX(-3deg) scaleX(1.03);
+  }
+}
+.hero-crown {
+  filter: drop-shadow(0 0 4px rgba(250, 204, 21, 0.8));
+}
+.goals-done {
+  animation: goals-done 2.4s ease-in-out infinite;
+}
+@keyframes goals-done {
+  50% {
+    box-shadow: 0 0 16px rgba(34, 163, 90, 0.45);
+  }
+}
+
 .card-in {
   animation: card-in 0.45s ease-out both;
 }
@@ -659,7 +930,25 @@ a.link {
   .timer-late,
   .wheel-cta,
   .claim-cta,
-  .card-in {
+  .card-in,
+  .panel-pop,
+  .panel-fade,
+  .title-in,
+  .play-cta,
+  .tour-ring,
+  .tour-pop,
+  .ia-glow,
+  .ia-twinkle,
+  .trophy-spin,
+  .forge-working,
+  .forge-hammer,
+  .forge-spark,
+  .forge-reveal,
+  .smith-hammer,
+  .hero-cape,
+  .goals-done,
+  .coin-up,
+  .toast-in {
     animation: none !important;
   }
 }

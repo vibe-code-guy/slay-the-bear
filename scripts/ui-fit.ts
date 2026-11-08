@@ -1,6 +1,6 @@
 // Does the game fit the screen? Opens the town in the offline simulation at several window sizes,
-// strikes once, and checks that the scene and the strike button are on screen without scrolling
-// or zooming. Saves a screenshot per size.
+// checks that the play button is on screen, strikes once, and checks that the HUD, the scene and
+// the strike button are on screen without scrolling or zooming. Saves screenshots per size.
 //   npx tsx scripts/ui-fit.ts --url http://localhost:3100 [--out dir] [--sizes 1024x468,1366x650]
 import { mkdirSync } from "node:fs";
 import { join } from "node:path";
@@ -31,8 +31,18 @@ async function main() {
     const page = await browser.newPage({ viewport: { width, height } });
     const errors: string[] = [];
     page.on("pageerror", (e) => errors.push(String(e)));
+    // a fresh player: the tutorial shows, as it would for a newcomer
     await page.goto(`${url}/?mode=sim`);
-    await page.getByRole("button", { name: /Start the simulation/ }).click({ timeout: 60_000 });
+    const name = `${width}x${height}`;
+    const start = page.getByRole("button", { name: /Start the simulation/ });
+    await start.waitFor({ timeout: 60_000 });
+    await page.waitForTimeout(600);
+    await page.screenshot({ path: join(out, `${name}-title.png`) });
+    // the play button must be on screen without scrolling
+    const sb = (await start.boundingBox())!;
+    const startVisible = sb.y >= 0 && sb.y + sb.height <= height;
+    // click where it is, so a click can't scroll the page for us
+    await page.mouse.click(sb.x + sb.width / 2, sb.y + sb.height / 2);
     const hold = page.getByRole("button", { name: /Hold to charge/ });
     await hold.waitFor({ timeout: 60_000 });
     await page.waitForTimeout(800);
@@ -53,20 +63,31 @@ async function main() {
         scene: r(document.querySelector(".scene-box")),
         hold: r(document.querySelector('button[aria-label*="Hold to charge"]')),
         controls: r(document.querySelector(".controls")),
+        hud: r(document.querySelector("[data-tour=menu]")),
         overflowX: document.documentElement.scrollWidth - window.innerWidth,
+        scrollY: window.scrollY,
         innerHeight: window.innerHeight,
       };
-    })()`)) as { scene: Box | null; hold: Box | null; controls: Box | null; overflowX: number; innerHeight: number };
-    const name = `${width}x${height}`;
+    })()`)) as { scene: Box | null; hold: Box | null; controls: Box | null; hud: Box | null; overflowX: number; scrollY: number; innerHeight: number };
     await page.screenshot({ path: join(out, `${name}.png`) });
     const s = m.scene!;
     const h = m.hold!;
-    const fits = h.bottom <= m.innerHeight && h.top >= 0 && s.top >= 0 && s.bottom <= m.innerHeight + 0.5;
+    const hud = m.hud!;
+    const fits =
+      startVisible &&
+      m.scrollY === 0 &&
+      hud.top >= 0 &&
+      h.bottom <= m.innerHeight &&
+      h.top >= 0 &&
+      s.top >= hud.bottom &&
+      s.bottom <= m.innerHeight + 0.5;
     const layout = m.controls && m.controls.left >= s.right - 1 ? "side" : "stacked";
     if (!fits || m.overflowX > 0 || errors.length) failures++;
     console.log(
-      `${fits ? "FITS" : "SCROLL"} ${name.padEnd(9)} ${layout.padEnd(7)} scene ${Math.round(s.width)}x${Math.round(s.height)} (${(s.width / s.height).toFixed(2)}:1, ` +
+      `${fits ? "FITS" : "SCROLL"} ${name.padEnd(9)} ${layout.padEnd(7)} hud ${Math.round(hud.top)}..${Math.round(hud.bottom)}, ` +
+        `scene ${Math.round(s.width)}x${Math.round(s.height)} (${(s.width / s.height).toFixed(2)}:1, ` +
         `${Math.round(s.top)}..${Math.round(s.bottom)}), hold ${Math.round(h.top)}..${Math.round(h.bottom)}` +
+        `${startVisible ? "" : ", PLAY BUTTON OFF SCREEN"}${m.scrollY ? `, SCROLLED ${Math.round(m.scrollY)}px` : ""}` +
         `${m.overflowX > 0 ? `, OVERFLOW ${m.overflowX}px` : ""}${errors.length ? `, errors: ${errors.join("; ")}` : ""}`,
     );
     await page.close();

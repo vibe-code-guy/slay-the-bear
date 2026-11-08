@@ -20,6 +20,7 @@ import {
   participantsJson,
   playerJson,
   roundJson,
+  roundTime,
   roundsJson,
   statusJson,
   treasuryReward,
@@ -37,6 +38,8 @@ const VILLAGERS: { id: string; personality: Personality }[] = [
   { id: `sara.${CONTRACT}`, personality: "saver" },
 ];
 const KEEPER = `keeper.${CONTRACT}`;
+/** 15 s, as KEEPER_GRACE_MS in packages/agents/src/keeper.ts */
+const KEEPER_GRACE = 15n * NS;
 const ME = `you.${CONTRACT}`;
 
 export function createSimBackend(roundSecs = 300n): Backend {
@@ -80,8 +83,10 @@ export function createSimBackend(roundSecs = 300n): Backend {
     const cur = game.currentRound();
 
     if (cur && now >= cur.deadline) {
-      // The keeper settles a few seconds after the deadline, once the beacon round is out.
-      if (now >= cur.deadline + 6n * NS) {
+      // The keeper settles once the beacon round is out and the raiders have had a while to spin
+      // the wheel themselves (and earn the tip), as the live keeper does (KEEPER_GRACE_MS).
+      const beaconAt = roundTime(cur.targetDrandRound, config.randomness.genesisTime, config.randomness.period) * NS;
+      if (now >= beaconAt + KEEPER_GRACE) {
         const b = beacon.sign(cur.targetDrandRound);
         run(() => game.settle(KEEPER, cur.id, { round: b.round, signature: b.signature }, now));
         hitsThisRound.clear();
@@ -216,6 +221,14 @@ export function createSimBackend(roundSecs = 300n): Backend {
 
     async rounds(beforeId: number, limit: number) {
       return roundsJson(game, beforeId, limit);
+    },
+
+    async player(account: string) {
+      return playerJson(game, account);
+    },
+
+    async itemSupply(tokenId: string) {
+      return game.itemSupply.get(tokenId) ?? null;
     },
 
     skip(seconds: number) {
