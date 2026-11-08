@@ -105,7 +105,7 @@ export function StrikeButton({
       type="button"
       disabled={disabled}
       aria-label={`${label}. Hold to charge, release to strike. Space bar works too.`}
-      className={`group relative h-32 w-32 shrink-0 touch-none select-none rounded-full outline-none focus-visible:ring-4 focus-visible:ring-ember/70 disabled:opacity-40 ${charging ? "strike-charging" : ""}`}
+      className={`strike-btn group relative h-32 w-32 shrink-0 touch-none select-none rounded-full outline-none focus-visible:ring-4 focus-visible:ring-ember/70 disabled:opacity-40 ${charging ? "strike-charging" : ""}`}
       onPointerDown={(e) => {
         e.currentTarget.setPointerCapture(e.pointerId);
         begin();

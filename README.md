@@ -134,7 +134,9 @@ with no dev patch. Guests never see a wallet or a gas prompt.
 Other commands: `npm run typecheck`, `npm run fast-forward` (a week of raids in the terminal),
 `npm run vectors` (regenerate the vectors),
 `npm run build:contract`, `npm run status -- --game <id>`, `npm run agents -- --game <id>`,
-`npm run test:ui` (drives the site in Chrome; needs a running site). Running your own instance,
+`npm run test:ui` (drives the site in Chrome; needs a running site), `npm run test:fit -- --url
+<site>` (checks the scene and the strike button fit without scrolling at 12 window sizes, from a
+phone held sideways to a desktop). Running your own instance,
 relayer and hosted site: [docs/DEPLOY.md](docs/DEPLOY.md).
 
 ## Limits

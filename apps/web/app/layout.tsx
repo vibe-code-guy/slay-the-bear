@@ -13,8 +13,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body className="antialiased">
-        <header className="border-b border-edge/70 bg-night/80 backdrop-blur sticky top-0 z-20">
-          <nav className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 text-sm sm:gap-5">
+        {/* above the raid scene's wheel and banners when the page scrolls under it */}
+        <header className="border-b border-edge/70 bg-night/80 backdrop-blur sticky top-0 z-50">
+          <nav className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 text-sm short:py-2 sm:gap-5">
             <Link href="/" className="flex items-center gap-2 text-lg font-bold" aria-label="Slay the Bear, home">
               <span aria-hidden>🐻</span>
               <span className="hidden font-[family-name:var(--font-display)] sm:inline">Slay the Bear</span>
@@ -36,7 +37,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </a>
           </nav>
         </header>
-        <main className="mx-auto max-w-7xl px-4 py-6">{children}</main>
+        <main className="mx-auto max-w-7xl px-4 py-6 short:py-3">{children}</main>
         <footer className="mx-auto max-w-7xl px-4 pb-10 pt-4 text-xs text-dim">
           Testnet only. $SLAY has no value. Every move is a NEAR transaction to a contract with no owner and no admin methods;
           every random roll comes from the drand quicknet beacon and is checked on-chain.

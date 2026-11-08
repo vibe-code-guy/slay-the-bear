@@ -436,7 +436,8 @@ export const RaidScene = forwardRef<SceneHandle, {
 
   return (
     <section className="relative overflow-hidden rounded-2xl border border-edge bg-night shadow-2xl" aria-label="The raid">
-      <div key={shakeKey} className={`relative aspect-[4/3] w-full [container-type:size] sm:aspect-[16/9] lg:aspect-[2.15/1] ${shakeKey ? "scene-shake" : ""}`}>
+      {/* scene-box (globals.css): the shape for the screen, capped to the room the page measured */}
+      <div key={shakeKey} className={`scene-box relative [container-type:size] ${shakeKey ? "scene-shake" : ""}`}>
         <Backdrop dusk={dusk} mood={sky} />
 
         {/* the Bear */}
@@ -461,7 +462,7 @@ export const RaidScene = forwardRef<SceneHandle, {
                   <Hero kind={h.kind} account={h.account} weapon={h.kind === "you" ? weapon : undefined} />
                 </div>
               </div>
-              <div className="pointer-events-none absolute bottom-0 left-1/2 -translate-x-1/2 whitespace-nowrap rounded bg-black/60 px-1.5 text-[9px] leading-4 text-parch sm:text-[11px]">
+              <div className="pointer-events-none absolute bottom-0 left-1/2 -translate-x-1/2 whitespace-nowrap rounded bg-black/60 px-1.5 text-[9px] leading-4 text-parch @xl:text-[11px]">
                 {h.kind === "you" ? "you" : who(h.account, account).replace(/^guest /, "")}
                 {h.damage !== null && h.damage > 0n && <span className="ml-1 text-ember">{slay(h.damage)}</span>}
               </div>
@@ -474,7 +475,7 @@ export const RaidScene = forwardRef<SceneHandle, {
                 <div
                   key={says[h.account]!.id}
                   // raiders near the edge speak inwards, so the bubble stays inside the scene
-                  className={`bubble-pop pointer-events-none absolute -top-1 z-20 w-max max-w-[11rem] -translate-y-full rounded-xl bg-parch px-2 py-1 text-[10px] font-semibold leading-tight text-night shadow-lg sm:text-xs ${
+                  className={`bubble-pop pointer-events-none absolute -top-1 z-20 w-max max-w-[11rem] -translate-y-full rounded-xl bg-parch px-2 py-1 text-[10px] font-semibold leading-tight text-night shadow-lg @xl:text-xs ${
                     h.x < 0.2 ? "left-0" : h.x > 0.8 ? "right-0" : "left-1/2 -translate-x-1/2"
                   }`}
                 >
@@ -490,7 +491,7 @@ export const RaidScene = forwardRef<SceneHandle, {
         {says.bear && !wheelCentered && !banner && (
           <div
             key={says.bear.id}
-            className="bubble-pop pointer-events-none absolute left-[57%] top-[38%] z-20 max-w-[26%] rounded-2xl border-2 border-night bg-parch px-2 py-1 text-[10px] font-bold leading-snug text-night shadow-xl sm:left-[60%] sm:top-[31%] sm:max-w-[24%] sm:px-3 sm:py-1.5 sm:text-sm"
+            className="bubble-pop pointer-events-none absolute left-[57%] top-[38%] z-20 max-w-[26%] rounded-2xl border-2 border-night bg-parch px-2 py-1 text-[10px] font-bold leading-snug text-night shadow-xl @xl:left-[60%] @xl:top-[31%] @xl:max-w-[24%] @xl:px-3 @xl:py-1.5 @xl:text-sm"
           >
             {says.bear.text}
             <span className="absolute -left-2 top-1/2 h-4 w-4 -translate-y-1/2 rotate-45 border-b-2 border-l-2 border-night bg-parch" />
@@ -505,7 +506,7 @@ export const RaidScene = forwardRef<SceneHandle, {
             style={{
               left: `${n.x * 100}%`,
               top: `${n.y * 100}%`,
-              fontSize: `clamp(14px, ${2.2 * n.size}vw, ${44 * n.size}px)`,
+              fontSize: `clamp(14px, ${2.2 * n.size}cqw, ${44 * n.size}px)`,
               color: n.tone === "miss" ? "#9ca3af" : n.tone === "other" ? "#fef3c7" : n.tone === "loot" ? "#facc15" : n.tone === "crit" ? "#fde047" : "#fb923c",
               WebkitTextStroke: "1.5px #1b120a",
               textShadow: "0 3px 0 #1b120a",
@@ -520,10 +521,10 @@ export const RaidScene = forwardRef<SceneHandle, {
         <Particles ref={particles} />
 
         {/* HUD: top */}
-        <div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between gap-2 p-2 sm:p-3">
+        <div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between gap-2 p-2 @xl:p-3">
           <div className="rounded-xl bg-black/55 px-3 py-1.5 backdrop-blur-sm">
-            <div className="font-[family-name:var(--font-display)] text-sm font-bold sm:text-lg">{live ? `Raid #${live.id}` : round ? `After raid #${round.id}` : "Quiet town"}</div>
-            <div className="whitespace-nowrap text-[10px] text-dim sm:text-xs" title={moodWhy}>
+            <div className="font-[family-name:var(--font-display)] text-sm font-bold @xl:text-lg">{live ? `Raid #${live.id}` : round ? `After raid #${round.id}` : "Quiet town"}</div>
+            <div className="whitespace-nowrap text-[10px] text-dim @xl:text-xs" title={moodWhy}>
               {live
                 ? `Mood ${TACTIC_ICON[live.mood]} ${tacticName(live.mood)}`
                 : suspense
@@ -531,16 +532,16 @@ export const RaidScene = forwardRef<SceneHandle, {
                   : settled && showOutcome
                     ? `Drew ${TACTIC_ICON[settled.tactic]} ${tacticName(settled.tactic)} · roll ${settled.tactic_roll}`
                     : `Next mood ${TACTIC_ICON[snap.status.next_mood]} ${tacticName(snap.status.next_mood)}`}
-              <span className="hidden sm:inline"> · {mode === "live" ? "NEAR testnet" : "simulation"}</span>
+              <span className="hidden @xl:inline"> · {mode === "live" ? "NEAR testnet" : "simulation"}</span>
             </div>
           </div>
           {live && (
             <div className="flex flex-col items-center">
-              <div className={`rounded-xl px-3 py-1 font-mono text-xl font-black shadow sm:text-3xl ${phase === "ended" ? "bg-blood text-white" : late ? "timer-late bg-black/60 text-ember" : "bg-black/60 text-parch"}`}>
+              <div className={`rounded-xl px-3 py-1 font-mono text-xl font-black shadow @xl:text-3xl ${phase === "ended" ? "bg-blood text-white" : late ? "timer-late bg-black/60 text-ember" : "bg-black/60 text-parch"}`}>
                 {phase === "ended" ? "0:00" : clock(deadline - now)}
               </div>
               {phase === "open" && (
-                <div className="mt-1 hidden w-40 sm:block" title="Early hits deal more damage">
+                <div className="mt-1 hidden w-40 @xl:block" title="Early hits deal more damage">
                   <div className="h-1.5 overflow-hidden rounded bg-black/60">
                     <div className={`h-full ${late ? "bg-blood" : "bg-ember"}`} style={{ width: `${((bonus - 1) / ((Number(config.earlyBonusMaxBps) - 10_000) / 10_000)) * 100}%` }} />
                   </div>
@@ -549,34 +550,35 @@ export const RaidScene = forwardRef<SceneHandle, {
               )}
             </div>
           )}
-          <div className="rounded-xl bg-black/55 px-2 py-1.5 text-right backdrop-blur-sm sm:px-3">
-            <div className="whitespace-nowrap text-sm font-bold text-moss sm:text-base">
+          <div className="rounded-xl bg-black/55 px-2 py-1.5 text-right backdrop-blur-sm @xl:px-3">
+            <div className="whitespace-nowrap text-sm font-bold text-moss @xl:text-base">
               💰 {suspense ? "?" : live ? slay(pool) : slay(snap.status.hoard)}
-              <span className="hidden sm:inline"> $SLAY</span>
+              <span className="hidden @xl:inline"> $SLAY</span>
             </div>
-            <div className="whitespace-nowrap text-[10px] text-dim sm:text-xs">
-              <span className="sm:hidden">{suspense ? "loot?" : live ? "loot" : "hoard"}</span>
-              <span className="hidden sm:inline">{suspense ? "the wheel decides" : live ? "loot if the town wins" : "in the Bear's hoard"}</span>
+            <div className="whitespace-nowrap text-[10px] text-dim @xl:text-xs">
+              <span className="@xl:hidden">{suspense ? "loot?" : live ? "loot" : "hoard"}</span>
+              <span className="hidden @xl:inline">{suspense ? "the wheel decides" : live ? "loot if the town wins" : "in the Bear's hoard"}</span>
             </div>
           </div>
         </div>
 
         {/* health bar */}
         {live && (
-          <div className="pointer-events-none absolute left-1/2 top-[21%] w-[64%] -translate-x-1/2 sm:top-[17%] sm:w-[44%]">
-            <div className="mb-0.5 flex justify-between text-[10px] font-bold text-parch drop-shadow sm:text-xs">
+          // below the timer and its early-bonus bar, however short the scene is
+          <div className="pointer-events-none absolute left-1/2 top-[max(21cqh,3.5rem)] w-[64%] -translate-x-1/2 @xl:top-[max(17cqh,4.9rem)] @xl:w-[44%]">
+            <div className="mb-0.5 flex justify-between text-[10px] font-bold text-parch drop-shadow @xl:text-xs">
               <span>
                 ⚔️ {slay(damage)} / ❤️ {slay(health)}
               </span>
               <span className={chance >= 5000 ? "text-moss" : "text-ember"}>win chance {Math.round(chance / 100)}%</span>
             </div>
-            <div className="relative h-3 overflow-hidden rounded-full border border-black/60 bg-black/60 sm:h-4">
+            <div className="relative h-3 overflow-hidden rounded-full border border-black/60 bg-black/60 @xl:h-4">
               <div className="absolute inset-y-0 left-0 bg-white/80 transition-[width] delay-300 duration-1000" style={{ width: `${fill}%` }} />
               <div className="absolute inset-y-0 left-0 bg-gradient-to-r from-blood to-ember transition-[width] duration-300" style={{ width: `${fill}%` }} />
               <div className="absolute inset-y-0 w-0.5 bg-parch" style={{ left: `${healthAt}%` }} />
               <div className="absolute inset-y-0 right-0 w-0.5 bg-sky-300" />
             </div>
-            <div className="mt-0.5 flex justify-center gap-1 text-[9px] sm:text-[11px]">
+            <div className="mt-0.5 flex justify-center gap-1 text-[9px] @xl:text-[11px]">
               {outs.map((o) => (
                 <span key={o.tactic} className={`rounded px-1 ${o.win ? "bg-moss/80 text-white" : "bg-black/60 text-dim"}`}>
                   {TACTIC_ICON[o.tactic]} {o.win ? "win" : "lose"}
@@ -593,7 +595,7 @@ export const RaidScene = forwardRef<SceneHandle, {
           className={`absolute z-20 aspect-[200/222] transition-all duration-700 ease-out ${
             wheelCentered
               ? "left-[calc(50cqw_-_27.93cqh)] top-[21.5cqh] h-[62cqh]"
-              : "left-[calc(98.5cqw_-_19.82cqh)] top-[40cqh] h-[22cqh] sm:left-[calc(98.5cqw_-_23.42cqh)] sm:top-[24cqh] sm:h-[26cqh]"
+              : "left-[calc(98.5cqw_-_19.82cqh)] top-[40cqh] h-[22cqh] @xl:left-[calc(98.5cqw_-_23.42cqh)] @xl:top-[24cqh] @xl:h-[26cqh]"
           }`}
         >
           <Wheel
@@ -620,20 +622,20 @@ export const RaidScene = forwardRef<SceneHandle, {
 
         {/* result card */}
         {!live && settled && showOutcome && !holdCard && (
-          <div className="card-in absolute left-[2%] top-[24%] z-10 w-[48%] rounded-xl border border-edge bg-black/70 p-2 text-[10px] backdrop-blur-sm sm:w-[min(42%,280px)] sm:p-3 sm:text-xs">
-            <div className={`font-[family-name:var(--font-display)] text-xs font-bold sm:text-base ${settled.outcome === "win" ? "text-moss" : "text-blood"}`}>
+          <div className="card-in absolute left-[2%] top-[24%] z-10 w-[48%] rounded-xl border border-edge bg-black/70 p-2 text-[10px] backdrop-blur-sm @xl:w-[min(42%,280px)] @xl:p-3 @xl:text-xs">
+            <div className={`font-[family-name:var(--font-display)] text-xs font-bold @xl:text-base ${settled.outcome === "win" ? "text-moss" : "text-blood"}`}>
               {settled.outcome === "win" ? `Raid #${round!.id}: the town won` : `Raid #${round!.id}: the Bear won`}
             </div>
             <div className="mt-1 text-parch">
               {TACTIC_ICON[settled.tactic]} {tacticName(settled.tactic)} (roll {settled.tactic_roll})
-              <span className="hidden text-dim sm:inline">: {TACTIC_EFFECTS[settled.tactic as Tactic]}</span>
+              <span className="hidden text-dim @xl:inline">: {TACTIC_EFFECTS[settled.tactic as Tactic]}</span>
             </div>
             <div className="mt-1 text-dim">
               {slay(settled.total_weight)} damage vs {slay(settled.effective_health)} health ·{" "}
               {settled.outcome === "win" ? `${slay(settled.reward)} $SLAY loot` : `${slay(settled.steal)} $SLAY stolen`}
             </div>
             {settled.drops.length > 0 && (
-              <div className="mt-1 hidden text-dim sm:block">
+              <div className="mt-1 hidden text-dim @xl:block">
                 Drops:{" "}
                 {groupDrops(settled.drops)
                   .map((d) => `${itemIcon(d.token_id)} ${d.qty} ${itemName(d.token_id)} → ${who(d.account, account)}${d.n > 1 ? ` (${d.n} drops)` : ""}`)
@@ -645,9 +647,9 @@ export const RaidScene = forwardRef<SceneHandle, {
 
         {/* idle hint */}
         {!live && !suspense && !(settled && showOutcome) && (
-          <div className="absolute left-1/2 top-[22%] -translate-x-1/2 rounded-xl bg-black/55 px-3 py-1.5 text-center text-xs text-parch backdrop-blur-sm sm:text-sm">
+          <div className="absolute left-1/2 top-[22%] -translate-x-1/2 rounded-xl bg-black/55 px-3 py-1.5 text-center text-xs text-parch backdrop-blur-sm @xl:text-sm">
             The Bear sleeps on a hoard of {slay(snap.status.hoard)} $SLAY. Strike to wake it.
-            <div className="text-[10px] text-dim sm:text-xs">
+            <div className="text-[10px] text-dim @xl:text-xs">
               Next mood: {TACTIC_ICON[snap.status.next_mood]} {tacticName(snap.status.next_mood)} ({pct(config.moodBps)})
             </div>
           </div>
@@ -655,9 +657,10 @@ export const RaidScene = forwardRef<SceneHandle, {
 
         {/* banner */}
         {banner && (
-          <div key={banner.id} className="banner-pop pointer-events-none absolute inset-x-0 top-[40%] z-30 bg-gradient-to-r from-transparent via-black/70 to-transparent py-1.5 text-center sm:top-[33%] sm:py-3">
+          <div key={banner.id} className="banner-pop pointer-events-none absolute inset-x-0 top-[40%] z-30 bg-gradient-to-r from-transparent via-black/70 to-transparent py-1.5 text-center @xl:top-[33%] @xl:py-3">
             <div
-              className="font-[family-name:var(--font-display)] text-2xl font-black tracking-wide sm:text-6xl"
+              // sized by the scene's height, so a banner never fills a small scene
+              className="font-[family-name:var(--font-display)] text-[clamp(1.5rem,11cqh,3.75rem)] font-black leading-tight tracking-wide"
               style={{
                 color: banner.tone === "green" ? "#4ade80" : banner.tone === "red" ? "#f87171" : banner.tone === "gold" ? "#fbbf24" : "#f3e7cf",
                 WebkitTextStroke: "2px #1b120a",
@@ -666,7 +669,7 @@ export const RaidScene = forwardRef<SceneHandle, {
             >
               {banner.text}
             </div>
-            {banner.sub && <div className="mt-0.5 px-2 text-[10px] font-bold text-parch drop-shadow sm:mt-1 sm:text-base">{banner.sub}</div>}
+            {banner.sub && <div className="mt-0.5 px-2 text-[clamp(0.625rem,3cqh,1rem)] font-bold text-parch drop-shadow @xl:mt-1">{banner.sub}</div>}
           </div>
         )}
 

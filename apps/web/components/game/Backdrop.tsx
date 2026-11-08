@@ -10,6 +10,7 @@ export function Backdrop({ dusk, mood }: { dusk: number; mood: "calm" | "raid" |
           ? ["#101626", "#25304d", "#5b4b6b"]
           : [mix("#2a1d4a", "#0d0a1a", dusk), mix("#6b3350", "#2a1230", dusk), mix("#d9822b", "#7a2e1c", dusk)];
   return (
+    <>
     <svg viewBox="0 0 1200 560" preserveAspectRatio="xMidYMax slice" className="absolute inset-0 h-full w-full" aria-hidden>
       <defs>
         <linearGradient id="bd-sky" x1="0" y1="0" x2="0" y2="1">
@@ -17,10 +18,6 @@ export function Backdrop({ dusk, mood }: { dusk: number; mood: "calm" | "raid" |
           <stop offset="0.6" stopColor={sky[1]} />
           <stop offset="1" stopColor={sky[2]} />
         </linearGradient>
-        <radialGradient id="bd-moon" cx="0.5" cy="0.5" r="0.5">
-          <stop offset="0.55" stopColor="#fef3c7" />
-          <stop offset="1" stopColor="#fef3c7" stopOpacity="0" />
-        </radialGradient>
         <linearGradient id="bd-ground" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stopColor="#3a2a1c" />
           <stop offset="1" stopColor="#1c140d" />
@@ -32,8 +29,6 @@ export function Backdrop({ dusk, mood }: { dusk: number; mood: "calm" | "raid" |
           <circle key={i} cx={x} cy={y} r={r} className="bd-twinkle" style={{ animationDelay: `${(i % 7) * 0.6}s`, opacity: mood === "win" ? 0.2 : 0.8 }} />
         ))}
       </g>
-      <circle cx="120" cy="160" r="50" fill="url(#bd-moon)" opacity={mood === "win" ? 0.25 : 0.9} />
-      <circle cx="136" cy="150" r="30" fill={sky[0]} opacity={mood === "win" ? 0.25 : 0.85} />
 
       {/* far hills */}
       <path d="M0 330 Q150 260 300 310 T600 300 T900 290 T1200 300 L1200 420 L0 420 Z" fill="#1d1428" opacity="0.8" />
@@ -74,6 +69,18 @@ export function Backdrop({ dusk, mood }: { dusk: number; mood: "calm" | "raid" |
         ))}
       </g>
     </svg>
+    {/* the moon sits on the scene itself, not the cropped backdrop, so a narrow scene keeps it whole */}
+    <svg viewBox="0 0 100 100" className="absolute left-[4%] top-[19%] h-[18%] w-auto overflow-visible" style={{ aspectRatio: "1 / 1" }} aria-hidden>
+      <defs>
+        <radialGradient id="bd-moon" cx="0.5" cy="0.5" r="0.5">
+          <stop offset="0.55" stopColor="#fef3c7" />
+          <stop offset="1" stopColor="#fef3c7" stopOpacity="0" />
+        </radialGradient>
+      </defs>
+      <circle cx="50" cy="50" r="50" fill="url(#bd-moon)" opacity={mood === "win" ? 0.25 : 0.9} />
+      <circle cx="66" cy="40" r="30" fill={sky[0]} opacity={mood === "win" ? 0.25 : 0.85} style={{ transition: "fill 1s" }} />
+    </svg>
+    </>
   );
 }
 

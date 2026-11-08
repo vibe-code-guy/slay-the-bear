@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { ONE } from "@slay/rules";
 import { RaidScene, type RevealState, type SceneHandle } from "./game/RaidScene";
 import { ControlBar } from "./game/ControlBar";
@@ -31,6 +31,57 @@ export function Town() {
 
   if (!mode) return <p className="text-dim">Loading the town…</p>;
   return <TownView key={mode} mode={mode} choose={choose} />;
+}
+
+/** Wide but short windows put the controls beside the scene; the same query is in globals.css. */
+const SIDE_LAYOUT = "(min-width: 640px) and (max-height: 800px)";
+/** The scene never gets shorter than this, even if the page then has to scroll. */
+const MIN_SCENE_PX = 220;
+
+/**
+ * Keeps the scene and the strike button on one screen: sets --scene-max-h on the play area to
+ * the room left under the header, minus (when the controls sit below the scene) the part of
+ * the control bar down to the strike button.
+ */
+function useFitToScreen(ready: boolean) {
+  const ref = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    const play = ref.current;
+    if (!ready || !play) return;
+    const side = window.matchMedia(SIDE_LAYOUT);
+    const fit = () => {
+      const top = play.getBoundingClientRect().top + window.scrollY;
+      let room = window.innerHeight - top - 12;
+      if (!side.matches) {
+        const controls = play.querySelector<HTMLElement>(".controls, .controls-join");
+        const action = play.querySelector<HTMLElement>(".controls-action") ?? controls;
+        if (controls && action) {
+          const gap = parseFloat(getComputedStyle(play).rowGap) || 0;
+          // the card's own bottom padding, unless the whole card was measured
+          const padding = action === controls ? 0 : parseFloat(getComputedStyle(controls).paddingBottom) || 0;
+          room -= gap + (action.getBoundingClientRect().bottom - controls.getBoundingClientRect().top) + padding;
+        }
+      }
+      const value = `${Math.max(MIN_SCENE_PX, Math.floor(room))}px`;
+      if (play.style.getPropertyValue("--scene-max-h") !== value) play.style.setProperty("--scene-max-h", value);
+    };
+    fit();
+    // re-fit when the window, the controls (a claim button, the spin button) or anything above
+    // the play area changes size
+    const ro = new ResizeObserver(fit);
+    ro.observe(play);
+    if (play.parentElement) ro.observe(play.parentElement.firstElementChild ?? play);
+    const controls = play.querySelector(".play-controls");
+    if (controls) ro.observe(controls);
+    window.addEventListener("resize", fit);
+    side.addEventListener("change", fit);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", fit);
+      side.removeEventListener("change", fit);
+    };
+  }, [ready]);
+  return ref;
 }
 
 function Tabs({ tabs }: { tabs: { id: string; label: string; body: React.ReactNode }[] }) {
@@ -106,9 +157,10 @@ function TownView({ mode, choose }: { mode: Mode; choose: (m: Mode) => void }) {
     backend ?? ({ rounds: async () => [], participants: async () => [] } as never),
     snap?.history ?? [],
   );
+  const play = useFitToScreen(!!(backend && snap));
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 short:space-y-2">
       <div className="flex flex-wrap items-center gap-3">
         <div className="inline-flex overflow-hidden rounded-lg border border-edge text-sm">
           <button className={`px-3 py-1.5 ${mode === "live" ? "bg-ember text-night" : "bg-bark"}`} disabled={!LIVE_AVAILABLE} onClick={() => choose("live")}>
@@ -173,6 +225,8 @@ function TownView({ mode, choose }: { mode: Mode; choose: (m: Mode) => void }) {
 
       {backend && snap && (
         <>
+          <div ref={play} className="play">
+          <div className="play-scene">
           <RaidScene
             ref={scene}
             mode={mode}
@@ -185,6 +239,8 @@ function TownView({ mode, choose }: { mode: Mode; choose: (m: Mode) => void }) {
             charging={charging}
             onReveal={setReveal}
           />
+          </div>
+          <div className="play-controls">
           <ControlBar
             mode={mode}
             config={backend.config}
@@ -207,6 +263,8 @@ function TownView({ mode, choose }: { mode: Mode; choose: (m: Mode) => void }) {
             onSpin={(id) => void spin(id)}
             onClaim={(id, share) => void claim(id, share)}
           />
+          </div>
+          </div>
 
           <div className="grid gap-4 lg:grid-cols-3">
             <div className="lg:col-span-2">
@@ -246,7 +304,12 @@ function TownView({ mode, choose }: { mode: Mode; choose: (m: Mode) => void }) {
         </>
       )}
 
-      <div className="fixed inset-x-4 bottom-4 z-40 flex flex-col gap-2 sm:left-auto sm:w-80" aria-live="polite">
+      {/* bottom right; on short screens only as wide as the controls column, over its level card;
+          on phones held sideways bottom left, over the scene rather than the strike controls */}
+      <div
+        className="fixed inset-x-4 bottom-4 z-40 flex flex-col gap-2 sm:left-auto sm:w-80 short:sm:w-64 short:lg:w-72 tiny:sm:left-4 tiny:sm:right-auto tiny:sm:w-60 tiny:sm:text-xs"
+        aria-live="polite"
+      >
         {g.toasts.map((t) => (
           <div key={t.id} className={`card py-2 text-sm shadow-lg ${t.kind === "error" ? "border-blood" : t.kind === "info" ? "border-edge" : "border-moss"}`}>
             {t.text}

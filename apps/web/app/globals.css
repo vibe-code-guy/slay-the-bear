@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+/* short windows (laptops, phones held sideways): tighter spacing around the game */
+@custom-variant short (@media (max-height: 800px));
+/* phones held sideways */
+@custom-variant tiny (@media (max-height: 440px));
+
 @theme {
   --color-night: #15110d;
   --color-bark: #221a13;
@@ -82,6 +87,155 @@ h1,
 h2,
 h3 {
   font-family: var(--font-display);
+}
+
+/* ---------- the play area: the scene and the strike controls on one screen ----------
+   Town measures the room under the header and sets --scene-max-h, so the scene never pushes
+   the strike button off the screen. On wide but short windows (most laptops, tablets and
+   phones held sideways) the controls move to a column beside the scene. These rules are
+   outside any layer on purpose: they override the Tailwind utilities on the same elements. */
+.play {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.scene-box {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  max-height: var(--scene-max-h, none);
+}
+@media (min-width: 640px) {
+  .scene-box {
+    aspect-ratio: 16 / 9;
+  }
+}
+@media (min-width: 1024px) {
+  .scene-box {
+    aspect-ratio: 2.15 / 1;
+  }
+}
+
+.controls {
+  display: grid;
+  align-items: center;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: "claim" "action" "you" "settings";
+}
+.controls-you {
+  grid-area: you;
+}
+.controls-claim {
+  grid-area: claim;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+.controls-action {
+  grid-area: action;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.controls-settings {
+  grid-area: settings;
+}
+@media (min-width: 1024px) {
+  .controls {
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    grid-template-areas: "you action settings";
+  }
+  /* loot to claim sits under "you", so the bar (and the scene above it) keeps its height */
+  .controls.has-claim {
+    row-gap: 0.5rem;
+    grid-template-areas: "you action settings" "claim action settings";
+  }
+  .controls-claim {
+    align-items: flex-start;
+  }
+  .controls-settings {
+    justify-self: end;
+  }
+}
+
+/* Wide but short (most laptops, tablets and phones held sideways): the controls go in a column
+   beside the scene. Keep this query in step with SIDE_LAYOUT in components/Town.tsx. */
+@media (min-width: 640px) and (max-height: 800px) {
+  .play {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+  .play-scene {
+    flex: 1 1 0%;
+    min-width: 0;
+  }
+  .play-controls {
+    flex: none;
+    width: 17rem;
+    align-self: stretch;
+  }
+  .scene-box {
+    aspect-ratio: 3 / 2;
+  }
+  .controls,
+  .controls.has-claim {
+    height: 100%;
+    padding: 0.75rem;
+    row-gap: 0.75rem;
+    align-content: center;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "claim" "action" "settings" "you";
+  }
+  .controls-claim {
+    align-items: stretch;
+  }
+  .controls-settings {
+    justify-self: stretch;
+  }
+  .controls-hint,
+  .controls-mine {
+    display: none;
+  }
+  .controls .strike-btn {
+    width: 5.5rem;
+    height: 5.5rem;
+  }
+  .controls-avatar {
+    width: 2.5rem;
+    height: 3rem;
+  }
+  .controls-join {
+    height: 100%;
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+  }
+}
+@media (min-width: 1024px) and (max-height: 800px) {
+  .play-controls {
+    width: 19rem;
+  }
+  .controls .strike-btn {
+    width: 6.5rem;
+    height: 6.5rem;
+  }
+}
+/* phones held sideways: only what a strike needs */
+@media (min-width: 640px) and (max-height: 440px) {
+  .controls .strike-btn {
+    width: 5rem;
+    height: 5rem;
+  }
+  .controls-you,
+  .controls-join .controls-avatar {
+    display: none;
+  }
+  .controls,
+  .controls.has-claim {
+    row-gap: 0.5rem;
+  }
 }
 
 a.link {

@@ -46,8 +46,8 @@ export function ControlBar(props: {
 
   if (!account || !player) {
     return (
-      <div className="card flex flex-col items-center gap-3 text-center sm:flex-row sm:text-left">
-        <div className="h-24 w-20 shrink-0">
+      <div className="card controls-join flex flex-col items-center gap-3 text-center sm:flex-row sm:text-left">
+        <div className="controls-avatar h-24 w-20 shrink-0">
           <Hero kind="you" />
         </div>
         <div className="flex-1">
@@ -115,7 +115,7 @@ export function ControlBar(props: {
     );
   } else {
     action = (
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3 sm:gap-4">
         <StrikeButton
           disabled={!!pending || spinning || topWhole < minWhole}
           minWhole={minWhole}
@@ -127,7 +127,7 @@ export function ControlBar(props: {
           }}
           onStrike={(a) => props.onStrike(a, w)}
         />
-        <div className="text-left">
+        <div className="min-w-0 text-left" title="Hold to charge, release to strike. Space works too.">
           <div className="font-[family-name:var(--font-display)] text-lg font-bold">{open ? "Strike!" : "Wake the Bear"}</div>
           <div className="text-sm">
             <b className="text-ember">{shownAmount}</b> $SLAY → <b>{slay(dmg.damage)}</b> damage
@@ -136,17 +136,19 @@ export function ControlBar(props: {
             ×{(Number(dmg.bonusBps) / 10_000).toFixed(2)} early{w ? ` · ${w} ×${Number(WEAPON_MULT_BPS[w as WeaponId]) / 10_000}` : ""}
             {dmg.late ? " · late hit" : ""}
           </div>
-          <div className="mt-0.5 text-[11px] text-dim">Hold to charge, release to strike. Space works too.</div>
+          <div className="controls-hint mt-0.5 text-[11px] text-dim">Hold to charge, release to strike. Space works too.</div>
         </div>
       </div>
     );
   }
 
+  // Where each part goes (a row under the scene, or a column beside it on short screens) is set
+  // by the .controls grid areas in globals.css.
   return (
-    <div className="card grid items-center gap-4 lg:grid-cols-[1fr_auto_1fr]">
+    <div className={`card controls ${claimable.length ? "has-claim" : ""}`}>
       {/* you */}
-      <div className="flex items-center gap-3">
-        <div className="h-20 w-16 shrink-0">
+      <div className="controls-you flex items-center gap-3">
+        <div className="controls-avatar h-20 w-16 shrink-0">
           <Hero kind="you" weapon={w} />
         </div>
         <div className="min-w-0 flex-1">
@@ -157,7 +159,7 @@ export function ControlBar(props: {
           <div className="mt-1 h-2 overflow-hidden rounded bg-night" title={`${lv.toNext} more damage to the next level`}>
             <div className="h-full bg-gradient-to-r from-ember to-yellow-300" style={{ width: `${Math.round(lv.progress * 100)}%` }} />
           </div>
-          <div className="mt-1 flex flex-wrap gap-1">
+          <div className="controls-badges mt-1 flex flex-wrap gap-1">
             {badges.map((b) => (
               <span key={b.name} title={`${b.name}: ${b.hint}`} className={`rounded px-1 text-sm ${b.got ? "bg-hide" : "opacity-25 grayscale"}`}>
                 {b.icon}
@@ -167,26 +169,30 @@ export function ControlBar(props: {
         </div>
       </div>
 
-      {/* the one action: first on narrow screens, so it sits right under the scene */}
-      <div className="flex flex-col items-center gap-2 max-lg:order-first">
-        {claimable.map((c) => (
-          <button
-            key={c.roundId}
-            className="btn claim-cta bg-moss px-5 py-2 text-white"
-            disabled={!!pending}
-            onClick={() => {
-              void unlockAudio();
-              props.onClaim(c.roundId, c.share);
-            }}
-          >
-            💰 Claim +{slay(c.share, 2)} $SLAY from raid #{c.roundId}
-          </button>
-        ))}
-        {action}
-      </div>
+      {/* loot to claim: beside "you" on a wide bar, so the bar keeps its height */}
+      {claimable.length > 0 && (
+        <div className="controls-claim">
+          {claimable.map((c) => (
+            <button
+              key={c.roundId}
+              className="btn claim-cta bg-moss px-4 py-2 text-sm text-white"
+              disabled={!!pending}
+              onClick={() => {
+                void unlockAudio();
+                props.onClaim(c.roundId, c.share);
+              }}
+            >
+              💰 Claim +{slay(c.share, 2)} $SLAY from raid #{c.roundId}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* the one action */}
+      <div className="controls-action">{action}</div>
 
       {/* strike settings */}
-      <div className="space-y-2 text-sm lg:justify-self-end">
+      <div className="controls-settings space-y-2 text-sm">
         <div className="flex flex-wrap items-center gap-1">
           <span className="w-16 text-xs text-dim">Weapon</span>
           <button className={`btn px-2 py-1 text-xs ${!w ? "border-ember text-ember" : ""}`} onClick={() => props.setWeapon(null)}>
@@ -214,7 +220,7 @@ export function ControlBar(props: {
           ))}
         </div>
         {props.me && round && !round.settlement && (
-          <div className="text-xs text-dim">
+          <div className="controls-mine text-xs text-dim">
             You: {props.me.hits} {props.me.hits === 1 ? "hit" : "hits"}, {slay(BigInt(props.me.early) + BigInt(props.me.late))} damage this raid
           </div>
         )}

@@ -26,6 +26,7 @@
     "build:contract": "cd contracts/game && cargo near build non-reproducible-wasm --no-abi",
     "build:contract:reproducible": "cd contracts/game && cargo near build reproducible-wasm",
     "test:ui": "tsx scripts/ui-check.ts",
+    "test:fit": "tsx scripts/ui-fit.ts",
     "agents": "tsx scripts/agents.ts"
   },
   "devDependencies": {
