@@ -25,6 +25,7 @@ import {
   statusJson,
   treasuryReward,
   villagerHit,
+  villagerTrade,
   type Personality,
   type RecipeId,
 } from "@slay/rules";
@@ -92,6 +93,7 @@ export function createSimBackend(roundSecs = 300n): Backend {
         hitsThisRound.clear();
         idleSince = now;
         for (const v of VILLAGERS) run(() => game.claim(v.id, cur.id, now));
+        trade(now);
       }
       return;
     }
@@ -116,8 +118,22 @@ export function createSimBackend(roundSecs = 300n): Backend {
         maxHit: config.maxHit,
       });
       if (!d) continue;
-      const weapon = game.itemBal(v.id, "sword") > 0n ? "sword" : game.itemBal(v.id, "club") > 0n ? "club" : null;
+      // the best weapon it holds, as the live villagers do
+      const weapon = (["slayer", "sword", "club"] as const).find((w) => game.itemBal(v.id, w) > 0n) ?? null;
       if (run(() => game.hit(v.id, d.value, weapon, now)).ok) hitsThisRound.set(v.id, (hitsThisRound.get(v.id) ?? 0) + 1);
+    }
+  }
+
+  /** After a raid each villager may forge, put a trophy up for sale or sell spare wood (villagerTrade). */
+  function trade(now: bigint) {
+    for (const v of VILLAGERS) {
+      const p = playerJson(game, v.id);
+      const d = villagerTrade(v.personality, { balance: BigInt(p.balance), items: new Map(p.items.map(([t, q]) => [t, BigInt(q)])), trophies: p.trophies });
+      if (!d) continue;
+      const m = d.value;
+      if (m.kind === "craft") run(() => game.craft(v.id, m.recipe, m.trophy, now));
+      else if (m.kind === "list") run(() => game.list(v.id, m.token, m.qty, m.price, now));
+      else run(() => game.sellToSmith(v.id, m.token, m.qty, now));
     }
   }
 
@@ -189,6 +205,7 @@ export function createSimBackend(roundSecs = 300n): Backend {
             hitsThisRound.clear();
             idleSince = now;
             for (const v of VILLAGERS) run(() => game.claim(v.id, a.roundId, now));
+            trade(now);
           }
           return res;
         }

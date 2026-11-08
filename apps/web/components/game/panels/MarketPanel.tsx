@@ -20,6 +20,7 @@ export function MarketPanel({
   pending,
   act,
   randomness,
+  initialPick = null,
 }: {
   listings: ListingJson[];
   player: PlayerJson | null;
@@ -27,11 +28,18 @@ export function MarketPanel({
   pending: string | null;
   act: Act;
   randomness: Map<string, string>;
+  /** the item to sell, when the backpack's "Sell" opened the market */
+  initialPick?: string | null;
 }) {
   const owned: [string, string][] = player ? [...player.items.filter(([, q]) => q !== "0"), ...player.trophies.map((t) => [t, "1"] as [string, string])] : [];
-  const [pick, setPick] = useState<string | null>(null);
+  const [pick, setPickState] = useState<string | null>(initialPick);
   const [qty, setQty] = useState("1");
-  const [price, setPrice] = useState("10");
+  // a trophy is worth more than a stick of wood; the villagers ask 250 to 400
+  const [price, setPrice] = useState(initialPick && isTrophy(initialPick) ? "300" : "10");
+  const setPick = (t: string) => {
+    setPickState(t);
+    if (isTrophy(t) && price === "10") setPrice("300");
+  };
   const sel = pick && owned.some(([t]) => t === pick) ? pick : (owned[0]?.[0] ?? null);
   const max = BigInt(owned.find(([t]) => t === sel)?.[1] ?? "0");
   const q = /^\d{1,6}$/.test(qty) ? BigInt(qty) : 0n;

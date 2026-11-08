@@ -23,7 +23,7 @@ const SOUNDS = {
   levelup: [1, 0, 392, 0.02, 0.3, 0.5, 1, 1.4, , , 196, 0.08, 0.1, , , , , 0.6, 0.1],
 } as const satisfies Record<string, readonly (number | undefined)[]>;
 
-export type SoundName = keyof typeof SOUNDS | "fanfare" | "charge";
+export type SoundName = keyof typeof SOUNDS | "fanfare" | "charge" | "sparkle";
 
 let lib: Zzfx | null = null;
 let loading: Promise<Zzfx | null> | null = null;
@@ -76,6 +76,12 @@ export function play(name: SoundName, pitch = 1) {
   }
   if (name === "charge") {
     z(0.18, 0, 300 * pitch, 0, 0.015, 0.04, 1);
+    return;
+  }
+  if (name === "sparkle") {
+    // a rare find: a quick run up high, then a ring
+    [1319, 1568, 1976, 2637].forEach((f, i) => setTimeout(() => z(0.35, 0, f * pitch, 0.005, 0.05, 0.18, 0, 1.5), i * 70));
+    setTimeout(() => z(...[0.45, 0, 2637 * pitch, 0.01, 0.4, 0.8, 0, 1.2, , , , , , , , , 0.12, 0.5]), 300);
     return;
   }
   const p = [...SOUNDS[name]] as (number | undefined)[];

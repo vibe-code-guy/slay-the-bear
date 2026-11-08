@@ -58,35 +58,38 @@ export function ForgePanel({ player, pending, act, randomness }: { player: Playe
           if (!feeOk) missing.push(`${slay(r.fee - bal)} $SLAY`);
           return (
             <div key={id} className={`forge-row relative overflow-hidden rounded-xl border p-3 ${working === id ? "forge-working border-ember" : "border-edge"} bg-black/30`}>
-              <div className="flex flex-wrap items-center gap-3">
-                {needs.map((n) => (
-                  <div key={n.label} className="flex items-center gap-1">
-                    <div className={`relative h-12 w-12 ${n.have >= n.need ? "" : "opacity-40 grayscale"}`}>
-                      <ItemArt id={n.id} randomness={n.label === "trophy" ? randomness.get(n.id) : undefined} />
+              {/* what goes in and what comes out (wraps on a narrow panel), then the button */}
+              <div className="flex items-center gap-3">
+                <div className="flex min-w-0 flex-1 flex-wrap items-center gap-3">
+                  {needs.map((n) => (
+                    <div key={n.label} className="flex items-center gap-1">
+                      <div className={`relative h-12 w-12 ${n.have >= n.need ? "" : "opacity-40 grayscale"}`}>
+                        <ItemArt id={n.id} randomness={n.label === "trophy" ? randomness.get(n.id) : undefined} />
+                      </div>
+                      <span className={`text-xs font-bold ${n.have >= n.need ? "text-moss" : "text-blood"}`}>
+                        {n.have.toString()}/{n.need.toString()}
+                      </span>
+                      <span className="ml-1 text-dim">+</span>
                     </div>
-                    <span className={`text-xs font-bold ${n.have >= n.need ? "text-moss" : "text-blood"}`}>
-                      {n.have.toString()}/{n.need.toString()}
-                    </span>
-                    <span className="ml-1 text-dim">+</span>
+                  ))}
+                  <div className="flex items-center gap-1">
+                    <Coin className="h-8 w-8" />
+                    <span className={`text-xs font-bold ${feeOk ? "text-moss" : "text-blood"}`}>{slay(r.fee)}</span>
                   </div>
-                ))}
-                <div className="flex items-center gap-1">
-                  <Coin className="h-8 w-8" />
-                  <span className={`text-xs font-bold ${feeOk ? "text-moss" : "text-blood"}`}>{slay(r.fee)}</span>
-                </div>
-                <span className="text-2xl text-dim">→</span>
-                <div className="flex items-center gap-2">
-                  <div className={`relative h-16 w-16 ${made === id ? "forge-reveal" : ""}`}>
-                    <ItemArt id={id} />
-                  </div>
-                  <div>
-                    <div className="font-bold">
-                      {r.charges.toString()} × {itemTitle(id)}
+                  <span className="text-2xl text-dim">→</span>
+                  <div className="flex items-center gap-2">
+                    <div className={`relative h-16 w-16 ${made === id ? "forge-reveal" : ""}`}>
+                      <ItemArt id={id} />
                     </div>
-                    <div className="text-xs text-dim">×{Number(WEAPON_MULT_BPS[id]) / 10_000} damage per hit</div>
+                    <div>
+                      <div className="font-bold">
+                        {r.charges.toString()} × {itemTitle(id)}
+                      </div>
+                      <div className="text-xs text-dim">×{Number(WEAPON_MULT_BPS[id]) / 10_000} damage per hit</div>
+                    </div>
                   </div>
                 </div>
-                <div className="ml-auto flex flex-col items-end gap-1">
+                <div className="flex shrink-0 flex-col items-end gap-1 text-right">
                   <button type="button" className="btn btn-primary px-4 py-2 font-bold" disabled={!ok || !!pending || !!working} onClick={() => void forge(id)}>
                     {working === id ? "🔨 Forging…" : made === id ? "✓ Forged!" : "🔨 Forge"}
                   </button>

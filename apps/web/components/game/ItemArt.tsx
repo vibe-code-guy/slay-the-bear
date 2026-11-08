@@ -181,7 +181,8 @@ export function TrophyArt({ traits, className = "h-full w-full" }: { traits: Tro
         {/* rays */}
         <g opacity="0.18" stroke={e.light} strokeWidth="5">
           {Array.from({ length: 10 }, (_, i) => (
-            <path key={i} d={`M60 58 L${60 + 90 * Math.cos((i / 10) * Math.PI * 2)} ${58 + 90 * Math.sin((i / 10) * Math.PI * 2)}`} />
+            // rounded: Math.cos can differ in the last digit between the server and the browser
+            <path key={i} d={`M60 58 L${(60 + 90 * Math.cos((i / 10) * Math.PI * 2)).toFixed(2)} ${(58 + 90 * Math.sin((i / 10) * Math.PI * 2)).toFixed(2)}`} />
           ))}
         </g>
         <ellipse cx="60" cy="98" rx="34" ry="7" fill="#000" opacity="0.45" />
@@ -202,7 +203,9 @@ export function TrophyArt({ traits, className = "h-full w-full" }: { traits: Tro
           </g>
         )}
       </g>
-      <text x="60" y="113" textAnchor="middle" fontSize="7" fontWeight="800" fill="#0b0805" opacity="0.75" letterSpacing="1">
+      {/* the grade on a little plate in the frame's metal */}
+      <rect x="35" y="102" width="50" height="13" rx="4" fill={`url(#fr${u})`} stroke="#0b0805" strokeOpacity="0.55" strokeWidth="1.2" />
+      <text x="60" y="111.4" textAnchor="middle" fontSize="7.5" fontWeight="900" fill="#1b120a" letterSpacing="1.2">
         {grade.toUpperCase()}
       </text>
     </svg>

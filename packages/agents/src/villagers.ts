@@ -1,6 +1,7 @@
 // Villagers: NPC raiders with ordinary player accounts. Each follows one personality from
-// packages/rules/src/npc.ts (villagerHit), so a quiet town still has someone fighting. They
-// claim a starter pouch like anyone, hit with their own $SLAY, and claim their own loot.
+// packages/rules/src/npc.ts (villagerHit, villagerTrade), so a quiet town still has someone
+// fighting and trading. They claim a starter pouch like anyone, hit with their own $SLAY, claim
+// their own loot, forge weapons from their drops and sell trophies at the market.
 
 import { teraToGas, type Account } from "near-api-js";
 import {
@@ -11,6 +12,7 @@ import {
   min,
   treasuryReward,
   villagerHit,
+  villagerTrade,
   type Personality,
   type PlayerJson,
   type RaidView,
@@ -77,6 +79,24 @@ export async function villagerTick(
         logs.push({ agent: v.name, message: `claimed loot from round ${lastRound.id}`, tx: txHashOf(res) });
       } catch (e) {
         logs.push({ agent: v.name, message: `claim failed: ${errorCode(e)}` });
+      }
+    }
+    // with its loot: forge a weapon, put a trophy up for sale or sell spare wood (one move a tick)
+    const t = moved ? null : villagerTrade(v.personality, { balance: BigInt(p.balance), items: new Map(p.items.map(([k, q]) => [k, BigInt(q)])), trophies: p.trophies });
+    if (t) {
+      const m = t.value;
+      const [method, args]: [string, Record<string, unknown>] =
+        m.kind === "craft"
+          ? ["craft", m.trophy ? { recipe_id: m.recipe, trophy_id: m.trophy } : { recipe_id: m.recipe }]
+          : m.kind === "list"
+            ? ["list", { token_id: m.token, qty: m.qty.toString(), price: m.price.toString() }]
+            : ["sell_to_smith", { token_id: m.token, qty: m.qty.toString() }];
+      try {
+        const res = await call(v, client, method, args);
+        moved = true;
+        logs.push({ agent: v.name, message: t.reason, tx: txHashOf(res) });
+      } catch (e) {
+        logs.push({ agent: v.name, message: `${method} failed: ${errorCode(e)}` });
       }
     }
     if (!moved) players.set(id, p);

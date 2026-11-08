@@ -916,7 +916,95 @@ button.item-card:hover {
   }
 }
 
+/* ---------- the loot chest (LootReveal) ---------- */
+.loot-veil {
+  background: radial-gradient(60% 55% at 50% 48%, rgba(40, 24, 8, 0.55), rgba(8, 5, 3, 0.86));
+  animation: panel-fade 0.3s ease-out both;
+}
+.loot-leave {
+  transition: opacity 0.4s ease-in;
+  opacity: 0;
+}
+.chest-shake {
+  animation: chest-shake 0.42s ease-in-out;
+}
+@keyframes chest-shake {
+  0%,
+  100% {
+    transform: rotate(0);
+  }
+  20% {
+    transform: rotate(-4deg) translateY(-2px);
+  }
+  45% {
+    transform: rotate(4deg);
+  }
+  70% {
+    transform: rotate(-2deg) translateY(-1px);
+  }
+}
+.chest-lid {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  transition: transform 0.45s cubic-bezier(0.3, 1.8, 0.5, 1);
+}
+.chest-open .chest-lid {
+  transform: translateY(-14px) rotate(-14deg);
+}
+.chest-light {
+  opacity: 0;
+  transition: opacity 0.4s ease-out 0.1s;
+}
+.chest-open .chest-light {
+  opacity: 1;
+}
+.loot-rays {
+  background: repeating-conic-gradient(from 0deg, rgba(253, 230, 138, 0.22) 0deg 9deg, transparent 9deg 24deg);
+  -webkit-mask-image: radial-gradient(closest-side, #000 25%, transparent 75%);
+  mask-image: radial-gradient(closest-side, #000 25%, transparent 75%);
+  opacity: 0;
+  transition: opacity 0.5s ease-out;
+}
+.chest-open .loot-rays {
+  opacity: 1;
+  animation: loot-rays 9s linear infinite;
+}
+@keyframes loot-rays {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.loot-pop {
+  animation: loot-pop 0.55s cubic-bezier(0.3, 1.7, 0.5, 1) both;
+}
+@keyframes loot-pop {
+  from {
+    opacity: 0;
+    transform: translateY(40%) scale(0.2);
+  }
+}
+.loot-trophy {
+  box-shadow:
+    0 0 0 3px var(--glow, #c2763a),
+    0 0 36px var(--glow, #c2763a);
+  animation: loot-trophy 1.6s ease-in-out infinite;
+}
+@keyframes loot-trophy {
+  50% {
+    box-shadow:
+      0 0 0 3px var(--glow, #c2763a),
+      0 0 64px var(--glow, #c2763a);
+    transform: translateY(-3%) rotate(-2deg);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .loot-veil,
+  .chest-shake,
+  .loot-rays,
+  .chest-open .loot-rays,
+  .loot-pop,
+  .loot-trophy,
   .scene-shake,
   .bear-hit,
   .hero-lunge-r,

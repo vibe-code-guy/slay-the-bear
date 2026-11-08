@@ -33,7 +33,8 @@ export function BackpackPanel({
   weapon: string | null;
   setWeapon: (w: string | null) => void;
   randomness: Map<string, string>;
-  open: (p: PanelId) => void;
+  /** opens another panel; for the market, with the item to sell picked */
+  open: (p: PanelId, token?: string) => void;
   look: React.ComponentProps<typeof Hero>["look"];
 }) {
   if (!player || !account) {
@@ -121,7 +122,7 @@ export function BackpackPanel({
                 <button type="button" className="btn px-2 py-0.5 text-xs" onClick={() => open("forge")}>
                   Forge
                 </button>
-                <button type="button" className="btn px-2 py-0.5 text-xs" onClick={() => open("market")}>
+                <button type="button" className="btn px-2 py-0.5 text-xs" onClick={() => open("market", t)}>
                   Sell
                 </button>
               </ItemCard>

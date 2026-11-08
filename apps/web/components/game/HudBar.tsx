@@ -137,6 +137,7 @@ export function HudBar({
             onClick={() => onOpen(m.id)}
             title={m.hint}
             aria-label={m.label}
+            data-hud={m.id}
           >
             <span className="text-lg leading-none" aria-hidden>
               {m.icon}

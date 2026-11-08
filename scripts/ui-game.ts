@@ -85,7 +85,17 @@ async function main() {
     await shot(page, "6-wheel-spin");
     await page.getByText(/^(VICTORY!|THE BEAR WINS)$/).waitFor({ timeout: 30_000 });
     await shot(page, "7-result", true);
-    // the result card comes in once the VICTORY / THE BEAR WINS banner has gone
+    // a won raid opens your loot chest after the banner, if the beacon gave you anything
+    const chest = page.getByRole("dialog", { name: /Your loot/ });
+    if (await chest.waitFor({ timeout: 6000 }).then(() => true, () => false)) {
+      await page.waitForTimeout(1600);
+      await shot(page, "7a-loot");
+      // a click closes it: the items fly to the backpack
+      await chest.click();
+      await page.waitForTimeout(300);
+      await shot(page, "7a-fly");
+    }
+    // the result card comes in once the VICTORY / THE BEAR WINS banner (and the chest) has gone
     await page.getByText(/: the town won|: the Bear won/).waitFor({ timeout: 15_000 });
     await page.waitForTimeout(600);
     await shot(page, "7b-card");

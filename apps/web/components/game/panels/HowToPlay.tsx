@@ -66,7 +66,8 @@ export function HowToPlay({ config }: { config: GameConfig }) {
       </div>
       <p className="mt-2 text-dim">
         Forge weapons from the wood and iron that won raids drop, or buy clubs from the smith. One drop in twenty is a one-of-one Bear trophy: forge it into a
-        Bear-slayer or sell it. Your level comes from your damage over recent raids, and your hero gains gear as it rises:{" "}
+        Bear-slayer or sell it. The villagers do the same with their own loot: they forge weapons when their charges run out and put trophies up at the market,
+        where you can buy them. Your level comes from your damage over recent raids, and your hero gains gear as it rises:{" "}
         {GEAR_STEPS.map((g) => `${g.name} at level ${g.level}`).join(", ")}. Finish all three of the day&apos;s goals and your hero wears the goal sash until midnight UTC.
       </p>
 

@@ -6,9 +6,9 @@
 // Villagers are ordinary player accounts run by packages/agents. They can only make the moves
 // any player can make, and the contract checks every one. villagerHit decides which move.
 
-import { BPS, type GameConfig } from "./config";
+import { BPS, ONE, type GameConfig } from "./config";
 import type { Game, Round } from "./engine";
-import { RECIPES } from "./items";
+import { RECIPES, type RecipeId } from "./items";
 import {
   Tactic,
   TACTIC_NAMES,
@@ -137,4 +137,64 @@ export function villagerHit(p: Personality, v: RaidView): Decision<bigint> | nul
     reason = `The reward is ${Number(roiBps) / 100}% of the Bear's health. Worth it.`;
   }
   return amount > 0n ? { value: amount, reason } : null;
+}
+
+// ---------- villagers between hits: forging, selling trophies, selling spare wood ----------
+
+export type TradeMove =
+  | { kind: "craft"; recipe: RecipeId; trophy: string | null }
+  | { kind: "list"; token: string; qty: bigint; price: bigint }
+  | { kind: "sell_to_smith"; token: "wood" | "iron"; qty: bigint };
+
+export interface TradeView {
+  balance: bigint;
+  /** materials and weapon charges held, by token id */
+  items: Map<string, bigint>;
+  /** trophies held (a listed trophy sits with the market, not here) */
+  trophies: string[];
+}
+
+/** What each villager asks for a Bear trophy at the market. */
+export const TROPHY_PRICE: Record<Personality, bigint> = {
+  brave: 350n * ONE,
+  follower: 250n * ONE,
+  sniper: 300n * ONE,
+  saver: 400n * ONE,
+};
+
+export const TRADE_STYLE: Record<Personality, string> = {
+  brave: "Forges every Bear trophy into a Bear-slayer once it has the iron; sells the spares.",
+  follower: "Forges a sword or a club when its charges run out; sells its trophies.",
+  sniper: "Forges a sword or a club when its charges run out; sells its trophies.",
+  saver: "Sells its trophies at a high price and spare materials to the smith.",
+};
+
+/**
+ * One move a villager makes with its loot, if any. It spends at most a fifth of its purse on a
+ * forging fee, and only forges a weapon when the charges it has are nearly gone.
+ */
+export function villagerTrade(p: Personality, v: TradeView): Decision<TradeMove> | null {
+  const have = (t: string) => v.items.get(t) ?? 0n;
+  const affords = (fee: bigint) => fee * 5n <= v.balance;
+  const low = (w: string) => have(w) <= 2n;
+  const can = (id: RecipeId) => have("wood") >= RECIPES[id].wood && have("iron") >= RECIPES[id].iron && affords(RECIPES[id].fee);
+
+  if (p === "brave" && v.trophies.length > 0 && low("slayer") && can("slayer")) {
+    return { value: { kind: "craft", recipe: "slayer", trophy: v.trophies[0]! }, reason: "A Bear trophy and five iron: forging a Bear-slayer (×2 damage)." };
+  }
+  // the brave one keeps a trophy for its next Bear-slayer; everyone else sells theirs
+  if (v.trophies.length > (p === "brave" ? 1 : 0)) {
+    const price = TROPHY_PRICE[p];
+    return { value: { kind: "list", token: v.trophies[v.trophies.length - 1]!, qty: 1n, price }, reason: `Selling a Bear trophy at the market for ${price / ONE} $SLAY.` };
+  }
+  if (p !== "saver" && low("slayer") && low("sword") && can("sword")) {
+    return { value: { kind: "craft", recipe: "sword", trophy: null }, reason: "Out of charges: forging 10 sword charges (×1.5 damage)." };
+  }
+  if (p !== "saver" && low("slayer") && low("sword") && low("club") && can("club")) {
+    return { value: { kind: "craft", recipe: "club", trophy: null }, reason: "Out of charges: forging 10 club charges (×1.25 damage)." };
+  }
+  // spare materials go to the smith, which forges clubs from wood
+  if (have("wood") > 8n) return { value: { kind: "sell_to_smith", token: "wood", qty: have("wood") - 4n }, reason: "Selling spare wood to the smith." };
+  if (have("iron") > 12n) return { value: { kind: "sell_to_smith", token: "iron", qty: have("iron") - 6n }, reason: "Selling spare iron to the smith." };
+  return null;
 }

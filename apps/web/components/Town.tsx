@@ -25,8 +25,10 @@ import { useTrophies } from "@/lib/useTrophies";
 import { lootPool, phaseOf, previewHit } from "@/lib/derive";
 import { GAME_ID, LIVE_AVAILABLE, ROOT_ACCOUNT, accountUrl, txUrl } from "@/lib/env";
 import { clock, slay } from "@/lib/format";
+import { centerOf, flyTo } from "@/lib/fly";
 import { play as sound } from "@/lib/sfx";
 import { explain } from "@/lib/types";
+import { useNewItems } from "@/lib/useNewItems";
 
 export function Town() {
   const [mode, setMode] = useState<Mode | null>(null);
@@ -107,6 +109,8 @@ function TownView({ mode, choose }: { mode: Mode; choose: (m: Mode) => void }) {
   const [weapon, setWeaponState] = useState<string | null>(null);
   const [charging, setCharging] = useState<number | null>(null);
   const [panel, setPanelState] = useState<PanelId | null>(null);
+  /** the item to sell when the backpack opens the market */
+  const [sellPick, setSellPick] = useState<string | null>(null);
 
   useEffect(() => setWeaponState(localStorage.getItem("slay-weapon") || null), []);
   const setWeapon = (w: string | null) => {
@@ -187,6 +191,18 @@ function TownView({ mode, choose }: { mode: Mode; choose: (m: Mode) => void }) {
   const fit = useFitToScreen(!!(backend && snap));
   const phase = phaseOf(snap?.round ?? null, now);
   const player = snap?.player ?? null;
+  const fresh = useNewItems(account, player, panel === "backpack", mode === "live");
+
+  // the starter pouch landing: coins fly from the town square to your counter
+  const hadPouch = useRef<boolean | null>(null);
+  useEffect(() => {
+    if (!player) return;
+    if (hadPouch.current === false && player.pouch_claimed) {
+      const box = document.querySelector(".scene-box");
+      setTimeout(() => void flyTo("coins", centerOf(box), { count: 12, size: 22, spread: 120 }).then(() => sound("coin", 1.3)), 300);
+    }
+    hadPouch.current = player.pouch_claimed;
+  }, [player]);
 
   // a red dot on the forge when something can be forged now
   const craftable = useMemo(() => {
@@ -244,8 +260,11 @@ function TownView({ mode, choose }: { mode: Mode; choose: (m: Mode) => void }) {
         account={account}
         balance={player ? BigInt(player.balance) : null}
         damage={myRow?.damage ?? 0n}
-        dots={{ forge: craftable, trophies: player?.trophies.length ?? 0 }}
-        onOpen={setPanel}
+        dots={{ backpack: fresh, forge: craftable, trophies: player?.trophies.length ?? 0 }}
+        onOpen={(p) => {
+          setSellPick(null);
+          setPanel(p);
+        }}
         sim={simControls}
         contractUrl={mode === "live" ? accountUrl(GAME_ID) : null}
         accountUrl={mode === "live" && account ? accountUrl(account) : null}
@@ -292,7 +311,12 @@ function TownView({ mode, choose }: { mode: Mode; choose: (m: Mode) => void }) {
                     liveAvailable={LIVE_AVAILABLE}
                     pending={g.pending}
                     status={status}
-                    onPlay={() => void g.join()}
+                    onPlay={() =>
+                      void g.join().then(() =>
+                        // the starter pouch: coins fly from the square to your counter once the HUD shows it
+                        setTimeout(() => void flyTo("coins", centerOf(document.querySelector(".scene-box")), { count: 12, size: 22, spread: 120 }).then(() => sound("coin", 1.3)), 500),
+                      )
+                    }
                     onSwitch={() => choose(mode === "live" ? "sim" : "live")}
                   />
                 ) : null
@@ -338,12 +362,17 @@ function TownView({ mode, choose }: { mode: Mode; choose: (m: Mode) => void }) {
               weapon={weapon}
               setWeapon={setWeapon}
               randomness={trophies.randomness}
-              open={setPanel}
+              open={(p, token) => {
+                setSellPick(token ?? null);
+                setPanel(p);
+              }}
               look={account ? looks.get(account) : undefined}
             />
           )}
           {panel === "forge" && <ForgePanel player={player} pending={g.pending} act={g.act} randomness={trophies.randomness} />}
-          {panel === "market" && <MarketPanel listings={snap.listings} player={player} account={account} pending={g.pending} act={g.act} randomness={trophies.randomness} />}
+          {panel === "market" && (
+            <MarketPanel listings={snap.listings} player={player} account={account} pending={g.pending} act={g.act} randomness={trophies.randomness} initialPick={sellPick} />
+          )}
           {panel === "smith" && <SmithPanel config={backend.config} status={snap.status} player={player} pending={g.pending} act={g.act} />}
           {panel === "trophies" && (
             <TrophyHall

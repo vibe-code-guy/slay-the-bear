@@ -4,16 +4,20 @@
 // exposes an imperative API for the player's own moves, which animate at once and settle when
 // the transaction confirms. Every number it shows comes from the contract's views.
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
-import { ONE, Tactic, TACTIC_EFFECTS, explainBearMood, itemName, moodInputOf, moodWeights, roundTime, type GameConfig, type RoundJson } from "@slay/rules";
+import { ONE, Tactic, TACTIC_EFFECTS, explainBearMood, isTrophy, itemName, moodInputOf, moodWeights, roundTime, type GameConfig, type RoundJson } from "@slay/rules";
 import { Bear, type BearPose } from "./Bear";
 import { Backdrop } from "./Backdrop";
 import { Hero, heroKindOf, type HeroKind, type HeroLook } from "./Hero";
+import { LootReveal, type LootItem } from "./LootReveal";
 import { Particles, type ParticlesHandle } from "./Particles";
 import { Wheel, type WheelStage } from "./Wheel";
 import { isMuted, onMuteChange, play, setMuted, unlockAudio } from "@/lib/sfx";
 import { clock, itemIcon, pct, slay, TACTIC_ICON, tacticName, who } from "@/lib/format";
 import { lateStartsAtMs, lootPool, outcomes, phaseOf, previewHit, winChanceBps } from "@/lib/derive";
-import type { ActionResult, Snapshot } from "@/lib/types";
+import { flyTo } from "@/lib/fly";
+import { itemTitle } from "@/lib/items";
+import { trophyTraits } from "@/lib/trophy";
+import { claimableShare, type ActionResult, type Snapshot } from "@/lib/types";
 
 export interface RevealState {
   roundId: number;
@@ -125,6 +129,14 @@ export const RaidScene = forwardRef<SceneHandle, {
   const [holdWheel, setHoldWheel] = useState(false);
   const [holdCard, setHoldCard] = useState(false);
   const [says, setSays] = useState<Record<string, { id: number; text: string }>>({});
+  const [loot, setLoot] = useState<{ roundId: number; items: LootItem[]; share: bigint | null; randomness: string } | null>(null);
+  /** what happens once your loot chest closes (or right away if there is none) */
+  const afterLoot = useRef<(() => void) | null>(null);
+  const sceneBox = useRef<HTMLDivElement>(null);
+  const snapRef = useRef(snap);
+  snapRef.current = snap;
+  const accountRef = useRef(account);
+  accountRef.current = account;
   const seenSeq = useRef<number | null>(null);
   const prev = useRef<{ id: number; settled: boolean } | null>(null);
   const prevPhase = useRef<{ id: number | null; phase: string } | null>(null);
@@ -177,6 +189,14 @@ export const RaidScene = forwardRef<SceneHandle, {
     },
     [heroes],
   );
+  const slotOfRef = useRef(slotOf);
+  slotOfRef.current = slotOf;
+
+  /** A point of the scene (fractions of its size) on the screen, for things that fly to the HUD. */
+  const onScreen = useCallback((x: number, y: number) => {
+    const r = sceneBox.current?.getBoundingClientRect();
+    return r ? { x: r.left + x * r.width, y: r.top + y * r.height } : { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+  }, []);
 
   // ---------- effects ----------
   const pushNum = useCallback((n: Omit<FloatNum, "id">, ttl = 1700) => {
@@ -247,6 +267,15 @@ export const RaidScene = forwardRef<SceneHandle, {
           } else if (f.kind === "claim" && f.account !== account) {
             const s = slotOf(f.account);
             if (s) particles.current?.burst(s.x, s.y, "coin", 10, 0.7);
+          } else if ((f.kind === "craft" || f.kind === "list") && f.account !== account && f.detail) {
+            // a villager (or another player) forging or selling: they say so, and sparks fly
+            const s = slotOf(f.account);
+            if (s) {
+              const what = isTrophy(f.detail) ? "a Bear trophy" : `${f.value} ${itemTitle(f.detail).toLowerCase()} charges`;
+              say(f.account, f.kind === "craft" ? `🔨 Forged ${what}!` : `🏷️ Selling ${isTrophy(f.detail) ? "a Bear trophy" : itemTitle(f.detail).toLowerCase()} at the market!`, 4200);
+              particles.current?.burst(s.x, s.y, "spark", 14, 0.8);
+              if (f.kind === "craft") play("clank", 0.9);
+            }
           } else if (f.kind === "smith_forge") {
             particles.current?.burst(0.9, 0.85, "spark", 14, 0.8);
           }
@@ -322,15 +351,47 @@ export const RaidScene = forwardRef<SceneHandle, {
     setReveal({ ...r, stage: "landed" });
     // the result card follows the banner (3.6 s) instead of sitting under it
     setHoldCard(true);
-    setTimeout(() => setHoldCard(false), 3500);
     if (r.outcome === "win") {
       flash("VICTORY!", "green", `The wheel picked ${tacticName(r.tactic ?? 0)} and the Bear still fell`, 3600);
       particles.current?.confetti();
       play("fanfare");
       setCheer("win");
-      // after the banner (3.6 s), so the bubble never sits on top of it
-      setTimeout(() => say("bear", "Ugh… I'll be back, with a bigger hoard.", 4500), 3800);
+
+      // after the banner (3.6 s): your loot chest, if the beacon gave you anything, then the rest
+      const s = snapRef.current;
+      const me = accountRef.current;
+      const st = s.round?.id === r.roundId ? s.round.settlement : null;
+      const mine: LootItem[] =
+        me && st
+          ? groupDrops(st.drops.filter((d) => d.account === me))
+              .sort((a, b) => Number(isTrophy(a.token_id)) - Number(isTrophy(b.token_id)))
+              .map((d) => ({ token_id: d.token_id, qty: d.qty }))
+          : [];
+      const share = me && s.round?.id === r.roundId ? claimableShare(s.round, s.me) : null;
+      const theirTrophies = st ? st.drops.filter((d) => isTrophy(d.token_id) && d.account !== me) : [];
+      afterLoot.current = () => {
+        setHoldCard(false);
+        say("bear", "Ugh… I'll be back, with a bigger hoard.", 4500);
+        // a trophy that dropped to someone else: they say so, with sparks
+        theirTrophies.forEach((d, i) =>
+          setTimeout(() => {
+            const slot = slotOfRef.current(d.account);
+            if (!slot || !st) return;
+            say(d.account, `🏆 A Bear trophy! ${trophyTraits(d.token_id, st.randomness).name}!`, 5200);
+            particles.current?.burst(slot.x, slot.y, "spark", 26, 1.1);
+            play("sparkle", 0.85);
+          }, 700 + i * 900),
+        );
+      };
+      setTimeout(() => {
+        if (st && (mine.length > 0 || (share ?? 0n) > 0n)) setLoot({ roundId: r.roundId, items: mine, share, randomness: st.randomness });
+        else {
+          afterLoot.current?.();
+          afterLoot.current = null;
+        }
+      }, 3700);
     } else {
+      setTimeout(() => setHoldCard(false), 3500);
       flash("THE BEAR WINS", "red", `The wheel picked ${tacticName(r.tactic ?? 0)}. It raids the treasury`, 3600);
       play("lose");
       setTimeout(() => play("roar"), 500);
@@ -385,9 +446,13 @@ export const RaidScene = forwardRef<SceneHandle, {
         setTimeout(() => play("coin", 1.2), 160);
         particles.current?.coinsTo(0.5, 0.55, YOU_SLOT.x, 1 - YOU_SLOT.s * 0.5, 26);
         pushNum({ x: YOU_SLOT.x, y: 0.62, text: `+${slay(amount)} $SLAY`, tone: "loot", pending: false, size: 1.3 }, 2200);
+        // then from your hero to the coin counter in the HUD
+        setTimeout(() => {
+          void flyTo("coins", onScreen(YOU_SLOT.x, 1 - YOU_SLOT.b - YOU_SLOT.s * 0.55), { count: Math.min(14, 4 + Number(amount / ONE) / 40), size: 20 }).then(() => play("coin", 1.4));
+        }, 650);
       },
     }),
-    [account, impact, lunge, pushNum, setReveal, say],
+    [account, impact, lunge, pushNum, setReveal, say, onScreen],
   );
 
   // ---------- derived view ----------
@@ -441,7 +506,7 @@ export const RaidScene = forwardRef<SceneHandle, {
   return (
     <section className="relative overflow-hidden rounded-2xl border border-edge bg-night shadow-2xl" aria-label="The raid">
       {/* scene-box (globals.css): the shape for the screen, capped to the room the page measured */}
-      <div key={shakeKey} className={`scene-box relative [container-type:size] ${shakeKey ? "scene-shake" : ""}`}>
+      <div ref={sceneBox} key={shakeKey} className={`scene-box relative [container-type:size] ${shakeKey ? "scene-shake" : ""}`}>
         <Backdrop dusk={dusk} mood={sky} />
 
         {/* the Bear */}
@@ -658,6 +723,19 @@ export const RaidScene = forwardRef<SceneHandle, {
               Next mood: {TACTIC_ICON[snap.status.next_mood]} {tacticName(snap.status.next_mood)} ({pct(config.moodBps)})
             </div>
           </div>
+        )}
+
+        {/* your loot chest after a won raid */}
+        {loot && (
+          <LootReveal
+            key={`loot-${loot.roundId}`}
+            {...loot}
+            onClose={() => {
+              setLoot(null);
+              afterLoot.current?.();
+              afterLoot.current = null;
+            }}
+          />
         )}
 
         {/* banner */}
