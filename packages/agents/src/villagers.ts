@@ -12,6 +12,7 @@ import {
   treasuryReward,
   villagerHit,
   type Personality,
+  type PlayerJson,
   type RaidView,
 } from "@slay/rules";
 import { errorCode, nsToMs, type GameClient } from "./client";
@@ -48,31 +49,37 @@ export async function villagerTick(
   const config = await client.config();
   const status = await client.status();
 
-  // Claim pouches and any unclaimed loot from the last won round.
+  // Claim pouches and any unclaimed loot from the last won round. The raiders of that round come
+  // in one read rather than one per villager (public RPCs rate-limit bursts of reads).
   const last = status.current_round === null ? status.next_round_id - 1 : status.current_round - 1;
   const lastRound = last >= 1 ? await client.round(last) : null;
+  const lastParts = lastRound?.settlement?.outcome === "win" ? new Map((await client.participants(lastRound.id)).map((p) => [p.account, p])) : null;
+  /** Balances still current after this loop, to reuse when deciding the hits. */
+  const players = new Map<string, PlayerJson>();
   for (const v of villagers) {
     const id = v.account.accountId;
     const p = await client.player(id);
+    let moved = false;
     if (!p.pouch_claimed) {
       try {
         const res = await call(v, client, "claim_pouch", {});
+        moved = true;
         logs.push({ agent: v.name, message: "claimed a starter pouch", tx: txHashOf(res) });
       } catch (e) {
         logs.push({ agent: v.name, message: `no pouch: ${errorCode(e)}` });
       }
     }
-    if (lastRound?.settlement?.outcome === "win") {
-      const part = await client.participant(lastRound.id, id);
-      if (part && !part.claimed) {
-        try {
-          const res = await call(v, client, "claim", { round_id: lastRound.id });
-          logs.push({ agent: v.name, message: `claimed loot from round ${lastRound.id}`, tx: txHashOf(res) });
-        } catch (e) {
-          logs.push({ agent: v.name, message: `claim failed: ${errorCode(e)}` });
-        }
+    const part = lastRound && lastParts?.get(id);
+    if (lastRound && part && !part.claimed) {
+      try {
+        const res = await call(v, client, "claim", { round_id: lastRound.id });
+        moved = true;
+        logs.push({ agent: v.name, message: `claimed loot from round ${lastRound.id}`, tx: txHashOf(res) });
+      } catch (e) {
+        logs.push({ agent: v.name, message: `claim failed: ${errorCode(e)}` });
       }
     }
+    if (!moved) players.set(id, p);
   }
 
   if (status.current_round === null) {
@@ -96,12 +103,13 @@ export async function villagerTick(
   const health = BigInt(r.health);
   let damageSoFar = BigInt(r.total_early) + BigInt(r.total_late);
   const reward = BigInt(status.hoard) + treasuryReward(config, BigInt(status.treasury), BigInt(r.base_health));
+  const parts = new Map((await client.participants(r.id)).map((p) => [p.account, p]));
 
   for (const v of villagers) {
     const id = v.account.accountId;
-    const part = await client.participant(r.id, id);
+    const part = parts.get(id);
     if ((part?.hits ?? 0) >= MAX_HITS_PER_ROUND) continue;
-    const p = await client.player(id);
+    const p = players.get(id) ?? (await client.player(id));
     const view: RaidView = {
       balance: BigInt(p.balance),
       worstHealth: effectiveHealth(health, Tactic.Armor),

@@ -99,7 +99,9 @@ export async function fetchBeacon(round: bigint, fetchImpl: typeof fetch = fetch
   let lastError: unknown;
   for (const base of RELAYS) {
     try {
-      const res = await fetchImpl(`${base}/${QUICKNET.chainHash}/public/${round}`, { cache: "no-store" });
+      // a relay that hangs must not block the settle: give each one 8 s, then try the next
+      const signal = typeof AbortSignal !== "undefined" && "timeout" in AbortSignal ? AbortSignal.timeout(8_000) : undefined;
+      const res = await fetchImpl(`${base}/${QUICKNET.chainHash}/public/${round}`, { cache: "no-store", signal });
       if (!res.ok) throw new Error(`${base} answered ${res.status}`);
       const body = (await res.json()) as { round: number; signature: string; randomness: string };
       if (BigInt(body.round) !== round) throw new Error("relay returned another round");

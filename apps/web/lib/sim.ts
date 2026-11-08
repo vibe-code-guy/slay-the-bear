@@ -168,8 +168,13 @@ export function createSimBackend(roundSecs = 300n): Backend {
           return run(() => game.claimPouch(ME, now));
         case "open_round":
           return run(() => game.openRound(ME, now));
-        case "hit":
-          return run(() => game.hit(ME, a.amount, a.weapon, now));
+        case "hit": {
+          let damage = 0n;
+          const res = run(() => {
+            damage = game.hit(ME, a.amount, a.weapon, now).damage;
+          });
+          return res.ok ? { ...res, damage: damage.toString() } : res;
+        }
         case "settle": {
           const r = game.rounds.get(a.roundId);
           if (!r) return { ok: false, error: "no_round" };
@@ -182,8 +187,13 @@ export function createSimBackend(roundSecs = 300n): Backend {
           }
           return res;
         }
-        case "claim":
-          return run(() => game.claim(ME, a.roundId, now));
+        case "claim": {
+          let amount = 0n;
+          const res = run(() => {
+            amount = game.claim(ME, a.roundId, now);
+          });
+          return res.ok ? { ...res, amount: amount.toString() } : res;
+        }
         case "craft":
           return run(() => game.craft(ME, a.recipe as RecipeId, a.trophy, now));
         case "buy_from_smith":

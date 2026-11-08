@@ -14,6 +14,17 @@ async function shot(page: Page, name: string) {
   console.log(`saved ${name}.png`);
 }
 
+/** Hold the strike button for `ms` and let go: one hit. */
+async function strike(page: Page, ms = 600) {
+  const btn = page.getByRole("button", { name: /Hold to charge/ });
+  await btn.waitFor({ timeout: 90_000 });
+  const box = (await btn.boundingBox())!;
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.mouse.down();
+  await page.waitForTimeout(ms);
+  await page.mouse.up();
+}
+
 async function main() {
   mkdirSync(out, { recursive: true });
   const browser = await chromium.launch({ executablePath: exe, headless: true });
@@ -25,22 +36,26 @@ async function main() {
   });
   page.on("pageerror", (e) => errors.push(String(e)));
 
-  // Simulation: join, hit, skip to the deadline, see the result.
+  // Simulation: join, strike, skip to the deadline, watch the wheel, verify the raid.
   await page.goto(`${url}/?mode=sim`);
   await page.getByRole("button", { name: /Start the simulation/ }).click();
   await page.getByText("Your pouch").waitFor();
-  await page.getByRole("button", { name: /Hit for/ }).click();
-  await page.getByText("Raid board").waitFor();
+  await strike(page);
+  await page.getByText("Raid board").first().waitFor();
   await page.waitForTimeout(1500);
   await shot(page, "sim-raid");
   await page.getByRole("button", { name: "to the deadline" }).click();
-  await page.waitForTimeout(8000);
+  await page.getByText(/the town won|the Bear won/).waitFor({ timeout: 30_000 });
+  await page.waitForTimeout(1500);
   await shot(page, "sim-settled");
+  await page.getByRole("tab", { name: /Past raids/ }).click();
   const verifyButtons = page.getByRole("button", { name: "Verify" });
   if (await verifyButtons.count()) {
     await verifyButtons.first().click();
     await page.getByText(/checks out|failed for raid/).waitFor({ timeout: 15000 });
     await shot(page, "sim-verify");
+  } else {
+    errors.push("no Verify button under Past raids");
   }
 
   if (flag("live")) {
@@ -49,16 +64,19 @@ async function main() {
     await page.getByText("Your pouch").waitFor({ timeout: 90000 });
     await page.waitForTimeout(3000);
     await shot(page, "live-joined");
-    const hit = page.getByRole("button", { name: /Hit for/ });
-    if (await hit.isEnabled()) {
-      await hit.click();
+    const pouch = page.getByRole("button", { name: /Claim your starter pouch/ });
+    if (await pouch.count()) {
+      await pouch.click();
+      await page.waitForTimeout(6000);
+    }
+    const hold = page.getByRole("button", { name: /Hold to charge/ });
+    const spin = page.getByRole("button", { name: /Spin the Wheel of Fate/ });
+    if ((await hold.count()) && (await hold.isEnabled())) {
+      await strike(page, 300);
       await page.waitForTimeout(9000);
-    } else {
-      const settle = page.getByRole("button", { name: /Settle with the drand beacon/ });
-      if (await settle.count()) {
-        await settle.click();
-        await page.waitForTimeout(9000);
-      }
+    } else if ((await spin.count()) && (await spin.isEnabled())) {
+      await spin.click();
+      await page.waitForTimeout(12000);
     }
     await shot(page, "live-after-move");
     await page.goto(`${url}/verify`);

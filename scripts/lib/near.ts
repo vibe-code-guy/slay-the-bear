@@ -6,7 +6,8 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { Account, JsonRpcProvider, KeyPair, baseEncode, type KeyPairString } from "near-api-js";
+import { Account, KeyPair, baseEncode, type KeyPairString } from "near-api-js";
+import { patientProvider } from "../../packages/agents/src/rpc";
 
 export const REPO_ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 
@@ -21,7 +22,7 @@ if (NETWORK !== "testnet") {
   throw new Error(`Scripts are testnet-only (NEAR_NETWORK=${NETWORK})`);
 }
 
-export const provider = new JsonRpcProvider({ url: RPC_URL });
+export const provider = patientProvider(RPC_URL);
 
 export function credentialsDir(): string {
   return join(homedir(), ".near-credentials", NETWORK);

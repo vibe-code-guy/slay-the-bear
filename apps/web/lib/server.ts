@@ -1,15 +1,16 @@
 // Server-side helpers for the API routes: the relayer account, guest creation, delegate
 // validation and rate limits. Secrets come from environment variables only.
 
-import { Account, JsonRpcProvider, PublicKey, SCHEMA, actions, nearToYocto, type KeyPairString } from "near-api-js";
+import { Account, PublicKey, SCHEMA, actions, nearToYocto, type KeyPairString } from "near-api-js";
 import { deserialize } from "borsh";
+import { patientProvider } from "@slay/agents";
 
 export const GAME_ID = process.env.NEXT_PUBLIC_GAME_ID ?? "game.slaythebear.testnet";
 export const ROOT = process.env.NEXT_PUBLIC_ROOT_ACCOUNT ?? "slaythebear.testnet";
 export const RELAYER_READY = !!(process.env.RELAYER_ACCOUNT_ID && process.env.RELAYER_PRIVATE_KEY);
 const RPC = process.env.NEXT_PUBLIC_RPC_URL ?? "https://rpc.testnet.fastnear.com";
 
-export const provider = new JsonRpcProvider({ url: RPC });
+export const provider = patientProvider(RPC);
 
 /** Methods a guest may call through the relayer. Transfers are not relayed. */
 export const RELAYABLE = new Set([
@@ -164,5 +165,19 @@ export async function relay(d: DecodedDelegate): Promise<{ ok: boolean; txHash?:
     const other = text.match(/"(DelegateAction[A-Za-z]+|InvalidNonce|Expired)"/)?.[1];
     return { ok: false, txHash, error: panic ?? other ?? "transaction failed" };
   }
-  return { ok: true, txHash };
+  // Hand the game's own events back, so the screen can show the exact damage or payout.
+  const out: { ok: boolean; txHash?: string; damage?: string; amount?: string } = { ok: true, txHash };
+  const receipts = (res as { receipts_outcome?: { outcome?: { logs?: string[] } }[] }).receipts_outcome ?? [];
+  for (const log of receipts.flatMap((r) => r.outcome?.logs ?? [])) {
+    if (!log.startsWith("EVENT_JSON:")) continue;
+    try {
+      const ev = JSON.parse(log.slice(11)) as { standard?: string; event?: string; data?: { damage?: string; amount?: string }[] };
+      if (ev.standard !== "slay") continue;
+      if (ev.event === "hit") out.damage = ev.data?.[0]?.damage;
+      if (ev.event === "claim") out.amount = ev.data?.[0]?.amount;
+    } catch {
+      /* not ours */
+    }
+  }
+  return out;
 }

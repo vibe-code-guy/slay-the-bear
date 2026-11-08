@@ -53,6 +53,10 @@ export interface ActionResult {
   ok: boolean;
   error?: string;
   txHash?: string;
+  /** Damage of a hit, as the contract computed it (base units). */
+  damage?: string;
+  /** Amount paid by a claim (base units). */
+  amount?: string;
 }
 
 export interface Backend {

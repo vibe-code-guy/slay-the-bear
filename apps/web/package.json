@@ -15,13 +15,16 @@
     "@slay/agents": "0.1.0",
     "@slay/rules": "0.1.0",
     "borsh": "^2.0.0",
+    "canvas-confetti": "^1.9.4",
     "near-api-js": "^7.4.0",
     "next": "^16.4.5",
     "react": "^19.3.1",
-    "react-dom": "^19.3.1"
+    "react-dom": "^19.3.1",
+    "zzfx": "^1.4.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.3.5",
+    "@types/canvas-confetti": "^1.9.0",
     "@types/node": "^24.0.0",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",

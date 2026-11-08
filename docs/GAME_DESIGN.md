@@ -92,7 +92,7 @@ round and view after every step.
 | The Bear | In the contract: mood at the open (`bear_mood`), tactic drawn from the beacon at settlement (`draw_tactic`). | None. Its hoard is a ledger entry that only the rules move. |
 | The smith | In the contract: prices and forging at each open (`smith_forge_bundles`). | None. |
 | Villagers (Bjorn the Brave, Fern the Follower, Sid the Sniper, Sara the Saver) | `packages/agents`, following `villagerHit` in `packages/rules/src/npc.ts`. | Ordinary player accounts. They claim a pouch like anyone and can only make moves any player can make. |
-| The keeper | `packages/agents/src/keeper.ts`: settles a finished raid when no player does. | Ordinary player account. Settling is open to anyone; the contract checks the beacon. |
+| The keeper | `packages/agents/src/keeper.ts`: settles a finished raid when no player has, 15 s after the deciding beacon is out (players get the first chance at the tip). | Ordinary player account. Settling is open to anyone; the contract checks the beacon. |
 
 Villager personalities: *brave* hits early when the reward is at least worth the Bear's health;
 *follower* joins once a third of the health is gone; *sniper* waits for the last tenth and

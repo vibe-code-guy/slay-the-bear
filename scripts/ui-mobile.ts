@@ -16,7 +16,14 @@ page.on("pageerror", (e) => errors.push(String(e)));
 await page.goto(`${url}/?mode=sim`);
 await page.getByRole("button", { name: /Start the simulation/ }).click();
 await page.getByText("Your pouch").waitFor();
-await page.getByRole("button", { name: /Hit for/ }).click();
+// one strike: hold the button, let go
+const btn = page.getByRole("button", { name: /Hold to charge/ });
+await btn.waitFor({ timeout: 60_000 });
+const box = (await btn.boundingBox())!;
+await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+await page.mouse.down();
+await page.waitForTimeout(600);
+await page.mouse.up();
 await page.waitForTimeout(1500);
 await page.screenshot({ path: join(out, "mobile.png"), fullPage: false });
 const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);

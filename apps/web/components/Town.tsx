@@ -1,14 +1,17 @@
 "use client";
-import { useEffect, useState } from "react";
-import { BearPanel } from "./BearPanel";
-import { ActionPanel } from "./ActionPanel";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { ONE } from "@slay/rules";
+import { RaidScene, type RevealState, type SceneHandle } from "./game/RaidScene";
+import { ControlBar } from "./game/ControlBar";
+import { TopSlayers, useSlayers } from "./game/Progress";
 import { Feed, RaidBoard } from "./RaidBoard";
 import { Forge, Market, Pouch, Smith, TownStats } from "./Sidebar";
 import { History } from "./History";
 import { useGame, type Mode } from "@/lib/useGame";
-import { phaseOf, lootPool } from "@/lib/derive";
-import { GAME_ID, LIVE_AVAILABLE, accountUrl, txUrl } from "@/lib/env";
+import { lootPool, phaseOf, previewHit } from "@/lib/derive";
+import { GAME_ID, LIVE_AVAILABLE, ROOT_ACCOUNT, accountUrl, txUrl } from "@/lib/env";
 import { slay } from "@/lib/format";
+import { explain } from "@/lib/types";
 
 export function Town() {
   const [mode, setMode] = useState<Mode | null>(null);
@@ -30,10 +33,79 @@ export function Town() {
   return <TownView key={mode} mode={mode} choose={choose} />;
 }
 
+function Tabs({ tabs }: { tabs: { id: string; label: string; body: React.ReactNode }[] }) {
+  const [active, setActive] = useState(tabs[0]!.id);
+  const current = tabs.find((t) => t.id === active) ?? tabs[0]!;
+  return (
+    <div>
+      <div className="mb-2 flex flex-wrap gap-1" role="tablist">
+        {tabs.map((t) => (
+          <button
+            key={t.id}
+            role="tab"
+            aria-selected={t.id === current.id}
+            className={`rounded-lg px-3 py-1.5 text-sm font-semibold ${t.id === current.id ? "bg-ember text-night" : "bg-bark text-dim hover:text-parch"}`}
+            onClick={() => setActive(t.id)}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+      <div role="tabpanel">{current.body}</div>
+    </div>
+  );
+}
+
 function TownView({ mode, choose }: { mode: Mode; choose: (m: Mode) => void }) {
   const g = useGame(mode);
   const { backend, snap, now } = g;
   const account = backend?.account() ?? null;
+  const scene = useRef<SceneHandle>(null);
+  const [reveal, setReveal] = useState<RevealState | null>(null);
+  const [weapon, setWeaponState] = useState<string | null>(null);
+  const [charging, setCharging] = useState<number | null>(null);
+
+  useEffect(() => setWeaponState(localStorage.getItem("slay-weapon") || null), []);
+  const setWeapon = (w: string | null) => {
+    setWeaponState(w);
+    localStorage.setItem("slay-weapon", w ?? "");
+  };
+
+  const strike = useCallback(
+    async (amountWhole: number, w: string | null) => {
+      if (!backend || !snap) return;
+      const amount = BigInt(amountWhole) * ONE;
+      const open = phaseOf(snap.round, now) === "open" ? snap.round : null;
+      const predicted = previewHit(backend.config, open, now, amount, w).damage;
+      const h = scene.current?.strike(amountWhole, w, predicted);
+      const res = await g.act({ method: "hit", amount, weapon: w }, "Hit", "");
+      h?.resolve(res);
+    },
+    [backend, snap, now, g],
+  );
+
+  const spin = useCallback(
+    async (roundId: number) => {
+      const h = scene.current?.spin(roundId);
+      const res = await g.act({ method: "settle", roundId }, "Settle", "");
+      // if someone else settled first, the wheel keeps spinning until their result shows up
+      if (!res.ok && res.error !== "already_settled") h?.fail();
+    },
+    [g],
+  );
+
+  const claim = useCallback(
+    async (roundId: number, share: bigint) => {
+      const res = await g.act({ method: "claim", roundId }, "Claim", "");
+      if (res.ok) scene.current?.claimed(res.amount ? BigInt(res.amount) : share);
+    },
+    [g],
+  );
+
+  const slayers = useSlayers(
+    backend ?? ({ rounds: async () => [], participants: async () => [] } as never),
+    snap?.history ?? [],
+  );
 
   return (
     <div className="space-y-4">
@@ -85,10 +157,12 @@ function TownView({ mode, choose }: { mode: Mode; choose: (m: Mode) => void }) {
         )}
       </div>
 
-      {!snap && !g.loadError && <p className="text-dim">Reading the contract…</p>}
+      {!snap && !g.loadError && (
+        <div className="card flex aspect-[2.15/1] items-center justify-center text-dim">Reading the contract…</div>
+      )}
       {g.loadError && !snap && (
         <div className="card text-blood">
-          Could not load the game: {g.loadError}.{" "}
+          Could not load the game: {explain(g.loadError)}.{" "}
           {mode === "live" && (
             <button className="link" onClick={() => choose("sim")}>
               Try the offline simulation
@@ -99,59 +173,82 @@ function TownView({ mode, choose }: { mode: Mode; choose: (m: Mode) => void }) {
 
       {backend && snap && (
         <>
-          <Intro mode={mode} />
+          <RaidScene
+            ref={scene}
+            mode={mode}
+            config={backend.config}
+            snap={snap}
+            now={now}
+            account={account}
+            villagerSuffix={mode === "live" ? ROOT_ACCOUNT : backend.contractId}
+            weapon={weapon}
+            charging={charging}
+            onReveal={setReveal}
+          />
+          <ControlBar
+            mode={mode}
+            config={backend.config}
+            round={snap.round}
+            phase={phaseOf(snap.round, now)}
+            now={now}
+            player={snap.player}
+            me={snap.me}
+            account={account}
+            claimable={snap.claimable}
+            pending={g.pending}
+            reveal={reveal}
+            myRow={slayers.rows.find((r) => r.account === account)}
+            weapon={weapon}
+            setWeapon={setWeapon}
+            onCharge={setCharging}
+            onJoin={() => void g.join()}
+            onPouch={() => void g.act({ method: "claim_pouch" }, "Claim pouch", "1,000 $SLAY claimed")}
+            onStrike={(a, w) => void strike(a, w)}
+            onSpin={(id) => void spin(id)}
+            onClaim={(id, share) => void claim(id, share)}
+          />
+
           <div className="grid gap-4 lg:grid-cols-3">
-            <div className="space-y-4 lg:col-span-2">
-              <BearPanel config={backend.config} status={snap.status} round={snap.round} history={snap.history} phase={phaseOf(snap.round, now)} now={now} />
-              {snap.claimable.length > 0 && (
-                <div className="card flex flex-wrap items-center gap-2 border-moss/70">
-                  <span className="font-bold text-moss">Loot waiting for you:</span>
-                  {snap.claimable.map((c) => (
-                    <button
-                      key={c.roundId}
-                      className="btn btn-primary text-sm"
-                      disabled={!!g.pending}
-                      onClick={() => void g.act({ method: "claim", roundId: c.roundId }, "Claim", `Claimed ${slay(c.share)} $SLAY from raid #${c.roundId}`)}
-                    >
-                      💰 {slay(c.share, 2)} $SLAY from raid #{c.roundId}
-                    </button>
-                  ))}
-                </div>
-              )}
-              <ActionPanel
-                mode={mode}
-                config={backend.config}
-                round={snap.round}
-                participants={snap.participants}
-                player={snap.player}
-                me={snap.me}
-                account={account}
-                phase={phaseOf(snap.round, now)}
-                now={now}
-                pending={g.pending}
-                act={g.act}
-                join={g.join}
+            <div className="lg:col-span-2">
+              <Tabs
+                tabs={[
+                  {
+                    id: "board",
+                    label: "⚔️ Raid board",
+                    body: snap.round ? (
+                      <RaidBoard round={snap.round} participants={snap.participants} pool={lootPool(backend.config, snap.status, snap.round)} account={account} mode={mode} />
+                    ) : (
+                      <div className="card text-dim">No raid yet. Strike to start the first one.</div>
+                    ),
+                  },
+                  { id: "feed", label: "📜 Town feed", body: <Feed feed={snap.feed} now={now} account={account} /> },
+                  { id: "past", label: "🎡 Past raids", body: <History history={snap.history} backend={backend} account={account} /> },
+                ]}
               />
-              {snap.round && (
-                <RaidBoard round={snap.round} participants={snap.participants} pool={lootPool(backend.config, snap.status, snap.round)} account={account} mode={mode} />
-              )}
-              <Feed feed={snap.feed} now={now} account={account} />
             </div>
             <div className="space-y-4">
-              <Pouch player={snap.player} account={account} mode={mode} />
-              <Forge player={snap.player} pending={g.pending} act={g.act} />
-              <Smith config={backend.config} status={snap.status} player={snap.player} pending={g.pending} act={g.act} />
-              <Market listings={snap.listings} player={snap.player} account={account} pending={g.pending} act={g.act} />
-              <History history={snap.history} backend={backend} account={account} />
+              <TopSlayers rows={slayers.rows} raids={slayers.raids} account={account} />
+              <Tabs
+                tabs={[
+                  {
+                    id: "pouch",
+                    label: "👛 Pouch",
+                    body: snap.player ? <Pouch player={snap.player} account={account} mode={mode} /> : <div className="card text-dim">Join to get a pouch.</div>,
+                  },
+                  { id: "forge", label: "🔨 Forge", body: <Forge player={snap.player} pending={g.pending} act={g.act} /> },
+                  { id: "smith", label: "⚒️ Smith", body: <Smith config={backend.config} status={snap.status} player={snap.player} pending={g.pending} act={g.act} /> },
+                  { id: "market", label: "🏷️ Market", body: <Market listings={snap.listings} player={snap.player} account={account} pending={g.pending} act={g.act} /> },
+                ]}
+              />
               <TownStats status={snap.status} />
             </div>
           </div>
         </>
       )}
 
-      <div className="fixed inset-x-4 bottom-4 z-30 flex flex-col gap-2 sm:left-auto sm:w-80" aria-live="polite">
+      <div className="fixed inset-x-4 bottom-4 z-40 flex flex-col gap-2 sm:left-auto sm:w-80" aria-live="polite">
         {g.toasts.map((t) => (
-          <div key={t.id} className={`card py-2 text-sm shadow-lg ${t.kind === "error" ? "border-blood" : "border-moss"}`}>
+          <div key={t.id} className={`card py-2 text-sm shadow-lg ${t.kind === "error" ? "border-blood" : t.kind === "info" ? "border-edge" : "border-moss"}`}>
             {t.text}
             {t.txHash && mode === "live" && (
               <>
@@ -165,16 +262,5 @@ function TownView({ mode, choose }: { mode: Mode; choose: (m: Mode) => void }) {
         ))}
       </div>
     </div>
-  );
-}
-
-function Intro({ mode }: { mode: Mode }) {
-  return (
-    <p className="text-sm text-dim">
-      <b className="text-parch">How to play:</b> join, then burn $SLAY to hit the Bear before the timer runs out. Early hits deal more
-      damage. If the town&apos;s damage reaches the Bear&apos;s health, raiders split its hoard plus a treasury reward by damage, and
-      three item drops. If not, the Bear steals from the treasury and grows its hoard for the next raid.{" "}
-      {mode === "live" ? "Every move below is a NEAR testnet transaction." : "This simulation runs the same rules locally."}
-    </p>
   );
 }

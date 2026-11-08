@@ -5,6 +5,7 @@ import { villagerTick, type Villager } from "./villagers";
 
 export * from "./client";
 export * from "./keeper";
+export * from "./rpc";
 export * from "./villagers";
 
 /** One pass of the town's helpers: settle a finished round, then let the villagers act. */

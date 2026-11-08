@@ -49,9 +49,11 @@ export function useGame(mode: Mode) {
     };
   }, [mode]);
 
+  const polling = useRef(false);
   const refresh = useCallback(async () => {
     const b = backendRef.current;
     if (!b) return;
+    polling.current = true;
     try {
       const s = await b.snapshot();
       if (backendRef.current !== b) return;
@@ -60,13 +62,19 @@ export function useGame(mode: Mode) {
       setLoadError(null);
     } catch (e) {
       setLoadError(String((e as Error).message ?? e));
+    } finally {
+      polling.current = false;
     }
   }, []);
 
   useEffect(() => {
     if (!backend) return;
     void refresh();
-    const t = setInterval(() => void refresh(), backend.mode === "sim" ? 1000 : 4000);
+    // the timer skips a beat while a slow read (e.g. waiting out a rate limit) is still running,
+    // so reads never pile up; a move still refreshes at once
+    const t = setInterval(() => {
+      if (!polling.current) void refresh();
+    }, backend.mode === "sim" ? 1000 : 4000);
     return () => clearInterval(t);
   }, [backend, refresh]);
 
@@ -93,8 +101,10 @@ export function useGame(mode: Mode) {
       setPending(label);
       try {
         const res = await b.act(a);
-        if (res.ok) toast({ kind: "ok", text: success ?? `${label}: done`, txHash: res.txHash });
-        else toast({ kind: "error", text: explain(res.error), txHash: res.txHash });
+        // success === "" means the scene shows the result itself; keep a quiet link to the tx.
+        if (res.ok && success !== "") toast({ kind: "ok", text: success ?? `${label}: done`, txHash: res.txHash });
+        else if (res.ok && res.txHash && mode === "live") toast({ kind: "info", text: `${label} confirmed on NEAR`, txHash: res.txHash });
+        else if (!res.ok) toast({ kind: "error", text: explain(res.error), txHash: res.txHash });
         await refresh();
         return res;
       } catch (e) {
@@ -104,7 +114,7 @@ export function useGame(mode: Mode) {
         setPending(null);
       }
     },
-    [refresh, toast],
+    [refresh, toast, mode],
   );
 
   const join = useCallback(async () => {

@@ -1,6 +1,7 @@
 // Run the keeper and the villagers against a game, locally.
-//   npx tsx scripts/agents.ts --game dev3.slaythebear.testnet [--once] [--interval 20] [--open-if-idle]
+//   npx tsx scripts/agents.ts --game dev3.slaythebear.testnet [--once] [--interval 20] [--open-if-idle] [--no-keeper]
 // Keys come from ~/.near-credentials/testnet (created by scripts/setup-npcs.ts).
+// --no-keeper runs the villagers only, leaving the settle to a player (e.g. to test the UI's spin).
 import { GameClient, VILLAGERS, runTick, type Villager } from "../packages/agents/src/index";
 import { account, arg, flag, hasKey, provider, sleep } from "./lib/near";
 
@@ -10,7 +11,7 @@ async function main() {
   const interval = Number(arg("interval", "20")) * 1000;
   const client = new GameClient(provider, game);
   const keeperId = `keeper.${root}`;
-  const keeper = hasKey(keeperId) ? account(keeperId) : undefined;
+  const keeper = !flag("no-keeper") && hasKey(keeperId) ? account(keeperId) : undefined;
   const villagers: Villager[] = VILLAGERS.filter((v) => hasKey(`${v.prefix}.${root}`)).map((v) => ({
     name: v.name,
     personality: v.personality,

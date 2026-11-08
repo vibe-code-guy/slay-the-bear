@@ -10,6 +10,8 @@ export const dynamic = "force-dynamic";
 
 let last = 0;
 let running = false;
+// one client per server instance, so the config and ids are read once rather than every tick
+let client: GameClient | null = null;
 
 function villagersFromEnv(): Villager[] {
   let keys: Record<string, string> = {};
@@ -32,7 +34,8 @@ export async function POST() {
   last = Date.now();
   try {
     const keeper = accountFromEnv(process.env.KEEPER_ACCOUNT_ID, process.env.KEEPER_PRIVATE_KEY);
-    const logs = await runTick({ client: new GameClient(provider, GAME_ID), keeper, villagers: villagersFromEnv(), openIfIdle: false });
+    client ??= new GameClient(provider, GAME_ID);
+    const logs = await runTick({ client, keeper, villagers: villagersFromEnv(), openIfIdle: false });
     return NextResponse.json({ logs });
   } catch (e) {
     console.error("tick failed", e);

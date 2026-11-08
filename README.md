@@ -11,7 +11,7 @@ signature itself. Anyone can recompute any raid from public data.
 
 Built at NEAR HACKATHON for **Memecoins With Mechanics** and **Games With Real Economies**.
 
-![A raid on game.slaythebear.testnet: the Bear's health bar, tactic odds, win chance, the raid board with two villager NPCs and a guest, and the town feed read from the contract](docs/img/town.png)
+![Raid 9 on game.slaythebear.testnet: the timer and early bonus, the Bear's health bar with the win chance and a win/lose chip per tactic, the Bear in its Rage mood saying why, the four villagers and the player's hero, the Wheel of Fate with the mood odds, and the hold-to-strike button](docs/img/town.png)
 
 | | |
 | --- | --- |
@@ -27,11 +27,15 @@ Built at NEAR HACKATHON for **Memecoins With Mechanics** and **Games With Real E
 | Do | See |
 | --- | --- |
 | Open the demo and press **Play as a guest (free)** | A new testnet account `p-xxxxxxxx.slaythebear.testnet` and 1,000 $SLAY in **Your pouch**. No wallet, no gas prompt. |
-| Press **Hit for … damage** | Your hit on the health bar, the **Raid board** and the **Town feed**. The toast links the transaction on nearblocks. |
-| Watch the villagers (Bjorn, Fern, Sid, Sara) | NPC raiders joining by their published rules; the **win chance** updates after every hit. |
-| When the timer ends, press **Settle with the drand beacon** (or wait for the keeper) | Which tactic the beacon drew (a roll out of 10,000), win or loss, and the item drops. |
-| If the town won, press **Claim** | Your share of the loot in your pouch. |
-| Press **Verify** on a past raid, or open **/verify** | 13 checks recomputed in your browser from the contract's views and the drand beacon, all green. |
+| Hold the red **HOLD** button and let go (or hold Space) | The longer you hold, the more $SLAY the strike burns, up to your **Max swing**. Your hero lunges, the damage number flies off the Bear and turns final when the transaction lands; the health bar, **Raid board** and **Town feed** follow. The toast links the transaction on nearblocks. |
+| Watch the villagers (Bjorn, Fern, Sid, Sara) | NPC raiders charging in by their published rules, with the **win chance** and the win/lose chip for each tactic updating after every hit. |
+| When the timer ends, press **Spin the Wheel of Fate** (or wait for the keeper) | The wheel spins while the contract checks the drand signature, then stops on the roll (out of 10,000) that drew the Bear's tactic: victory or defeat, the loot and the item drops. |
+| If the town won, press **Claim** | Your share of the loot flies into your pouch. |
+| Open **Past raids** and press **Verify**, or open **/verify** | 13 checks recomputed in your browser from the contract's views and the drand beacon, all green. |
+
+The scene only animates what the contract reports. The wheel's segments are the mood odds from
+`get_config`, it stops at `roll / 10,000` of a turn after the settlement is on chain, and the
+levels and **Top slayers** are computed from the participants of the last 20 settled raids.
 
 ### From a clone
 
@@ -51,7 +55,7 @@ npm run simulate             # the economy simulation; open sim-out/report.html
 | --- | --- |
 | `npm run verify:game` | `PASS round 1: win, Rage (roll 7622), 2 raiders, 13 checks` and a line like it for every raid, then four ledger identities and `ALL PASS`. |
 | `npm run demo`, open http://localhost:3000 | The live town, read straight from the testnet contract. Guest play needs the hosted site's relayer, so a clone shows "has no relayer" when you press Play. |
-| Switch to **Offline simulation**, press **Start the simulation**, hit, then **to the deadline** | A full raid with the same rules engine and a local beacon, settled a few seconds after the deadline. **Verify** on the raid shows 13 green checks. |
+| Switch to **Offline simulation**, press **Start the simulation**, strike, then **to the deadline** | A full raid with the same rules engine and a local beacon, settled a few seconds after the deadline. **Verify** under **Past raids** shows 13 green checks. |
 | Open **/fast-forward** and press **Run** | 90 days of raids in a second: win rate, longest Bear streak, health against damage, the hoard and the burn. |
 | `git checkout 2038bbd`, `npm run build:contract:reproducible` (needs Docker), `git checkout main`, `npm run verify:live` | The deployed code hash equals your reproducible build of the commit named in the contract's metadata. |
 
@@ -145,16 +149,17 @@ relayer and hosted site: [docs/DEPLOY.md](docs/DEPLOY.md).
 - **Fake accounts.** Splitting $SLAY across accounts gains nothing in a raid, and pouches are
   capped at 200 a day, but a farmer can collect pouches within the cap.
 - **Storage.** The contract pays for its state; anyone can top it up by sending it NEAR.
-- **Not built:** NEAR Auth (Google or email) sign-in, NEAR wallet sign-in, mercenaries and a season
-  leaderboard. Guests and direct contract calls cover sign-in.
+- **Not built:** NEAR Auth (Google or email) sign-in, NEAR wallet sign-in, mercenaries and a
+  season-long leaderboard (the town ranks the last 20 raids). Guests and direct contract calls
+  cover sign-in.
 
 ## Built with
 
 near-sdk and near-contract-standards 5.30, cargo-near 0.22 (reproducible build image
 `sourcescan/cargo-near:0.22.0-rust-1.99.1`), near-api-js 7.4, borsh, @noble/curves and
 @noble/hashes 2.4 (BLS12-381 and SHA-256 in TypeScript), Next.js 16, React 19, Tailwind CSS 4,
-Vitest 5, tsx, playwright-core (UI checks only), and the drand quicknet beacon run by the League
-of Entropy.
+ZzFX 1.4 (sound effects), canvas-confetti 1.9, Vitest 5, tsx, playwright-core (UI checks only),
+and the drand quicknet beacon run by the League of Entropy. The town's art is hand-written SVG.
 
 ## AI disclosure
 

@@ -23,7 +23,7 @@ villagers `bjorn`, `fern`, `sid` and `sara` `.slaythebear.testnet`, and `tester.
 
 Raids 1 to 5 were played by the villagers (`npm run agents -- --open-if-idle`) and test guests
 created through the web app's `/api/account`. Raid 5 was settled by a guest through the relayer,
-as the **Settle with the drand beacon** button does (`scripts/test-settle-relay.ts`): tx
+as the town's settle button (now **Spin the Wheel of Fate**) does (`scripts/test-settle-relay.ts`): tx
 `DHpRAzBjcAfERsv5woyr5rnezQNpEdxrkLZHoK8dmT2k`, drand round 33763623; the guest
 `p-62xkl74q.slaythebear.testnet` received the 5 $SLAY tip.
 
@@ -55,6 +55,36 @@ the next won raid pays out. `npm run verify:game` afterwards:
 PASS round 6: loss, Rage (roll 3228), 1 raiders, 13 checks
 PASS treasury 798,994,787.2337 SLAY = start - rewards - thefts - tips (798,994,787.2337 SLAY)
 PASS the Bear's hoard 603.9412 SLAY follows the raids (603.9412 SLAY)
+ALL PASS
+```
+
+Raids 7 to 9 were played in the town's game scene in headless Chrome (`scripts/ui-game.ts
+--mode live`, 8 Nov), each by a new guest: one hold-to-charge strike that opened the raid,
+Bjorn and Fern joining through `/api/tick`, then the wheel.
+
+| Raid | Opened by | Deciding drand round | Tactic (roll) | Result | Settled by |
+| --- | --- | --- | --- | --- | --- |
+| 7 | `p-gs7wuxld` | 33771960 | Armor (1908) | won: 1,860 damage against 986 × 1.2 health; the 603 $SLAY hoard from raid 6 paid out in the 1,630 $SLAY loot | the keeper |
+| 8 | `p-88wwe6oq` | 33772565 | None (267) | won: 1,159 against 752 | the keeper |
+| 9 | `p-hpev41mq` | 33773077 | Feint (8546) | won: 1,255 against 828; the guest claimed 212.26 $SLAY | the guest, with **Spin the Wheel of Fate** |
+
+In raids 7 and 8 the guest's spin never reached the relayer, and the keeper settled the raids
+instead. The likely cause: the public RPC was answering HTTP 429 (rate limited) to this
+machine throughout (the dev server's log shows it), and near-api-js does not retry a 429, so
+one read of the settle failed. The web app, the server routes and the scripts now use a
+provider that waits out a 429 (`packages/agents/src/rpc.ts`), the page and the villagers read
+less per poll, and the keeper leaves players 15 seconds after the beacon before it settles.
+Raid 9 then went through end to end. `npm run verify:game` afterwards:
+
+```
+9 round(s), 9 settled
+PASS round 7: win, Armor (roll 1908), 3 raiders, 13 checks
+PASS round 8: win, None (roll 267), 3 raiders, 13 checks
+PASS round 9: win, Feint (roll 8546), 3 raiders, 13 checks
+PASS supply 999,993,833.3891 SLAY + burned 6,166.6108 SLAY = minted 1,000,000,000.0000 SLAY
+PASS loot chest 1,667.1660 SLAY = loot not yet claimed 1,667.1660 SLAY
+PASS treasury 798,991,373.8563 SLAY = start - rewards - thefts - tips (798,991,373.8563 SLAY)
+PASS the Bear's hoard 0.0000 SLAY follows the raids (0.0000 SLAY)
 ALL PASS
 ```
 
