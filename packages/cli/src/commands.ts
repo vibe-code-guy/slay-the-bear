@@ -53,8 +53,8 @@ const HINTS: Record<string, (m: string) => string> = {
   nothing_to_settle: (m) => `See \`${m} status\`.`,
   nothing_to_claim: (m) => `Loot comes from won raids you hit in. See \`${m} raids\`.`,
   no_raid_on: (m) => `\`${m} hit <amount>\` wakes the Bear and opens a raid.`,
-  not_joined: () => "`slay live join --site <hosted site>` (a free guest), or `slay live join --account <your.testnet>`.",
-  "Join the town first.": () => "`slay live join --site <hosted site>`.",
+  not_joined: () => "`slay live join` (a free guest), or `slay live join --account <your.testnet>`.",
+  "Join the town first.": () => "`slay live join`.",
   no_site: () =>
     "Pass the hosted site: `slay live join --site https://<site>`, or play as your own testnet account: `slay live join --account you.testnet` (its key in ~/.near-credentials/testnet).",
 };

@@ -41,7 +41,8 @@ COMMANDS (both modes)
 
   slay sim new [--seed n] [--minutes m]   start a fresh offline town (replaces the saved one)
   slay sim demo                           play one whole raid in a scratch town, with commentary
-  slay live join --site <url>             a free guest account through the hosted site's relayer
+  slay live join                          a free guest account through the hosted site's relayer
+                                          (https://slay-the-bear.vercel.app; --site <url> for another)
   slay live join --account <id.testnet>   or your own testnet account (key in ~/.near-credentials)
   slay live leave                         forget the local guest key (the account stays)
 

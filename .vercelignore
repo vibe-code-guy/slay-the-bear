@@ -1,0 +1,20 @@
+# What `vercel deploy` uploads from a clone: only what the web build needs. The site in apps/web
+# imports packages/rules and packages/agents, and npm installs the workspace from the root
+# lockfile. Everything else (the contract and its Rust build output, scripts, docs) stays local.
+/*
+!/apps
+!/packages
+!/package.json
+!/package-lock.json
+!/tsconfig.json
+
+# Never upload local secrets, CLI sessions or build output.
+.env
+.env.*
+!.env.example
+.slay
+.vercel
+node_modules
+.next
+*.tsbuildinfo
+next-env.d.ts

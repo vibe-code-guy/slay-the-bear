@@ -107,7 +107,7 @@ export async function run(argv: string[], homeOverride?: string): Promise<{ out:
     const m = statusModel(s, await s.snapshot());
     const who = res.kind === "guest" ? "a guest account; its key stays on this machine" : "your own account";
     const intro = res.already
-      ? `You are already in town as ${res.accountId}. (\`slay live join --new --site <url>\` makes another guest.)`
+      ? `You are already in town as ${res.accountId}. (\`slay live join --new\` makes another guest.)`
       : `Joined ${s.contractId} as ${res.accountId} (${who})${res.pouch ? `, with a ${slayText(s.config.pouchAmount)} $SLAY starter pouch` : "; its starter pouch was claimed before"}.`;
     return { out: { ok: true, json: { result: { account: res.accountId, kind: res.kind, already: !!res.already }, status: m }, text: [intro, "", ...renderStatus(m)] }, mode, command };
   }

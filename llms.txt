@@ -8,6 +8,8 @@
 
 Live contract: game.slaythebear.testnet (NEAR testnet), code hash BD2jeytgDSV5wAyhNEfieVoFg3oqx9vedWuXZusPqdzN, reproducible build of commit b9f0a5b.
 
+Hosted demo: https://slay-the-bear.vercel.app (press "Play as a guest (free)": a testnet account, no wallet, no gas prompt).
+
 ## Run and check
 
 - `npm install`, then `npm test` (38 TypeScript tests) and `npm run test:contract` (16 Rust tests, needs Rust + cargo-near)
@@ -21,7 +23,7 @@ Live contract: game.slaythebear.testnet (NEAR testnet), code hash BD2jeytgDSV5wA
 - `./slay help` (`.\slay help` in PowerShell), after `npm install`: the rules in a minute and every command
 - `./slay sim demo`: one whole offline raid, command by command
 - `./slay sim <command>`: an offline town with the same rules engine, villagers and a local test beacon; its clock moves only on `wait`
-- `./slay live <command>`: the testnet game; `./slay live join --site <hosted demo URL>` makes a free guest, `--account <id.testnet>` signs with your key from ~/.near-credentials
+- `./slay live <command>`: the testnet game; `./slay live join` makes a free guest through the hosted site's relayer, `--account <id.testnet>` signs with your key from ~/.near-credentials
 - Commands: status, hit <1-1000> [--weapon club|sword|slayer], wait <seconds|end>, settle, claim, me, craft, smith, market, sell, buy, cancel, feed, raids, verify [raid], rules
 - `--json` prints one object: ok, result, status (raid, you, town, next) or error, message, hint; exit code 0 done, 1 a failed move or check, 2 a usage error
 - [docs/CLI.md](docs/CLI.md): the commands, the JSON, time and saved state

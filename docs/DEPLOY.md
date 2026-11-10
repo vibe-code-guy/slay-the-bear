@@ -75,8 +75,27 @@ Hosted on Vercel (free tier):
    `RELAYER_ACCOUNT_ID`, `RELAYER_PRIVATE_KEY`, and optionally `KEEPER_ACCOUNT_ID`,
    `KEEPER_PRIVATE_KEY`, `VILLAGER_KEYS`, `GUEST_FUND_NEAR`. Mark the private keys as sensitive.
 3. Deploy. Open pages call `/api/tick` every 20 seconds, which settles finished raids and lets
-   the villagers act. For a heartbeat when nobody is watching, enable
-   `.github/workflows/tick.yml` with a repository variable `SITE_URL`.
+   the villagers act. For a heartbeat when nobody is watching, have a scheduler send a POST to
+   `<site>/api/tick` every minute (for example a free job on cron-job.org; one a minute is
+   about 43,000 of Hobby's million function calls a month). `.github/workflows/tick.yml` does
+   the same every 5 minutes once the repository variable `SITE_URL` is set; Actions minutes are
+   free only for public repositories.
+
+The same from a clone with the Vercel CLI, without connecting the repository (this is how
+`slay-the-bear.vercel.app` was first deployed; its project is now connected, so a push to `main`
+deploys it):
+
+```bash
+vercel project add slay-the-bear
+vercel project update slay-the-bear --root-directory apps/web --framework nextjs --node-version 24.x
+vercel link --yes --project slay-the-bear
+vercel env add RELAYER_PRIVATE_KEY production --sensitive   # and the other variables above
+vercel deploy --prod
+```
+
+`.vercelignore` limits the upload to what the build needs: the tracked files of `apps/` and
+`packages/` and the root manifests. Local secrets (`.env.local`, `.slay/`) and the contract's
+build output stay on your machine; `vercel deploy --prod --dry --json` lists every file first.
 
 The relayer account must be the root account: it creates guests as `p-<random>.<root>` and pays
 their gas. Each guest costs it 0.01 NEAR plus about 0.0004 NEAR per move.

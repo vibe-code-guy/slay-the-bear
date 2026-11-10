@@ -24,7 +24,7 @@ import { beaconAtMs, type Session } from "./session";
 export const DEFAULT_GAME = "game.slaythebear.testnet";
 export const DEFAULT_RPC = "https://rpc.testnet.fastnear.com";
 /** The hosted site whose relayer makes guest accounts and pays their gas. */
-export const DEFAULT_SITE = process.env.SLAY_SITE ?? null;
+export const DEFAULT_SITE: string | null = process.env.SLAY_SITE || "https://slay-the-bear.vercel.app";
 
 /** Settling reads every raider (up to 300); the rest are small. Unused gas is refunded. */
 const GAS: Record<string, number> = { settle: 150 };

@@ -50,12 +50,12 @@ Join once, as a free guest or with your own testnet account:
 
 | Join as | Run | What happens |
 | --- | --- | --- |
-| A guest | `./slay live join --site <hosted demo URL>` | The CLI makes a key on your machine. The site's relayer creates `p-xxxxxxxx.slaythebear.testnet` with that key as its only key, limited to calling the game. The CLI signs each move as a meta transaction and the relayer pays the gas. |
+| A guest | `./slay live join` | The CLI makes a key on your machine. The relayer of the hosted site, [slay-the-bear.vercel.app](https://slay-the-bear.vercel.app), creates `p-xxxxxxxx.slaythebear.testnet` with that key as its only key, limited to calling the game. The CLI signs each move as a meta transaction and the relayer pays the gas. |
 | Your account | `./slay live join --account you.testnet` | The CLI signs with your key from `~/.near-credentials/testnet/you.testnet.json` (or under `NEAR_CREDENTIALS_DIR`) and you pay the gas, under 0.002 NEAR a move. Settling attaches 150 TGas, which needs about 0.15 NEAR of balance. |
 
-Either way the account then claims its 1,000 $SLAY starter pouch. The hosted demo's address is
-in the README's table; set `SLAY_SITE` to leave `--site` out. Any copy of the web app with a
-relayer works too ([DEPLOY.md](DEPLOY.md)).
+Either way the account then claims its 1,000 $SLAY starter pouch. `--site <url>` (or
+`SLAY_SITE`) makes the guest through another copy of the web app with a relayer
+([DEPLOY.md](DEPLOY.md)).
 
 Then play as offline:
 
@@ -71,9 +71,10 @@ Then play as offline:
 
 The CLI reads the contract's views over RPC, so what it shows is what the chain holds.
 `status`, `raids`, `feed`, `market`, `verify` and `rules` work without joining. The villagers
-and the keeper act while a page of the hosted site is open (it calls `/api/tick` every 20
-seconds) or `npm run agents` runs, and the keeper settles a finished raid 15 seconds after its
-beacon if no player has. In a quiet town you raid alone and settle your own raids.
+and the keeper act when the hosted site's `/api/tick` runs: an open page calls it every 20
+seconds, and a scheduled job can call it too ([DEPLOY.md](DEPLOY.md)). The keeper settles a
+finished raid 15 seconds after its beacon if no player has. In a quiet town you raid alone and
+settle your own raids.
 
 `./slay live leave` deletes the local key; the account stays on testnet. `join --new` makes
 another guest and forgets the old one's key. [TESTNET.md](TESTNET.md#raid-44-played-from-the-cli-10-nov)
@@ -100,8 +101,9 @@ In both modes:
 | `rules` | Every number in the game's config. |
 
 Offline only: `sim new [--seed n] [--minutes m]` starts a fresh town (raids of 1 to 60 minutes,
-5 by default) and `sim demo` plays the scripted raid. Live only: `live join` (with
-`--site <url>` or `--account <id>`, and `--new` for another guest) and `live leave`.
+5 by default) and `sim demo` plays the scripted raid. Live only: `live join` (a guest through
+the hosted site; `--site <url>` for another copy, `--account <id>` for your own account, `--new`
+for another guest) and `live leave`.
 
 | Option | Default |
 | --- | --- |

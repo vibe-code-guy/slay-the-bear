@@ -167,7 +167,7 @@ export function statusModel(s: Session, snap: Snapshot): StatusModel {
 
   const next: string[] = [];
   if (!you) {
-    next.push(s.mode === "live" ? `${m} join --site <hosted site>   (a free guest account; or --account <your.testnet>)` : `${m} new   (start a town)`);
+    next.push(s.mode === "live" ? `${m} join   (a free guest account; or --account <your.testnet>)` : `${m} new   (start a town)`);
   } else {
     const total = snap.claimable.reduce((t, x) => t + x.share, 0n);
     if (total > 0n) next.push(`${m} claim   (collect ${slayText(total)} $SLAY of loot)`);

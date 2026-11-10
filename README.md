@@ -16,7 +16,7 @@ Built at NEAR HACKATHON for **Memecoins With Mechanics** and **Games With Real E
 | | |
 | --- | --- |
 | Live contract (testnet) | [`game.slaythebear.testnet`](https://testnet.nearblocks.io/address/game.slaythebear.testnet) |
-| Hosted demo | _added when hosted_ |
+| Hosted demo | [slay-the-bear.vercel.app](https://slay-the-bear.vercel.app) |
 | Video | _added when recorded_ |
 | Testnet evidence | [docs/TESTNET.md](docs/TESTNET.md) |
 
@@ -26,7 +26,7 @@ Built at NEAR HACKATHON for **Memecoins With Mechanics** and **Games With Real E
 
 | Do | See |
 | --- | --- |
-| Open the demo and press **Play as a guest (free)** on the title screen | A new testnet account `p-xxxxxxxx.slaythebear.testnet`; 1,000 $SLAY fly into your coin counter. No wallet, no gas prompt. A five-step tutorial points at each control during your first raid. |
+| Open [slay-the-bear.vercel.app](https://slay-the-bear.vercel.app) and press **Play as a guest (free)** on the title screen | A new testnet account `p-xxxxxxxx.slaythebear.testnet`; 1,000 $SLAY fly into your coin counter. No wallet, no gas prompt. A five-step tutorial points at each control during your first raid. |
 | Hold the red **HOLD** button and let go (or hold Space) | Your hero leans back in a growing glow while you hold; the longer you hold, the more $SLAY the strike burns, up to your **Max swing**. The hero lunges, the damage number flies off the Bear and turns final when the transaction lands. The toast links the transaction on nearblocks. |
 | Watch the villagers (Bjorn, Fern, Sid, Sara) | NPC raiders charging in by their published rules, wearing the gear of their levels, with the **win chance** and the win/lose chip for each tactic updating after every hit. In the last ten seconds the Bear rears up and the scene's edges glow red. |
 | When the timer ends, press **Spin the Wheel of Fate** (or wait 15 s for the keeper) | The wheel spins while the contract checks the drand signature, then stops on the roll (out of 10,000) that drew the Bear's tactic. On a win, a loot chest opens with the drops the beacon gave you and your share; a Bear trophy gets its own reveal. A level gained shows next, then your goals and achievements. |
@@ -74,7 +74,7 @@ Commands, the JSON and timing: [docs/CLI.md](docs/CLI.md).
 | --- | --- |
 | `./slay sim demo` | A whole offline raid, command by command: your hits, a villager joining, the beacon's tactic, the loot and 13 passing checks. |
 | `./slay sim hit 300`, `./slay sim wait end`, `./slay sim settle`, `./slay sim verify` | Your own offline raid. The clock moves only when you `wait`. |
-| `./slay live join --site <hosted demo URL>`, then `./slay live hit 250` | A guest account on testnet with its 1,000 $SLAY pouch, then a hit and its transaction on nearblocks. `--account you.testnet` plays as your own account instead. |
+| `./slay live join`, then `./slay live hit 250` | A guest account on testnet, made through the hosted site's relayer, with its 1,000 $SLAY pouch; then a hit and its transaction on nearblocks. `--account you.testnet` plays as your own account instead. |
 | `./slay live verify --json` | The 13 checks of the last settled raid on `game.slaythebear.testnet`, as JSON. |
 
 ## How a raid works
