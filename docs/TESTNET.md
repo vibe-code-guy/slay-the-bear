@@ -175,6 +175,26 @@ Parallel load through the local web app (`scripts/test-web-flow.ts --burst 4`), 
 relayer keys: four guest accounts created at once and four relayed moves at once, all
 succeeded.
 
+### Raid 44, played from the CLI (10 Nov)
+
+A guest made by the terminal client ([docs/CLI.md](CLI.md)) played raid 44:
+`./slay live join --site http://localhost:3100`, a local copy of the web app with the relayer,
+created `p-rw126we0.slaythebear.testnet`, and its key stayed on the machine. The Bear's
+13,549.71 $SLAY hoard from raids 41 to 43 gave it 9,863.36 health.
+
+| Move (`./slay live ...`) | Result | Tx |
+| --- | --- | --- |
+| `hit 400` | opened raid 44: 600 damage (x1.5 early bonus) against a Bear in the Rage mood | `aNWaqeX4Jmgmmcpo3CPVfSNPHYqrKJHHYcp6aeqWXSk` |
+| | Bjorn and Fern hit 1,000 $SLAY twice each with swords, Sara 161.15 and 128.92 | |
+| `hit 600` | 767.88 damage | `3RTupUxCPeJ2XNiMNvaoARpeHUHnJyAT69XYyuZFtybL` |
+| `settle`, once the beacon was out | the CLI fetched drand round 33844453 and submitted it; the beacon drew Rage (roll 6302); 10,477.71 damage from 4 raiders against 9,863.36 health, so the town won 20,982.13 $SLAY: the hoard plus 7,432.42 from the treasury. The guest earned the 5 $SLAY tip. | `EeGLwt7djnfiGKCoDbpsJ4XaVXZdXbwUh6wm5xncRBpe` |
+| `claim` | the guest's share, 2,739.25 $SLAY | `A6eocyjNDyHNbsoWnv6FKbhJpmQqm7njYu3XvFUVvm3V` |
+| `verify 44` | 13 of 13 checks pass | |
+
+The other way in, your own account: after `./slay live join --account
+tester.slaythebear.testnet` (its key in `~/.near-credentials`), `./slay live smith buy 1` bought
+a club charge for 3 $SLAY (`2mcU2k4EQRJ9SMXLZD8T1KbaCWZhaewgamr5xEQoTyaR`).
+
 ## Early checks (8 Nov 2026, first contract build)
 
 These ran against `dev.slaythebear.testnet` (now deleted), an unlocked instance of the first

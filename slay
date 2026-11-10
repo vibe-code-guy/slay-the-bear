@@ -1,0 +1,3 @@
+#!/bin/sh
+# Play Slay the Bear from a terminal: ./slay help (after npm install). See docs/CLI.md.
+exec node "$(dirname "$0")/packages/cli/bin/slay.mjs" "$@"

@@ -20,6 +20,8 @@ scripts/.accounts/
 
 # simulation output
 sim-out/
+# CLI sessions: the offline town's log and live guest keys
+.slay/
 
 # editors and OS
 .vscode/

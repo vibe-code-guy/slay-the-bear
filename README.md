@@ -63,6 +63,20 @@ npm run simulate             # the economy simulation; open sim-out/report.html
 | Open **/fast-forward** and press **Run** | 90 days of raids in a second: win rate, longest Bear streak, health against damage, the hoard and the burn. |
 | `git checkout b9f0a5b`, `npm run build:contract:reproducible` (needs Docker), `git checkout main`, `npm run verify:live` | The deployed code hash equals your reproducible build of the commit named in the contract's metadata. |
 
+### From a terminal (people and AI agents)
+
+After `npm install`, `./slay` (`.\slay` in PowerShell) plays the game in a terminal: `slay sim`
+an offline town with the same rules engine, `slay live` the testnet game. It prints plain text,
+or one JSON object with `--json`, and every output ends with the moves that make sense next.
+Commands, the JSON and timing: [docs/CLI.md](docs/CLI.md).
+
+| Do | See |
+| --- | --- |
+| `./slay sim demo` | A whole offline raid, command by command: your hits, a villager joining, the beacon's tactic, the loot and 13 passing checks. |
+| `./slay sim hit 300`, `./slay sim wait end`, `./slay sim settle`, `./slay sim verify` | Your own offline raid. The clock moves only when you `wait`. |
+| `./slay live join --site <hosted demo URL>`, then `./slay live hit 250` | A guest account on testnet with its 1,000 $SLAY pouch, then a hit and its transaction on nearblocks. `--account you.testnet` plays as your own account instead. |
+| `./slay live verify --json` | The 13 checks of the last settled raid on `game.slaythebear.testnet`, as JSON. |
+
 ## How a raid works
 
 1. **Open.** The first hit opens a raid. The open fixes the Bear's health, its *mood* and the
@@ -136,13 +150,14 @@ wallet or a gas prompt.
 | Path | What |
 | --- | --- |
 | `contracts/game` | The Rust contract (near-sdk 5.30): $SLAY (NEP-141 + NEP-145), items (NEP-245), raids, drand verification, the Bear, the smith, the market, the feed, views |
-| `packages/rules` | The same rules in TypeScript (bigint math): engine, NPC rules (`npc.ts`), simulator, view JSON, verifier |
+| `packages/rules` | The same rules in TypeScript (bigint math): engine, NPC rules (`npc.ts`), the offline town (`town.ts`), simulator, view JSON, verifier |
 | `packages/agents` | The keeper (settles finished raids) and the villagers, used by the web app and `npm run agents` |
+| `packages/cli` | `slay`, the terminal client: the offline town or the testnet game, as text or JSON ([docs/CLI.md](docs/CLI.md)) |
 | `apps/web` | Next.js app: the town, `/verify`, `/rules`, `/fast-forward`, and the guest, relay and tick API routes |
 | `scripts/` | Deploy, redeploy, lock, faucet, agents, end-to-end and UI checks, `verify-game`, `verify-live`, simulation, test vectors |
 | `fixtures/` | Real drand quicknet rounds and the TypeScript-to-Rust vectors |
 | `deployments/` | Code hash and transactions of each testnet instance |
-| `docs/` | [Game design](docs/GAME_DESIGN.md), [fairness](docs/FAIRNESS.md), [threat model](docs/THREAT_MODEL.md), [testnet log](docs/TESTNET.md), [deploying](docs/DEPLOY.md) |
+| `docs/` | [Game design](docs/GAME_DESIGN.md), [fairness](docs/FAIRNESS.md), [threat model](docs/THREAT_MODEL.md), [testnet log](docs/TESTNET.md), [deploying](docs/DEPLOY.md), [the terminal client](docs/CLI.md) |
 
 Other commands: `npm run typecheck`, `npm run fast-forward` (a week of raids in the terminal),
 `npm run vectors` (regenerate the vectors),

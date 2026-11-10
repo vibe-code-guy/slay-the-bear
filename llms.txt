@@ -16,6 +16,16 @@ Live contract: game.slaythebear.testnet (NEAR testnet), code hash BD2jeytgDSV5wA
 - `npm run demo`: web app at http://localhost:3000 (live town read-only, plus an offline simulation)
 - `npm run simulate`: economy simulation, writes sim-out/report.html
 
+## Play from a terminal
+
+- `./slay help` (`.\slay help` in PowerShell), after `npm install`: the rules in a minute and every command
+- `./slay sim demo`: one whole offline raid, command by command
+- `./slay sim <command>`: an offline town with the same rules engine, villagers and a local test beacon; its clock moves only on `wait`
+- `./slay live <command>`: the testnet game; `./slay live join --site <hosted demo URL>` makes a free guest, `--account <id.testnet>` signs with your key from ~/.near-credentials
+- Commands: status, hit <1-1000> [--weapon club|sword|slayer], wait <seconds|end>, settle, claim, me, craft, smith, market, sell, buy, cancel, feed, raids, verify [raid], rules
+- `--json` prints one object: ok, result, status (raid, you, town, next) or error, message, hint; exit code 0 done, 1 a failed move or check, 2 a usage error
+- [docs/CLI.md](docs/CLI.md): the commands, the JSON, time and saved state
+
 ## Key files
 
 - [contracts/game/src/lib.rs](contracts/game/src/lib.rs): the contract: raids, settlement, items, market, smith, feed
@@ -24,6 +34,8 @@ Live contract: game.slaythebear.testnet (NEAR testnet), code hash BD2jeytgDSV5wA
 - [packages/rules/src/engine.ts](packages/rules/src/engine.ts): the same state machine in TypeScript
 - [packages/rules/src/verify.ts](packages/rules/src/verify.ts): per-raid verification
 - [packages/rules/src/npc.ts](packages/rules/src/npc.ts): NPC rules in words (Bear mood, smith, villager personalities)
+- [packages/rules/src/town.ts](packages/rules/src/town.ts): the offline town, used by the web app's offline mode and the CLI
+- [packages/cli/src/commands.ts](packages/cli/src/commands.ts): the terminal client's commands, written once for the offline town and the testnet game
 - [fixtures/vectors.json](fixtures/vectors.json): scripted game replayed by both implementations
 - [apps/web](apps/web): Next.js app; app/api/relay/route.ts is the meta-transaction relayer
 
@@ -35,3 +47,4 @@ Live contract: game.slaythebear.testnet (NEAR testnet), code hash BD2jeytgDSV5wA
 - [docs/THREAT_MODEL.md](docs/THREAT_MODEL.md): actors, threats, mitigations, what is left
 - [docs/TESTNET.md](docs/TESTNET.md): testnet transactions and results
 - [docs/DEPLOY.md](docs/DEPLOY.md): deploy your own instance and site
+- [docs/CLI.md](docs/CLI.md): play from a terminal, for people and agents

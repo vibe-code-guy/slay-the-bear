@@ -1,0 +1,17 @@
+{
+  "name": "@slay/cli",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Play Slay the Bear from a terminal: the offline town, or the live game on NEAR testnet. Plain text for people, --json for agents.",
+  "license": "MIT",
+  "bin": {
+    "slay": "bin/slay.mjs"
+  },
+  "dependencies": {
+    "@slay/agents": "0.1.0",
+    "@slay/rules": "0.1.0",
+    "near-api-js": "^7.4.0",
+    "tsx": "^4.23.15"
+  }
+}
