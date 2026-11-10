@@ -103,6 +103,9 @@ export interface Deployment {
   txs: Record<string, string>;
   locked: boolean;
   lockedAt?: string;
+  /** set by scripts/redeploy.ts: when the code was last replaced, and the hashes it replaced */
+  redeployedAt?: string;
+  previousCodeHashes?: string[];
   note?: string;
 }
 
