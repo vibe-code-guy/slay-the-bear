@@ -195,6 +195,23 @@ The other way in, your own account: after `./slay live join --account
 tester.slaythebear.testnet` (its key in `~/.near-credentials`), `./slay live smith buy 1` bought
 a club charge for 3 $SLAY (`2mcU2k4EQRJ9SMXLZD8T1KbaCWZhaewgamr5xEQoTyaR`).
 
+### Raids 45 to 47 on the hosted site (10 Nov)
+
+The site went up at [slay-the-bear.vercel.app](https://slay-the-bear.vercel.app), deployed by
+Vercel from this repository, with the relayer, keeper and villager keys in its environment.
+Guests joined through its relayer from a browser and from the CLI, and the villagers and the
+keeper acted through its `/api/tick`.
+
+| Raid | What happened | Result |
+| --- | --- | --- |
+| 45 | Opened by a guest of the headless-Chrome check (`scripts/ui-check.ts --live` against the site). Bjorn and Fern hit with swords. A CLI guest, `p-w2bjtawr`, joined through the hosted relayer and hit 300 $SLAY for 406.74 damage (`7kPY8zsduPvap28pGEvHxrAbBVAqAnLNLkWcMB75UqKq`). A player in a browser, `p-u7augxbj`, hit 1,000 $SLAY and pressed **Spin the Wheel of Fate** seconds after the beacon; the CLI guest's settle a second later was refused, `already_settled`. | Armor (roll 3220): 7,771.23 damage against 6,540.53 health, won 8,175.67 $SLAY; the CLI guest claimed 427.91 (`628taYrKxijofxDq6kmGZ8gfyY7us4DtF9bujN3HMFK5`) |
+| 46 | Opened by `p-u7augxbj`; Bjorn and Fern joined. The raid ended at 20:23 UTC with no page open and no scheduled tick yet, so it waited for the next call to `/api/tick`, at 20:38, when the keeper settled it. | Rage (roll 7881): 8,205.47 against 5,995.49 health, won 8,993.23 $SLAY |
+| 47 | Opened by `p-u7augxbj`; Bjorn and Fern joined. The keeper settled it from a manual call to `/api/tick` (`2BpdR2c2uksUd1aMDBHbQDX3zGoJHvXTbMvWfgLhKZem`), in which Bjorn also sold spare iron to the smith (`B3RqtcFD9eRH4oRdQ54n5kLC6mTahY8LPN8ZA5nBB7NA`). | Rage (roll 7946): 8,798.29 against 6,595.04 health, won 9,892.55 $SLAY |
+
+`./slay live verify 45`, `46` and `47`: 13 of 13 checks pass each. Since 20:54 UTC a
+cron-job.org job sends a POST to `/api/tick` every minute, so finished raids settle and the
+villagers play when no page is open.
+
 ## Early checks (8 Nov 2026, first contract build)
 
 These ran against `dev.slaythebear.testnet` (now deleted), an unlocked instance of the first
