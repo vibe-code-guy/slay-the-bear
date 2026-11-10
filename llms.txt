@@ -6,7 +6,7 @@
 > and the item drops (NEP-245) come from the drand quicknet beacon, verified on-chain with NEAR's
 > BLS12-381 host functions. Built at NEAR HACKATHON for the memecoins and games tracks.
 
-Live contract: game.slaythebear.testnet (NEAR testnet), code hash Br6G5zJ8f5hyPuiyDsZ5RZehWNLmXwLpqSB9SwLhJJov, reproducible build of commit 2038bbd.
+Live contract: game.slaythebear.testnet (NEAR testnet), code hash BD2jeytgDSV5wAyhNEfieVoFg3oqx9vedWuXZusPqdzN, reproducible build of commit b9f0a5b.
 
 ## Run and check
 

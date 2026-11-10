@@ -9,12 +9,27 @@ never in the repository.
 
 | Account | Role | Code hash | Config | Keys |
 | --- | --- | --- | --- | --- |
-| `game.slaythebear.testnet` | **The public game** (5-minute raids) | `Br6G5zJ8f5hyPuiyDsZ5RZehWNLmXwLpqSB9SwLhJJov` (reproducible build of `2038bbd`) | `quick` preset | 1, until the owner approves the lock |
-| `dev3.slaythebear.testnet` | Development and end-to-end tests (10-minute raids) | `AgzkaQz7jKRUj7JLh9uEWDJvKhBt3nPykJYnHeMNSh5p` (local build of the same source) | `demo` preset | 1 (stays unlocked) |
-| `town.slaythebear.testnet` | Superseded before launch: pre-launch effort cap (2.0x) | `Br6G5zJ8…` | `quick` with the old cap | 1, unused |
+| `game.slaythebear.testnet` | **The public game** (5-minute raids) | `BD2jeytgDSV5wAyhNEfieVoFg3oqx9vedWuXZusPqdzN` (reproducible build of `b9f0a5b`) | `quick` preset | 1, until the owner approves the lock |
+| `dev3.slaythebear.testnet` | Development and end-to-end tests (10-minute raids) | `BD2jeytg…` (the same build) | `demo` preset | 1 (stays unlocked) |
+| `town.slaythebear.testnet` | Superseded before launch: pre-launch effort cap (2.0x) | `BD2jeytg…` (the same build) | `quick` with the old cap | 1, unused |
 
 `game.slaythebear.testnet`: created in `DHSNjfzy6FhxkvdSjPH7KQjF6ohejF239Rikom9bTp2v`, deployed
 and initialised in one transaction, `2pCMMY5qVTfRqQBBwWTCw9oTzghyPJWsDiDFLrt56BZB` (31.0 TGas).
+
+**Code replaced on 10 Nov, after raid 43.** The repository's address changed, and the contract
+embeds its source link (NEP-330), so all three instances got a reproducible build of `b9f0a5b`:
+the same contract source, with the new link. The state carried over (`scripts/redeploy.ts`
+compares `get_status` before and after). Raids 1 to 43 ran on the earlier build
+`Br6G5zJ8f5hyPuiyDsZ5RZehWNLmXwLpqSB9SwLhJJov` (dev3 on `AgzkaQz7jKRUj7JLh9uEWDJvKhBt3nPykJYnHeMNSh5p`).
+
+| Instance | Redeploy tx | Gas |
+| --- | --- | --- |
+| `game` | `9mREfF1RQRaWD4YsvZ7GgWXJXNBhxyideLVHfytYTBjW` | 27.1 TGas |
+| `town` | `zesRf1yGpBB4wB6SKUzDpkGw1oZz1hVoEhAHtMQdXSt` | 27.1 TGas |
+| `dev3` | `7pC5PfUi1TXKUaKDgA3QAbc9VxUaBvDmbbxtT6jx4q5L` | 27.1 TGas |
+
+The new code then settled dev3's raid 2 with drand round 33762507, the BLS check included
+(`E21R9fxAboxdNCp1REx2GrRaV2FVPD6WgidTUWeBh3AE`).
 
 Helper accounts: `slaythebear.testnet` (root, relayer and guest factory), `keeper.slaythebear.testnet`,
 villagers `bjorn`, `fern`, `sid` and `sara` `.slaythebear.testnet`, and `tester.slaythebear.testnet`.
@@ -131,9 +146,28 @@ PASS the Bear's hoard 0.0000 SLAY follows the raids (0.0000 SLAY)
 ALL PASS
 ```
 
+Raids 39 to 43 followed; the Bear won 41 to 43, so its hoard holds 13,549 $SLAY for the next won
+raid. After the code was replaced (see Instances), `npm run verify:game`:
+
+```
+PASS code hash matches deployments/game.slaythebear.testnet.json
+43 round(s), 43 settled
+…
+PASS round 40: win, Rage (roll 8368), 3 raiders, 13 checks
+PASS round 41: loss, Armor (roll 2285), 2 raiders, 13 checks
+PASS round 42: loss, Rage (roll 8076), 0 raiders, 13 checks
+PASS round 43: loss, Rage (roll 5540), 1 raiders, 13 checks
+ledger
+PASS supply 999,901,112.6096 SLAY + burned 98,887.3903 SLAY = minted 1,000,000,000.0000 SLAY
+PASS loot chest 1,807.3950 SLAY = loot not yet claimed 1,807.3950 SLAY
+PASS treasury 798,833,385.2682 SLAY = start - rewards - thefts - tips (798,833,385.2682 SLAY)
+PASS the Bear's hoard 13,549.7117 SLAY follows the raids (13,549.7117 SLAY)
+ALL PASS
+```
+
 `npm run verify:live`: the deployed code hash equals the local reproducible build
-(`Br6G5zJ8f5hyPuiyDsZ5RZehWNLmXwLpqSB9SwLhJJov`); NEP-330 metadata points at
-`https://github.com/vibe-code-guy/slay-the-bear/tree/2038bbd6ae4b3246d1ceec067990e2beefe14767`
+(`BD2jeytgDSV5wAyhNEfieVoFg3oqx9vedWuXZusPqdzN`); NEP-330 metadata points at
+`https://github.com/vibe-code-guy/slay-the-bear/tree/b9f0a5b069b33442d04bb6c8e21fa92f3680d64a`
 and the image `sourcescan/cargo-near:0.22.0-rust-1.99.1@sha256:c9655eaf…b5bb`; the config is
 the published `quick` preset; one access key remains (the lock waits for approval).
 

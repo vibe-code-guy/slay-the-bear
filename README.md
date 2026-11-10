@@ -61,7 +61,7 @@ npm run simulate             # the economy simulation; open sim-out/report.html
 | `npm run demo`, open http://localhost:3000 | The live town, read straight from the testnet contract. Guest play needs the hosted site's relayer, so a clone shows "has no relayer" when you press Play. |
 | Switch to **Offline**, press **Start the simulation**, strike, then **⏭** (to the deadline) and **Spin the Wheel of Fate** | A full raid with the same rules engine and a local beacon, villagers included. **Verify** under the Tavern's **Past raids** shows 13 green checks. |
 | Open **/fast-forward** and press **Run** | 90 days of raids in a second: win rate, longest Bear streak, health against damage, the hoard and the burn. |
-| `git checkout 2038bbd`, `npm run build:contract:reproducible` (needs Docker), `git checkout main`, `npm run verify:live` | The deployed code hash equals your reproducible build of the commit named in the contract's metadata. |
+| `git checkout b9f0a5b`, `npm run build:contract:reproducible` (needs Docker), `git checkout main`, `npm run verify:live` | The deployed code hash equals your reproducible build of the commit named in the contract's metadata. |
 
 ## How a raid works
 
@@ -139,7 +139,7 @@ wallet or a gas prompt.
 | `packages/rules` | The same rules in TypeScript (bigint math): engine, NPC rules (`npc.ts`), simulator, view JSON, verifier |
 | `packages/agents` | The keeper (settles finished raids) and the villagers, used by the web app and `npm run agents` |
 | `apps/web` | Next.js app: the town, `/verify`, `/rules`, `/fast-forward`, and the guest, relay and tick API routes |
-| `scripts/` | Deploy, lock, faucet, agents, end-to-end and UI checks, `verify-game`, `verify-live`, simulation, test vectors |
+| `scripts/` | Deploy, redeploy, lock, faucet, agents, end-to-end and UI checks, `verify-game`, `verify-live`, simulation, test vectors |
 | `fixtures/` | Real drand quicknet rounds and the TypeScript-to-Rust vectors |
 | `deployments/` | Code hash and transactions of each testnet instance |
 | `docs/` | [Game design](docs/GAME_DESIGN.md), [fairness](docs/FAIRNESS.md), [threat model](docs/THREAT_MODEL.md), [testnet log](docs/TESTNET.md), [deploying](docs/DEPLOY.md) |

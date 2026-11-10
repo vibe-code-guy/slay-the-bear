@@ -2,13 +2,18 @@
   "contractId": "game.slaythebear.testnet",
   "network": "testnet",
   "preset": "quick",
-  "codeHash": "Br6G5zJ8f5hyPuiyDsZ5RZehWNLmXwLpqSB9SwLhJJov",
+  "codeHash": "BD2jeytgDSV5wAyhNEfieVoFg3oqx9vedWuXZusPqdzN",
   "wasmBytes": 371592,
   "deployedAt": "2026-11-07T23:01:26.991Z",
   "deployer": "slaythebear.testnet",
   "txs": {
     "createAccount": "DHSNjfzy6FhxkvdSjPH7KQjF6ohejF239Rikom9bTp2v",
-    "deployAndInit": "2pCMMY5qVTfRqQBBwWTCw9oTzghyPJWsDiDFLrt56BZB"
+    "deployAndInit": "2pCMMY5qVTfRqQBBwWTCw9oTzghyPJWsDiDFLrt56BZB",
+    "redeploy1": "9mREfF1RQRaWD4YsvZ7GgWXJXNBhxyideLVHfytYTBjW"
   },
-  "locked": false
+  "locked": false,
+  "previousCodeHashes": [
+    "Br6G5zJ8f5hyPuiyDsZ5RZehWNLmXwLpqSB9SwLhJJov"
+  ],
+  "redeployedAt": "2026-11-10T17:26:04.730Z"
 }

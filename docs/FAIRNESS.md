@@ -16,7 +16,7 @@ npm run verify:live        # compares the deployed code hash with contracts/game
 To rebuild it yourself (needs Docker):
 
 ```bash
-git checkout 2038bbd6ae4b3246d1ceec067990e2beefe14767      # the commit in the contract's metadata
+git checkout b9f0a5b069b33442d04bb6c8e21fa92f3680d64a      # the commit in the contract's metadata
 cd contracts/game && cargo near build reproducible-wasm  # prints "SHA-256 checksum bs58: ..."
 ```
 
@@ -27,7 +27,7 @@ near account view-account-summary game.slaythebear.testnet network-config testne
 near contract call-function as-read-only game.slaythebear.testnet contract_source_metadata json-args '{}' network-config testnet now
 ```
 
-Expected: `Br6G5zJ8f5hyPuiyDsZ5RZehWNLmXwLpqSB9SwLhJJov`, built in
+Expected: `BD2jeytgDSV5wAyhNEfieVoFg3oqx9vedWuXZusPqdzN`, built in
 `sourcescan/cargo-near:0.22.0-rust-1.99.1@sha256:c9655eaf…b5bb`.
 
 ## 2. Nobody can change it

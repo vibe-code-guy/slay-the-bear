@@ -35,6 +35,14 @@ npx tsx scripts/lock.ts --game game.<root>.testnet --confirm
 ```
 
 Keep an unlocked instance (for example `--name dev --preset demo`) for testing changes.
+
+Before the lock, a new build of the same contract source (for example after the repository
+moves, since the contract embeds its source link) can replace the code and keep the state:
+
+```bash
+npx tsx scripts/redeploy.ts --game game.<root>.testnet             # dry run: shows the links inside the new wasm
+npx tsx scripts/redeploy.ts --game game.<root>.testnet --confirm   # deploys, checks the state, updates deployments/
+```
 `scripts/retire.ts` deletes an unlocked instance and returns its NEAR, as long as its contract
 data is under 10 kB (a NEAR limit).
 
