@@ -8,7 +8,9 @@
 
 Live contract: game.slaythebear.testnet (NEAR testnet), code hash BD2jeytgDSV5wAyhNEfieVoFg3oqx9vedWuXZusPqdzN, reproducible build of commit b9f0a5b.
 
-Hosted demo: https://slay-the-bear.vercel.app (press "Play as a guest (free)": a testnet account, no wallet, no gas prompt).
+Hosted demo: https://slay-the-bear.vercel.app (press "Play as a guest (free)": a testnet account, no wallet, no gas prompt). Also /verify (13 checks per raid, in the browser), /rules and /fast-forward.
+
+Status on 10 Nov 2026: 47 raids settled on game.slaythebear.testnet, all recomputed by `npm run verify:game` (ALL PASS). The game account still holds one full-access key until the owner approves the lock (scripts/lock.ts), so its code could still be replaced; `npm run verify:live` and /verify report this.
 
 ## Run and check
 
