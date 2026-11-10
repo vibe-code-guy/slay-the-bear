@@ -9,3 +9,5 @@ export * from "./sim";
 export * from "./contract";
 export * from "./views";
 export * from "./verify";
+export * from "./derive";
+export * from "./town";

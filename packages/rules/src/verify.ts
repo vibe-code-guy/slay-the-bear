@@ -4,7 +4,7 @@
 
 import { BPS, type GameConfig } from "./config";
 import { fromHex, sha256, toHex } from "./bytes";
-import { roundTime, verifyBeacon } from "./drand";
+import { QUICKNET, roundTime, verifyBeacon } from "./drand";
 import { dropForRoll } from "./items";
 import {
   Tactic,
@@ -154,10 +154,14 @@ export function verifyRound(
   if (config.randomness.mode === "drand") {
     const sig = s.beacon_signature ?? "";
     add("Beacon is the one fixed at the open", s.beacon_round !== null && b(s.beacon_round) === target, `drand round ${s.beacon_round}`);
+    // the offline town signs with a local test key; only a quicknet game is checked against drand's
+    const quicknet = config.randomness.publicKey.toLowerCase() === QUICKNET.publicKey;
     add(
       "drand signature is valid",
       verifyBeacon(target, sig, config.randomness.publicKey),
-      "BLS12-381 check against the quicknet group key, the same check the contract ran on-chain",
+      quicknet
+        ? "BLS12-381 check against the quicknet group key, the same check the contract ran on-chain"
+        : "BLS12-381 check against this game's beacon key, which is not drand quicknet's; the contract runs the same check",
     );
     randomness = sha256(fromHex(sig));
     add("Randomness is sha256(signature)", toHex(randomness) === s.randomness, s.randomness);
