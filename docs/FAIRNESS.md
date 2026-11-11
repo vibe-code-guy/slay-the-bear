@@ -40,12 +40,12 @@ admin call. The contract has no owner field and no admin method either; its conf
 near account list-keys game.slaythebear.testnet network-config testnet now
 ```
 
-**Status on 10 Nov 2026: the game account still has its deployment key.** Deleting it is
-permanent, so it waits for the project owner's go-ahead (`npx tsx scripts/lock.ts --game
-game.slaythebear.testnet --confirm`). Until then the deployer could redeploy, and the `/verify`
-page says so in orange. `npm run verify:live` reports the key count. The deployer used that key
-once, on 10 Nov, to replace the code with a reproducible build of the same contract source whose
-embedded source link points at this repository; the state carried over
+Expected: no keys. **The game was locked on 11 Nov 2026**: `scripts/lock.ts` deleted the
+deployment key in `EhFhVM3981Dsmcsv5TRfFDC8dPBmLh1cYB2SCSTebW3`, after checking that the code on
+chain was the published build. `npm run verify:live` prints `PASS access keys on the game
+account: 0`, and the `/verify` page says the account has no access keys. Before the lock, the
+deployer used that key once, on 10 Nov, to replace the code with a reproducible build of the same
+contract source whose embedded source link points at this repository; the state carried over
 ([TESTNET.md](TESTNET.md#instances)).
 
 The special accounts (`treasury.`, `pouches.`, `bear.`, `smith.`, `loot.`, `market.` +

@@ -12,6 +12,7 @@
 <p align="center">
   <a href="https://testnet.nearblocks.io/address/game.slaythebear.testnet"><img alt="Live on NEAR testnet" src="https://img.shields.io/badge/NEAR_testnet-live-f59e0b" /></a>
   <a href="https://github.com/vibe-code-guy/slay-the-bear/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/vibe-code-guy/slay-the-bear/actions/workflows/ci.yml/badge.svg" /></a>
+  <a href="https://testnet.nearblocks.io/txns/EhFhVM3981Dsmcsv5TRfFDC8dPBmLh1cYB2SCSTebW3"><img alt="Contract locked: no access keys" src="https://img.shields.io/badge/contract-locked%2C_no_keys-f59e0b" /></a>
   <img alt="Tests: 38 TypeScript and 16 Rust" src="https://img.shields.io/badge/tests-38_TS_%2B_16_Rust-f59e0b" />
   <img alt="Randomness: drand, checked on-chain" src="https://img.shields.io/badge/dice-drand%2C_checked_on--chain-7a4f2c" />
   <img alt="Play as a free guest" src="https://img.shields.io/badge/play-free_guest%2C_no_wallet-7a4f2c" />
@@ -33,9 +34,9 @@ Built for the NEAR HACKATHON. Tracks: `memecoins`, `games`.
 - **Problem.** Most memecoins have nothing to do but sit in a chart. On-chain games ask players to
   trust whoever runs the dice.
 - **Idea.** Make spending the coin the game. Every raid, the town burns $SLAY to hit a Bear before
-  a five-minute timer runs out. The contract runs every rule, with no owner or admin methods. The
-  dice come from drand, a public randomness beacon, and the contract checks drand's BLS
-  signature itself.
+  a five-minute timer runs out. The contract runs every rule, with no owner or admin methods, and
+  its last access key is deleted, so nobody can change it. The dice come from drand, a public
+  randomness beacon, and the contract checks drand's BLS signature itself.
 - **Result.** Every raid ends in one of two outcomes, on-chain, and anyone can recompute it:
 
 | Outcome | When | What happens |
@@ -57,7 +58,7 @@ one of them.
 | 3 | Watch the raid | The villagers (Bjorn, Fern, Sid, Sara) charging in, usually within a minute or two; Bjorn and Fern hit with swords. The win chance and the win/lose chip for each tactic update after every hit. |
 | 4 | When the timer ends, press **Spin the Wheel of Fate** | The contract checks drand's signature; the wheel stops on the roll (out of 10,000) that drew the Bear's tactic. On a win, a loot chest with your drops and your share. If you don't spin, the keeper settles the raid within about a minute. |
 | 5 | Press **Claim** | Your share of the loot flying to your coin counter. |
-| 6 | Open https://slay-the-bear.vercel.app/verify | The latest settled raid recomputed in your browser: 13 of 13 checks pass, such as "drand signature is valid" and "Tactic drawn from the beacon: roll N of 10000". An orange line says the game account still has one access key ([lock status](#lock-status)). Type another raid number to check that one. |
+| 6 | Open https://slay-the-bear.vercel.app/verify | The latest settled raid recomputed in your browser: 13 of 13 checks pass, such as "drand signature is valid" and "Tactic drawn from the beacon: roll N of 10000". A green line says the game account has no access keys: nobody can upgrade, pause, mint or withdraw ([lock status](#lock-status)). Type another raid number to check that one. |
 | 7 | Open https://slay-the-bear.vercel.app/fast-forward and press **Run** | 90 days of raids simulated in a second: the win rate, the longest Bear streak, the Bear's health against the town's damage, the hoard and the burn. |
 | 8 | Open the contract on [nearblocks](https://testnet.nearblocks.io/address/game.slaythebear.testnet) | The `hit`, `settle` and `claim` calls behind the steps above, from players, villagers and the keeper. |
 
@@ -67,10 +68,10 @@ one of them.
 | --- | --- | --- |
 | 9 | `npm ci`, then `npm test` | `Tests 38 passed (38)`: the rules engine, the simulator, the verifier and the drand checks on real quicknet rounds. |
 | 10 | `npm run test:contract` | `16 passed`, including a scripted game that the Rust contract replays and that must match the TypeScript rules exactly. |
-| 11 | `npm run verify:game` (read-only, no keys) | `PASS code hash matches deployments/game.slaythebear.testnet.json`, a `NOTE` that the game account still has one key, `47 round(s), 47 settled` (or more), one `PASS round N: win, Rage (roll 7946), 3 raiders, 13 checks` line per raid, four ledger identities (supply + burned = minted, the loot chest, the treasury, the hoard), then `ALL PASS`. |
+| 11 | `npm run verify:game` (read-only, no keys) | `PASS code hash matches deployments/game.slaythebear.testnet.json`, `PASS the game account has no access keys: code and config are final`, `47 round(s), 47 settled` (or more), one `PASS round N: win, Rage (roll 7946), 3 raiders, 13 checks` line per raid, four ledger identities (supply + burned = minted, the loot chest, the treasury, the hoard), then `ALL PASS`. |
 | 12 | `./slay sim demo` (`.\slay sim demo` in PowerShell) | A whole offline raid in about a second, command by command: two hits, a villager joining, the beacon's tactic, the loot, then `Raid #1 checks out: 13 of 13 checks pass.` |
 | 13 | `./slay live join`, then `./slay live hit 100` | `Joined game.slaythebear.testnet as p-xxxxxxxx.slaythebear.testnet (a guest account; its key stays on this machine), with a 1,000 $SLAY starter pouch.`, then your hit's damage and its `Transaction: https://testnet.nearblocks.io/txns/...` link. Add `--json` for one JSON object. |
-| 14 | `git checkout b9f0a5b`, `npm run build:contract:reproducible` (needs Docker), `git checkout main`, `npm run verify:live` | `PASS local build ... has hash BD2jeytg...`: the deployed code is your build of the commit named in the contract's NEP-330 metadata. Also `PASS config is the published "quick" preset`, and `FAIL access keys on the game account: 1` until the lock. |
+| 14 | `git checkout b9f0a5b`, `npm run build:contract:reproducible` (needs Docker), `git checkout main`, `npm run verify:live` | `PASS local build ... has hash BD2jeytg...`: the deployed code is your build of the commit named in the contract's NEP-330 metadata. Then `PASS access keys on the game account: 0`, `PASS config is the published "quick" preset` and `ALL PASS`. |
 | 15 | Read [docs/TESTNET.md](docs/TESTNET.md) | Every deployment and transaction on testnet: rejected tampered beacons, gas-free guest moves, the villagers' trades, raids played from the CLI and from the hosted site. |
 
 ## Where to check each claim
@@ -197,7 +198,7 @@ players and have no special powers.
 | --- | --- | --- |
 | The random rolls are drand's | `settle` verifies the BLS12-381 signature of the drand round fixed at the open, on-chain (NEP-488 host functions). | Tampered beacons rejected on testnet, [docs/TESTNET.md](docs/TESTNET.md#drand-verified-on-chain) |
 | Nobody knows the Bear's tactic early | It is drawn from that beacon after the deadline. The Bear and the smith are rules in the contract, with no keys. | `/verify` "Tactic drawn from the beacon" |
-| The rules can't change | No owner, no admin methods, config fixed at `new()`. The game account's last key is deleted at launch (**pending**, see below). | `npm run verify:game`, or `near account list-keys game.slaythebear.testnet network-config testnet now` |
+| The rules can't change | No owner, no admin methods, config fixed at `new()`. The game account's last key was deleted on 11 Nov 2026 ([lock status](#lock-status)). | `npm run verify:game`, or `near account list-keys game.slaythebear.testnet network-config testnet now` |
 | The code is this repository | Reproducible build with NEP-330 metadata pointing at the commit. | `npm run verify:live` |
 | Every number follows the rules | The contract's views hold every input; the TypeScript rules (pinned to the contract by shared test vectors) recompute each raid and the ledger. | `npm run verify:game`, `/verify` |
 | The server can't play for you | Guests sign moves on their own device; the relayer only pays gas and relays zero-deposit calls to game methods from guest accounts. | [docs/FAIRNESS.md](docs/FAIRNESS.md) |
@@ -207,13 +208,16 @@ Details and the remaining trust assumptions: [docs/FAIRNESS.md](docs/FAIRNESS.md
 
 ### Lock status
 
-As of 10 Nov 2026, `game.slaythebear.testnet` still holds one full-access key, so its deployer
-could still replace the code; `/verify`, `npm run verify:game` and `npm run verify:live` say so.
-The key was used once, on 10 Nov, to replace the code with a reproducible build of the same
-contract source whose embedded source link points at this repository; the state carried over
-([docs/TESTNET.md](docs/TESTNET.md#instances)). Deleting the key is permanent, so it waits for
-the owner: `npx tsx scripts/lock.ts --game game.slaythebear.testnet --confirm`. After that,
-`/verify` shows "no access keys" and nobody can change the game.
+**Locked on 11 Nov 2026.** The last access key of `game.slaythebear.testnet` was deleted in
+[`EhFhVM3981Dsmcsv5TRfFDC8dPBmLh1cYB2SCSTebW3`](https://testnet.nearblocks.io/txns/EhFhVM3981Dsmcsv5TRfFDC8dPBmLh1cYB2SCSTebW3)
+(`scripts/lock.ts`). Nobody, the deployer included, can redeploy, upgrade or sign for the game
+account any more: its code and config are final. `npm run verify:live` prints `PASS access keys on
+the game account: 0`, and `/verify` says the account has no access keys.
+
+Before the lock, the key was used once, on 10 Nov, to replace the code with a reproducible build of
+the same contract source whose embedded source link points at this repository; the state carried
+over ([docs/TESTNET.md](docs/TESTNET.md#instances)). Anyone can still send the account NEAR to pay
+for more storage.
 
 ## The app
 
@@ -301,9 +305,8 @@ must reach the same state.
 npm run verify:game
 ```
 
-Expected: one `PASS round N` line per settled raid, four ledger identities and `ALL PASS`, with a
-`NOTE` that the game account still has one key until the lock. Pass `-- --game <id>` to check
-another instance.
+Expected: `PASS the game account has no access keys`, one `PASS round N` line per settled raid,
+four ledger identities and `ALL PASS`. Pass `-- --game <id>` to check another instance.
 
 ### 3. Play a raid offline in the terminal
 
@@ -354,8 +357,8 @@ npm run verify:live
 ```
 
 Expected: `PASS local build ... has hash BD2jeytgDSV5wAyhNEfieVoFg3oqx9vedWuXZusPqdzN`, the
-contract's NEP-330 source metadata naming commit `b9f0a5b`, `PASS config is the published "quick"
-preset`, and `FAIL access keys on the game account: 1` until the lock.
+contract's NEP-330 source metadata naming commit `b9f0a5b`, `PASS access keys on the game account: 0`,
+`PASS config is the published "quick" preset` and `ALL PASS`.
 
 ### 7. Run your own instance
 
@@ -373,7 +376,7 @@ villagers, the web app on Vercel with its relayer, and the per-minute tick.
 | Sub-accounts | Guest accounts `p-xxxxxxxx.slaythebear.testnet`, created by the relayer in one transaction | [A guest's creation](https://testnet.nearblocks.io/txns/cGg8EUr9hF9MvVZfEzT5ZJBiHWatwM9dLPJ1yq9QRVU): the account, 0.01 NEAR and the game-only key at once |
 | NEP-297 events | Every move (hits, settlements, claims, crafting, trades) as `EVENT_JSON` logs; the site and the CLI read each hit's damage and each claim's payout from them | The logs of any transaction above |
 | NEP-330 source metadata and reproducible builds | Proving that the deployed code is a given commit of this repository | `npm run verify:live` |
-| Deleting the last access key | Making the contract unchangeable | Pending ([lock status](#lock-status)) |
+| Deleting the last access key | Making the contract unchangeable | [The lock](https://testnet.nearblocks.io/txns/EhFhVM3981Dsmcsv5TRfFDC8dPBmLh1cYB2SCSTebW3) on 11 Nov 2026 |
 
 ## FAQ
 
@@ -387,10 +390,10 @@ No and no. It runs on testnet only, and $SLAY and the items have no value. Who w
 follows from damage; the beacon only picks the Bear's tactic and the drops.
 
 **Can the developer rig a raid?**
-Not the rolls: they come from drand and the contract checks the signature. Not the rules: the
-contract has no owner or admin methods, and its config is fixed. Until the lock, though, the
-deployer's key could replace the contract's code; it was used once, to redeploy the same source
-([lock status](#lock-status)). After the lock, nobody can change anything.
+No. Not the rolls: they come from drand and the contract checks the signature. Not the rules: the
+contract has no owner or admin methods, and its config is fixed. Not the code: the game account's
+last key was deleted on 11 Nov 2026, so nobody can replace it. Before that, the key was used once,
+to redeploy the same source with an updated source link ([lock status](#lock-status)).
 
 **What do the villagers do, and can they cheat?**
 They are four ordinary accounts that hit, forge and trade by the rules in
@@ -443,7 +446,7 @@ also send them with `mt_transfer`.
 | Gas-free guests (relayer) | Done; guests created and played from a browser and from the CLI on testnet |
 | Keeper and villagers | Done; run by the site's `/api/tick`, every minute from a scheduled job and every 20 seconds per open page |
 | Terminal client (`slay`) | Done; raids 44 and 45 played from it on testnet |
-| Lock (deleting the last key) | Pending the owner's approval |
+| Lock (deleting the last key) | Done on 11 Nov 2026: the game account has no access keys |
 | Not built | NEAR Auth (Google or email) sign-in, wallet sign-in, mercenaries, a season-long leaderboard |
 
 ## Built with

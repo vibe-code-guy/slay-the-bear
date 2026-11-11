@@ -16,7 +16,7 @@ $SLAY and the items have no monetary value; the aim is that the game would stay 
 | Actor | Holds | Can | Cannot |
 | --- | --- | --- | --- |
 | Player | Their account's key (guests: a function-call key for the game only, in the browser) | Play every game method, transfer their own $SLAY and items | Move anyone else's balance, hit after the deadline, settle without the right beacon, claim twice |
-| Deployer | Until locked, the game account's full-access key | Before locking: redeploy. After locking: nothing | Mint, move the treasury or hoard, pick randomness: there are no such methods |
+| Deployer | Nothing since the lock on 11 Nov 2026 (before it, the game account's full-access key) | Before locking: redeploy. After locking: nothing | Mint, move the treasury or hoard, pick randomness: there are no such methods |
 | Relayer operator (`/api/relay`) | The root account key | Pay gas, refuse to relay, create guest accounts | Sign as a guest or alter a signed move |
 | Agent operator (keeper, villagers) | Ordinary player keys | Settle finished raids, play as four villagers | Anything a player cannot |
 | NEAR validators | Block production | Order transactions, set block timestamps within protocol limits | Forge a drand signature |
@@ -34,7 +34,7 @@ $SLAY and the items have no monetary value; the aim is that the game would stay 
 | **Front-running settle** | Only the 5 $SLAY tip is at stake. | None. |
 | **Double claim, double settle** | `already_claimed`, `already_settled`; checked by unit tests and the vector replay. | None. |
 | **Moving NPC or treasury funds** | Special accounts are refused as sender or receiver by `ft_transfer`, `ft_transfer_call`, `mt_transfer`, `mt_batch_transfer` and all game methods; they have no keys. | None. |
-| **Admin or upgrade abuse** | No owner, no admin methods, config fixed at `new()`, reproducible build. Locking deletes the last key. | Until the lock: the deployer key (see `docs/FAIRNESS.md`). |
+| **Admin or upgrade abuse** | No owner, no admin methods, config fixed at `new()`, reproducible build. The last key was deleted on 11 Nov 2026 (`docs/FAIRNESS.md`). | None. |
 | **Relayer misuse by others** | Relays only zero-deposit calls to the game's play methods from `p-*` guest accounts; per-IP and per-account rate limits; gas per call capped at 200 TGas. | Rate limits are per server instance, so a determined user on a scaled deployment gets more. Cost is testnet NEAR only. |
 | **Censoring relayer** | Players can call the contract directly with any wallet or the NEAR CLI. | Guests without NEAR depend on the relayer. |
 | **Guest key theft** | The key lives in the browser's localStorage and can only call the game contract; the account holds 0.01 NEAR. | Malware in the browser can play as the guest and transfer its $SLAY and items. |

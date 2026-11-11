@@ -4,7 +4,7 @@
 // Afterwards nobody, the deployer included, can redeploy, upgrade, migrate, pause or sign for
 // the game account. Its code and config can never change. This cannot be undone, so the
 // script refuses to run without --confirm and checks the on-chain code first.
-import { Account, actions } from "near-api-js";
+import { Account, PublicKey, actions } from "near-api-js";
 import { account, arg, flag, provider, readDeployment, txHash, writeDeployment } from "./lib/near";
 
 async function main() {
@@ -27,7 +27,7 @@ async function main() {
   }
   const res = await account(game).signAndSendTransaction({
     receiverId: game,
-    actions: keys.map((k) => actions.deleteKey(k.public_key as never)),
+    actions: keys.map((k) => actions.deleteKey(PublicKey.fromString(k.public_key))),
   });
   const left = (await new Account(game, provider).getAccessKeyList()).keys;
   if (left.length !== 0) throw new Error(`${left.length} key(s) still on ${game}`);

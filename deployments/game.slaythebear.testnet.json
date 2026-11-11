@@ -9,11 +9,13 @@
   "txs": {
     "createAccount": "DHSNjfzy6FhxkvdSjPH7KQjF6ohejF239Rikom9bTp2v",
     "deployAndInit": "2pCMMY5qVTfRqQBBwWTCw9oTzghyPJWsDiDFLrt56BZB",
-    "redeploy1": "9mREfF1RQRaWD4YsvZ7GgWXJXNBhxyideLVHfytYTBjW"
+    "redeploy1": "9mREfF1RQRaWD4YsvZ7GgWXJXNBhxyideLVHfytYTBjW",
+    "lock": "EhFhVM3981Dsmcsv5TRfFDC8dPBmLh1cYB2SCSTebW3"
   },
-  "locked": false,
+  "locked": true,
   "previousCodeHashes": [
     "Br6G5zJ8f5hyPuiyDsZ5RZehWNLmXwLpqSB9SwLhJJov"
   ],
-  "redeployedAt": "2026-11-10T17:26:04.730Z"
+  "redeployedAt": "2026-11-10T17:26:04.730Z",
+  "lockedAt": "2026-11-11T07:32:22.847Z"
 }

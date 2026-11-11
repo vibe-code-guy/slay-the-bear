@@ -9,7 +9,7 @@ never in the repository.
 
 | Account | Role | Code hash | Config | Keys |
 | --- | --- | --- | --- | --- |
-| `game.slaythebear.testnet` | **The public game** (5-minute raids) | `BD2jeytgDSV5wAyhNEfieVoFg3oqx9vedWuXZusPqdzN` (reproducible build of `b9f0a5b`) | `quick` preset | 1, until the owner approves the lock |
+| `game.slaythebear.testnet` | **The public game** (5-minute raids) | `BD2jeytgDSV5wAyhNEfieVoFg3oqx9vedWuXZusPqdzN` (reproducible build of `b9f0a5b`) | `quick` preset | 0: locked on 11 Nov 2026 (`EhFhVM3981Dsmcsv5TRfFDC8dPBmLh1cYB2SCSTebW3`) |
 | `dev3.slaythebear.testnet` | Development and end-to-end tests (10-minute raids) | `BD2jeytg…` (the same build) | `demo` preset | 1 (stays unlocked) |
 | `town.slaythebear.testnet` | Superseded before launch: pre-launch effort cap (2.0x) | `BD2jeytg…` (the same build) | `quick` with the old cap | 1, unused |
 
@@ -211,6 +211,27 @@ keeper acted through its `/api/tick`.
 `./slay live verify 45`, `46` and `47`: 13 of 13 checks pass each. Since 20:54 UTC a
 cron-job.org job sends a POST to `/api/tick` every minute, so finished raids settle and the
 villagers play when no page is open.
+
+### Locked (11 Nov)
+
+`npx tsx scripts/lock.ts --game game.slaythebear.testnet --confirm` checked that the code on
+chain was the published build (`BD2jeytg…`), then deleted the account's one full-access key,
+`ed25519:GHiKTBmhtadHEHMSivVzxAFHPwmFTh9ggFZ4wRHWvCvf`, in
+`EhFhVM3981Dsmcsv5TRfFDC8dPBmLh1cYB2SCSTebW3` (a `DeleteKey` signed by the game account
+itself). The contract kept 5.6 NEAR above its storage, room for about 560 kB more state, and
+anyone can send it more. `npm run verify:live` afterwards:
+
+```
+game.slaythebear.testnet runs code BD2jeytgDSV5wAyhNEfieVoFg3oqx9vedWuXZusPqdzN
+PASS local build .\contracts\game\target\near\slay_game.wasm has hash BD2jeytgDSV5wAyhNEfieVoFg3oqx9vedWuXZusPqdzN
+PASS access keys on the game account: 0 (0 means nobody can redeploy, upgrade or sign for it)
+PASS config is the published "quick" preset in packages/rules/src/config.ts
+ALL PASS
+```
+
+`npm run verify:game` now starts with `PASS the game account has no access keys: code and config
+are final`, then `47 round(s), 47 settled` and `ALL PASS`. The site's `/api/tick` and the CLI kept
+working: the contract needs no key of its own to be played.
 
 ## Early checks (8 Nov 2026, first contract build)
 
