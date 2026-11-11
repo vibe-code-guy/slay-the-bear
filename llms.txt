@@ -12,6 +12,18 @@ Hosted demo: https://slay-the-bear.vercel.app (press "Play as a guest (free)": a
 
 Status on 10 Nov 2026: 47 raids settled on game.slaythebear.testnet, all recomputed by `npm run verify:game` (ALL PASS). The game account still holds one full-access key until the owner approves the lock (scripts/lock.ts), so its code could still be replaced; `npm run verify:live` and /verify report this.
 
+## Claims and where each is proven
+
+- The random rolls are drand's: `settle` verifies the BLS12-381 signature of the drand round fixed at the open, on-chain (contracts/game/src/drand.rs, NEP-488 host functions). Tampered and wrong-round beacons were rejected on testnet (docs/TESTNET.md, "drand verified on-chain"); /verify shows "drand signature is valid".
+- Nobody knows the Bear's tactic while hits are allowed: the deciding round is the first one published after the deadline, plus 2, fixed when the raid opens (/verify: "Deciding drand round fixed at the open").
+- Every raid follows the published rules: packages/rules/src/verify.ts runs 13 checks per raid; `npm run verify:game` recomputes every settled raid plus four ledger identities (ALL PASS for 47 raids on 10 Nov 2026).
+- The TypeScript rules equal the contract's: `npm run test:contract` replays fixtures/vectors.json, a scripted game written by the TypeScript rules, in Rust.
+- The deployed code is commit b9f0a5b of this repository: `npm run verify:live` compares the deployed code hash with a local reproducible build and prints the NEP-330 source metadata.
+- The rules can't change: no owner, no admin methods, config fixed at `new()`. Exception until the lock: the game account's one remaining key could replace the code (used once, on 10 Nov 2026, to redeploy the same source).
+- The relayer can't play for a guest: apps/web/lib/server.ts (`checkDelegate`) relays only zero-deposit calls to game methods from guest accounts; each move is a delegate action signed by the guest's own key.
+- The NPCs act by published rules: packages/rules/src/npc.ts and packages/agents/src (keeper.ts, villagers.ts); their trades on testnet are in docs/TESTNET.md.
+- AI agents can play: packages/cli (`./slay`, `--json`), docs/CLI.md; raid 44 was played, settled and verified from the CLI.
+
 ## Run and check
 
 - `npm install`, then `npm test` (38 TypeScript tests) and `npm run test:contract` (16 Rust tests, needs Rust + cargo-near)
