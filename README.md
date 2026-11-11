@@ -10,13 +10,13 @@
 </p>
 
 <p align="center">
-  <a href="https://testnet.nearblocks.io/address/game.slaythebear.testnet"><img alt="Live on NEAR testnet" src="https://img.shields.io/badge/NEAR-live%20on%20testnet-10b981?style=flat-square" /></a>
+  <a href="https://testnet.nearblocks.io/address/game.slaythebear.testnet"><img alt="Live on NEAR testnet" src="https://img.shields.io/badge/NEAR_testnet-live-f59e0b" /></a>
   <a href="https://github.com/vibe-code-guy/slay-the-bear/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/vibe-code-guy/slay-the-bear/actions/workflows/ci.yml/badge.svg" /></a>
-  <img alt="Tests" src="https://img.shields.io/badge/tests-38%20TS%20%2B%2016%20Rust%20passing-10b981?style=flat-square" />
-  <img alt="Randomness" src="https://img.shields.io/badge/randomness-drand%2C%20checked%20on--chain-18181b?style=flat-square" />
-  <img alt="Play" src="https://img.shields.io/badge/play-free%20guest%2C%20no%20wallet-18181b?style=flat-square" />
-  <img alt="Agents" src="https://img.shields.io/badge/agents-CLI%20%2B%20JSON-18181b?style=flat-square" />
-  <img alt="License MIT" src="https://img.shields.io/badge/license-MIT-18181b?style=flat-square" />
+  <img alt="Tests: 38 TypeScript and 16 Rust" src="https://img.shields.io/badge/tests-38_TS_%2B_16_Rust-f59e0b" />
+  <img alt="Randomness: drand, checked on-chain" src="https://img.shields.io/badge/dice-drand%2C_checked_on--chain-7a4f2c" />
+  <img alt="Play as a free guest" src="https://img.shields.io/badge/play-free_guest%2C_no_wallet-7a4f2c" />
+  <img alt="Playable from a terminal" src="https://img.shields.io/badge/terminal-slay_CLI_%2B_JSON-7a4f2c" />
+  <img alt="License MIT" src="https://img.shields.io/badge/license-MIT-7a4f2c" />
 </p>
 
 <p align="center">
@@ -26,9 +26,9 @@
 Built for the NEAR HACKATHON. Tracks: `memecoins`, `games`.
 
 **Play:** https://slay-the-bear.vercel.app · **Verify a raid:** https://slay-the-bear.vercel.app/verify ·
-**Demo video:** _to be added_ · **Contract:** [`game.slaythebear.testnet`](https://testnet.nearblocks.io/address/game.slaythebear.testnet) (NEAR testnet)
+**Contract:** [`game.slaythebear.testnet`](https://testnet.nearblocks.io/address/game.slaythebear.testnet) (NEAR testnet)
 
-## In one minute
+## At a glance
 
 - **Problem.** Most memecoins have nothing to do but sit in a chart. On-chain games ask players to
   trust whoever runs the dice.
@@ -46,7 +46,7 @@ Built for the NEAR HACKATHON. Tracks: `memecoins`, `games`.
 47 raids have been played on testnet by 10 Nov 2026, and `npm run verify:game` recomputes every
 one of them.
 
-## Judge walkthrough: do X, see Y
+## Walkthrough for judges: do X, see Y
 
 **In a browser, no install, no wallet (about 6 minutes, most of it the raid's timer):**
 
@@ -73,7 +73,7 @@ one of them.
 | 14 | `git checkout b9f0a5b`, `npm run build:contract:reproducible` (needs Docker), `git checkout main`, `npm run verify:live` | `PASS local build ... has hash BD2jeytg...`: the deployed code is your build of the commit named in the contract's NEP-330 metadata. Also `PASS config is the published "quick" preset`, and `FAIL access keys on the game account: 1` until the lock. |
 | 15 | Read [docs/TESTNET.md](docs/TESTNET.md) | Every deployment and transaction on testnet: rejected tampered beacons, gas-free guest moves, the villagers' trades, raids played from the CLI and from the hosted site. |
 
-## Guide for judges
+## Where to check each claim
 
 | To check | Look at | Evidence |
 | --- | --- | --- |
@@ -90,8 +90,8 @@ one of them.
 | The numbers were tuned, not guessed | [`scripts/simulate.ts`](scripts/simulate.ts), [docs/GAME_DESIGN.md](docs/GAME_DESIGN.md) | A 60-day simulation of four kinds of town (`npm run simulate`), and `/fast-forward` |
 | Threats considered | [docs/THREAT_MODEL.md](docs/THREAT_MODEL.md), [docs/FAIRNESS.md](docs/FAIRNESS.md) | 18 threats, each with its mitigation and what is left over |
 
-AI reviewers: [`llms.txt`](llms.txt) sums up the project, its claims and where each one is
-proven, in one file.
+For AI reviewers, [`llms.txt`](llms.txt) lists each claim with the file or command that proves
+it.
 
 ### Tracks
 
@@ -444,13 +444,13 @@ also send them with `mt_transfer`.
 | Keeper and villagers | Done; run by the site's `/api/tick`, every minute from a scheduled job and every 20 seconds per open page |
 | Terminal client (`slay`) | Done; raids 44 and 45 played from it on testnet |
 | Lock (deleting the last key) | Pending the owner's approval |
-| Demo video | Not yet |
 | Not built | NEAR Auth (Google or email) sign-in, wallet sign-in, mercenaries, a season-long leaderboard |
 
 ## Built with
 
-No earlier project, template or own library was reused: the history starts on 7 Nov 2026 (UTC),
-and there is no product on another chain. Third-party libraries and services:
+All the code was written for this hackathon, starting on 7 Nov 2026 (UTC). Nothing comes from
+an earlier project or template, and there is no product on another chain. Third-party libraries
+and services:
 
 | Part | Libraries |
 | --- | --- |
@@ -462,9 +462,10 @@ and there is no product on another chain. Third-party libraries and services:
 
 ## AI disclosure
 
-Built with Kiro, an AI coding agent, which wrote the code, tests and docs under the author's
-direction and review. Design decisions, testnet deployments and their results are recorded in
-the commit history and [docs/TESTNET.md](docs/TESTNET.md).
+Slay the Bear was created with AI assistance. Humans came up with the idea, approved every
+design decision and reviewed the code: the contract, the TypeScript rules, the agents, the
+terminal client and the web app. The decisions, testnet deployments and their results are
+recorded in the commit history and [docs/TESTNET.md](docs/TESTNET.md).
 
 ## License
 
