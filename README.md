@@ -26,6 +26,11 @@
 
 Built for the NEAR HACKATHON. Tracks: `memecoins`, `games`.
 
+**Sibling submission (disclosure).** The same author also submitted
+[near-security-budget](https://github.com/vibe-code-guy/near-security-budget) to NEAR HACKATHON
+(track `thesis`): a data-backed investment thesis for NEAR. The two projects are independent
+and share no code.
+
 **Play:** https://slay-the-bear.vercel.app · **Verify a raid:** https://slay-the-bear.vercel.app/verify ·
 **Contract:** [`game.slaythebear.testnet`](https://testnet.nearblocks.io/address/game.slaythebear.testnet) (NEAR testnet)
 
